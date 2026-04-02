@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 import { triggerHaptic } from '@/utils/haptics';
+import { prefetchRoute } from '@/utils/routePrefetch';
 
 import { saveNoteToDBSingle, deleteNoteFromDB, saveNotesToDB } from '@/utils/noteStorage';
 import { getAllSettings, getSetting, setSetting } from '@/utils/settingsStorage';
@@ -813,6 +814,7 @@ const Index = () => {
                 variant="ghost"
                 onClick={async () => {
                   await triggerHaptic('light');
+                  await prefetchRoute('/todo/today');
                   navigate('/todo/today');
                 }}
                 className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 hover:bg-transparent active:bg-transparent touch-target"

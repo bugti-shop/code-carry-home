@@ -17,7 +17,6 @@ import { ProfileImageCropper } from '@/components/ProfileImageCropper';
 import { ProfileStatsBanner } from '@/components/profile/ProfileStats';
 import { ProfileAchievements } from '@/components/profile/ProfileAchievements';
 import { ProfileSubscriptionCard } from '@/components/profile/ProfileSubscriptionCard';
-import { TrialCountdownBanner } from '@/components/profile/TrialCountdownBanner';
 import { CountryFlagPickerSheet } from '@/components/CountryFlagPickerSheet';
 
 
@@ -436,9 +435,6 @@ export default function Profile() {
           </div>
         </div>
       )}
-
-      {/* Trial Countdown Banner */}
-      <TrialCountdownBanner />
 
       {/* Subscription Section */}
       <div className="px-5 mt-6">
