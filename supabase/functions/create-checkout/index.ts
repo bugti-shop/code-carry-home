@@ -82,14 +82,7 @@ serve(async (req) => {
       success_url: `${origin}/?stripe_success=true&plan=${planType}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/`,
       metadata: { user_id: userId || "anonymous", plan_type: planType },
-      subscription_data: {
-        // When payment fails after trial, keep subscription as past_due (not cancel)
-        // This gives us the 3-day grace period window
-        payment_settings: {
-          payment_method_types: ["card"],
-          save_default_payment_method: "on_subscription",
-        },
-      },
+      subscription_data: {},
     };
 
     // Only offer trial to monthly/yearly plans, NOT weekly — and only to new customers
