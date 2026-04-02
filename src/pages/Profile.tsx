@@ -16,7 +16,6 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { ProfileImageCropper } from '@/components/ProfileImageCropper';
 import { ProfileStatsBanner } from '@/components/profile/ProfileStats';
 import { ProfileAchievements } from '@/components/profile/ProfileAchievements';
-import { ProfileSubscriptionCard } from '@/components/profile/ProfileSubscriptionCard';
 import { CountryFlagPickerSheet } from '@/components/CountryFlagPickerSheet';
 
 
@@ -435,12 +434,6 @@ export default function Profile() {
           </div>
         </div>
       )}
-
-      {/* Subscription Section */}
-      <div className="px-5 mt-6">
-        <h3 className="text-lg font-bold text-foreground mb-3">{t('profile.subscription', 'Subscription')}</h3>
-        <ProfileSubscriptionCard />
-      </div>
 
       {/* Statistics Section */}
       <div className="px-5 mt-6">
