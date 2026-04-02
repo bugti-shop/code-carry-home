@@ -383,6 +383,7 @@ const Notes = () => {
             </div>
           </div>
         </div>
+        <div className="h-[0.5px] bg-border/60" />
       </header>
 
       <main className="container mx-auto px-2 xs:px-3 sm:px-4 py-3 xs:py-4 sm:py-6">
