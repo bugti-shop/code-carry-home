@@ -82,7 +82,7 @@ export const TodoLayout = ({ children, title, searchValue, onSearchChange }: Tod
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={t('tasks.searchTasks', 'Search tasks')}
-              className="pl-10 pr-10 bg-secondary border-none text-sm sm:text-base"
+              className="pl-10 pr-10 bg-secondary border-none text-sm sm:text-base shadow-sm"
               value={searchValue || ''}
               onChange={(e) => onSearchChange?.(e.target.value)}
             />
