@@ -235,7 +235,7 @@ const AppContent = () => {
   const [isAppLocked, setIsAppLocked] = useState<boolean | null>(null);
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
   
-  const { isPro, isLoading: subLoading, openPaywall, localTrialExpired, graceExpired } = useSubscription();
+  const { isPro, isLoading: subLoading } = useSubscription();
 
   // Check onboarding status
   useEffect(() => {
@@ -246,28 +246,7 @@ const AppContent = () => {
     check();
   }, []);
 
-  // Handle subscription state
-  // If user has PAID subscription (isPro via Stripe/RevenueCat), always grant access
-  // On web: no local trial — access only via Stripe-verified subscription
-  // On native: local trial still works for 8 days + 3 days grace
-  useEffect(() => {
-    if (subLoading || showOnboarding) return;
-    // Paid subscriber — always allow access
-    if (isPro) return;
-    // Grace period expired (trial 8 days + grace 3 days = 11 days total) — redirect to onboarding page 1
-    // User data is preserved, only onboarding_completed flag is reset
-    if (graceExpired) {
-      setSetting('onboarding_completed', false).then(() => {
-        setShowOnboarding(true);
-      });
-    } else if (localTrialExpired) {
-      // Trial expired but still in grace period — show paywall as warning
-      openPaywall();
-    } else if (!localTrialExpired) {
-      // No subscription and no trial — show paywall
-      openPaywall();
-    }
-  }, [isPro, subLoading, showOnboarding, openPaywall, localTrialExpired, graceExpired]);
+  // Subscription enforcement removed — app is freely accessible
 
   const handleOnboardingComplete = useCallback(() => {
     startTransition(() => {
@@ -282,9 +261,6 @@ const AppContent = () => {
   useJourneyAdvancement();
   useAchievementToasts();
   useCertificateToasts();
-  
-  // Subscription expiry watcher — warnings + notifications
-  useSubscriptionExpiry();
   
   // In-app notification listener — captures events from all sources
   useNotificationListener();
@@ -345,9 +321,6 @@ const AppContent = () => {
     );
   }
 
-  // If subscription expired and onboarding completed, block app with paywall only
-  const subscriptionExpired = !subLoading && !isPro && showOnboarding === false;
-
   return (
     <>
       <Toaster />
@@ -357,14 +330,7 @@ const AppContent = () => {
         <OnboardingFlow onComplete={handleOnboardingComplete} />
       )}
 
-      
-      <PremiumPaywall />
-      
-
-      {/* Only render app content if user has active subscription or is in onboarding */}
-      {!subscriptionExpired && (
-        <>
-          <StreakMilestoneCelebration />
+      <StreakMilestoneCelebration />
           <StreakTierCelebration />
           <SmartReviewPrompt />
           
@@ -373,8 +339,6 @@ const AppContent = () => {
           <SyncConflictSheet />
           <DeferredSyncInit />
           <AppRoutes />
-        </>
-      )}
     </>
   );
 };

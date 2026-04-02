@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, StickyNote, FileText, FileEdit, Pen, ListTodo, Bell, Clock, Repeat, FileCode, GitBranch, Sun, Moon, Receipt, Star, ArrowUpDown, MoreVertical, FolderPlus, CheckSquare, Trash2, Archive, X, RotateCcw, Copy, Folder as FolderIcon, Eye, EyeOff, Mic, Type, LayoutTemplate, Crown, PenTool } from 'lucide-react';
+import { Search, Plus, StickyNote, FileText, FileEdit, Pen, ListTodo, Bell, Clock, Repeat, FileCode, GitBranch, Sun, Moon, Receipt, Star, ArrowUpDown, MoreVertical, FolderPlus, CheckSquare, Trash2, Archive, X, RotateCcw, Copy, Folder as FolderIcon, Eye, EyeOff, Mic, Type, LayoutTemplate, PenTool } from 'lucide-react';
 
 import { format, isToday, isTomorrow, differenceInDays } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -798,10 +798,7 @@ const Index = () => {
               <Button
                 size="icon"
                 variant="ghost"
-                onClick={() => {
-                  if (!isPro) { openPaywall('dark_mode'); return; }
-                  toggleDarkMode();
-                }}
+                onClick={() => toggleDarkMode()}
                 className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 hover:bg-transparent active:bg-transparent touch-target"
                 title={t('common.toggleDarkMode')}
                 data-tour="dark-mode-toggle"
