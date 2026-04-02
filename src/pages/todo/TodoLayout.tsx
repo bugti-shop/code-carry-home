@@ -96,7 +96,7 @@ export const TodoLayout = ({ children, title, searchValue, onSearchChange }: Tod
             )}
           </div>
         </div>
-        <div className="h-[0.5px] bg-border/60" />
+        <div className="h-[0.5px] bg-border" />
       </header>
       <main className="pb-14">
         {children}
