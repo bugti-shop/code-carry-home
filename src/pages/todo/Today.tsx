@@ -19,7 +19,7 @@ import { WaveformProgressBar } from '@/components/WaveformProgressBar';
 import { playCompletionSound } from '@/utils/taskSounds';
 import { TASK_CIRCLE, TASK_CHECK_ICON } from '@/utils/taskItemStyles';
 import { loadCustomSmartViews } from '@/utils/customSmartViews';
-import { TrialCountdownBanner } from '@/components/profile/TrialCountdownBanner';
+
 
 // Extracted hooks and components
 import { useTodayState } from '@/hooks/useTodayState';
@@ -436,7 +436,7 @@ const Today = () => {
 
   return (
     <TodoLayout title="Flowist" searchValue={viewModeSearch} onSearchChange={(val) => startTransition(() => setViewModeSearch(val))}>
-      <TrialCountdownBanner />
+      
       <main className="container mx-auto px-4 py-3 pb-32">
         <div className="max-w-2xl mx-auto">
           {/* Folders */}
