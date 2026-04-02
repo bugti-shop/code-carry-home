@@ -837,7 +837,7 @@ const Index = () => {
                 placeholder={isFullSearch ? t('notes.fullSearchPlaceholder', 'Deep search...') : t('notes.searchNotes')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 xs:pl-10 pr-20 bg-secondary/50 border-none text-xs xs:text-sm sm:text-base h-9 xs:h-10"
+                className="pl-8 xs:pl-10 pr-20 bg-secondary border-none text-xs xs:text-sm sm:text-base h-9 xs:h-10"
               />
               {/* Full Search Toggle */}
               <button
