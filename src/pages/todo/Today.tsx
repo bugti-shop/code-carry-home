@@ -19,7 +19,7 @@ import { WaveformProgressBar } from '@/components/WaveformProgressBar';
 import { playCompletionSound } from '@/utils/taskSounds';
 import { TASK_CIRCLE, TASK_CHECK_ICON } from '@/utils/taskItemStyles';
 import { loadCustomSmartViews } from '@/utils/customSmartViews';
-import { TrialCountdownBanner } from '@/components/profile/TrialCountdownBanner';
+
 
 // Extracted hooks and components
 import { useTodayState } from '@/hooks/useTodayState';
