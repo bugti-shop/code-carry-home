@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FileText, Search, Sun, Moon, X } from 'lucide-react';
+import { FileText, Search, Sun, Moon, X, Crown } from 'lucide-react';
 import { NotificationCenter } from '@/components/NotificationCenter';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { TodoBottomNavigation } from '@/components/TodoBottomNavigation';
 
 import { useDarkMode } from '@/hooks/useDarkMode';
@@ -24,6 +25,7 @@ export const TodoLayout = ({ children, title, searchValue, onSearchChange }: Tod
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
+  const { openPaywall, isPro } = useSubscription();
 
 
   return (
@@ -49,6 +51,7 @@ export const TodoLayout = ({ children, title, searchValue, onSearchChange }: Tod
                 size="icon"
                 variant="ghost"
                 onClick={() => {
+                  if (!isPro) { openPaywall('dark_mode'); return; }
                   toggleDarkMode();
                 }}
                 className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-transparent active:bg-transparent"
