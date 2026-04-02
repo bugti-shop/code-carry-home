@@ -409,7 +409,7 @@ const Notes = () => {
               placeholder={t('notes.searchNotes')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 pl-10 rounded-lg border-none bg-secondary text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-2 pl-10 rounded-lg border-none bg-secondary text-sm focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             {searchQuery && (
