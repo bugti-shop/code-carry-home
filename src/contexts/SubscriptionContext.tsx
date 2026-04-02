@@ -3,19 +3,17 @@ import { getSetting, setSetting } from '@/utils/settingsStorage';
 import { getStoredGoogleUser } from '@/utils/googleAuth';
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/lib/supabase';
-
-// Lazy-load RevenueCat only on native to keep web bundle small
-const getRevenueCat = () => import('@revenuecat/purchases-capacitor');
-const getRevenueCatUI = () => import('@revenuecat/purchases-capacitor-ui');
-
-// Mirror the enum values as constants to avoid importing the module at top level
-const RC_PAYWALL_RESULT = {
-  NOT_PRESENTED: 'NOT_PRESENTED' as any,
-  ERROR: 'ERROR' as any,
-  CANCELLED: 'CANCELLED' as any,
-  PURCHASED: 'PURCHASED' as any,
-  RESTORED: 'RESTORED' as any,
-};
+import {
+  Purchases,
+  LOG_LEVEL,
+  CustomerInfo,
+  PurchasesOfferings,
+  PurchasesPackage,
+  PACKAGE_TYPE,
+  PAYWALL_RESULT,
+  PurchasesCallbackId
+} from '@revenuecat/purchases-capacitor';
+import { RevenueCatUI } from '@revenuecat/purchases-capacitor-ui';
 
 // RevenueCat API Key - This is a public key safe to include in the app
 const REVENUECAT_API_KEY = 'goog_WLSvWlyHHLzNAgIfhCzAYsGaZyh';
