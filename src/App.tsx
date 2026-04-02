@@ -68,12 +68,7 @@ const queryClient = new QueryClient();
 let hasResolvedInitialDashboard = false;
 
 // Minimal fallback — keeps layout stable during chunk load
-const EmptyFallback = () => (
-  <div className="min-h-screen bg-background flex items-center justify-center">
-    <div className="h-9 w-9 rounded-full border-2 border-border border-t-primary animate-spin" aria-hidden="true" />
-  </div>
-);
-
+const EmptyFallback = () => null;
 // Detect stale chunk errors and auto-reload once
 const isChunkError = (error: any): boolean => {
   const msg = String(error?.message || error || '');
