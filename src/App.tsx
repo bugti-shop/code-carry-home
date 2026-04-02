@@ -8,8 +8,28 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-import { SubscriptionProvider, useSubscription } from "@/contexts/SubscriptionContext";
-import { NotesProvider } from "@/contexts/NotesContext";
+const SubscriptionModule = () => import("@/contexts/SubscriptionContext");
+const AppContentLazy = lazy(async () => {
+  const [{ SubscriptionProvider }, { NotesProvider }, { GoogleAuthProvider }] = await Promise.all([
+    import("@/contexts/SubscriptionContext"),
+    import("@/contexts/NotesContext"),
+    import("@/contexts/GoogleAuthContext"),
+  ]);
+  
+  // Dynamically import AppContent component
+  const { AppContentInner } = await import("@/App.inner");
+  
+  const Wrapped = () => (
+    <GoogleAuthProvider>
+      <NotesProvider>
+        <SubscriptionProvider>
+          <AppContentInner />
+        </SubscriptionProvider>
+      </NotesProvider>
+    </GoogleAuthProvider>
+  );
+  return { default: Wrapped };
+});
 import { GoogleAuthProvider } from "@/contexts/GoogleAuthContext";
 const PremiumPaywall = lazy(() => import("@/components/PremiumPaywall").then(m => ({ default: m.PremiumPaywall })));
 const OnboardingFlow = lazy(() => import("@/components/OnboardingFlow").then(m => ({ default: m.OnboardingFlow })));
