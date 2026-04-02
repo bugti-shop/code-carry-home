@@ -403,6 +403,7 @@ const Notes = () => {
 
         {/* Search Bar */}
         <div className="mb-4">
+          <div className="h-[0.5px] bg-border mb-3" />
           <div className="relative">
             <input
               type="text"
