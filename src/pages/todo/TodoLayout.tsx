@@ -11,6 +11,7 @@ import { TodoBottomNavigation } from '@/components/TodoBottomNavigation';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { AppLogo } from '@/components/AppLogo';
 import { triggerHaptic } from '@/utils/haptics';
+import { prefetchRoute } from '@/utils/routePrefetch';
 
 
 interface TodoLayoutProps {
@@ -63,8 +64,9 @@ export const TodoLayout = ({ children, title, searchValue, onSearchChange }: Tod
               <Button
                 size="icon"
                 variant="ghost"
-                onClick={() => {
+                onClick={async () => {
                   triggerHaptic('heavy').catch(() => {});
+                  await prefetchRoute('/notesdashboard');
                   navigate('/notesdashboard');
                 }}
                 className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-transparent active:bg-transparent"

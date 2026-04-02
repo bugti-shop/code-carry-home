@@ -83,8 +83,9 @@ export const TodoBottomNavigation = () => {
     return item.customLabel || t(`nav.${item.id}`, item.label);
   };
 
-  const handleNavigation = useCallback((path: string) => {
+  const handleNavigation = useCallback(async (path: string) => {
     triggerNavHaptic();
+    await prefetchRoute(path);
     navigate(path, { state: { from: location.pathname } });
   }, [navigate, location.pathname]);
 
@@ -112,7 +113,7 @@ export const TodoBottomNavigation = () => {
               key={item.id}
               type="button"
               data-tour={`todo-${item.id}-link`}
-              onClick={() => handleNavigation(item.path)}
+              onClick={() => { void handleNavigation(item.path); }}
               onPointerEnter={() => prefetchRoute(item.path)}
               onTouchStart={() => prefetchRoute(item.path)}
               className={cn(

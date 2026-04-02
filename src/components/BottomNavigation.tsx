@@ -38,8 +38,9 @@ export const BottomNavigation = () => {
 
 
   // Use startTransition for non-blocking navigation
-  const handleNavigation = useCallback((path: string) => {
+  const handleNavigation = useCallback(async (path: string) => {
     triggerNavHaptic();
+    await prefetchRoute(path);
     startTransition(() => {
       navigate(path);
     });
@@ -69,7 +70,7 @@ export const BottomNavigation = () => {
               key={item.id}
               type="button"
               data-tour={`${item.id}-link`}
-              onClick={() => handleNavigation(item.path)}
+              onClick={() => { void handleNavigation(item.path); }}
               onPointerEnter={() => prefetchRoute(item.path)}
               onTouchStart={() => prefetchRoute(item.path)}
               className={cn(

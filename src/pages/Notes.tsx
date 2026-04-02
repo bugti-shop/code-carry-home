@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { AppLogo } from '@/components/AppLogo';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDarkMode } from '@/hooks/useDarkMode';
+import { prefetchRoute } from '@/utils/routePrefetch';
 
 import { useTranslation } from 'react-i18next';
 import { useNotes } from '@/contexts/NotesContext';
@@ -370,7 +371,10 @@ const Notes = () => {
               <Button
                 size="icon"
                 variant="ghost"
-                onClick={() => navigate('/todo/today')}
+                onClick={async () => {
+                  await prefetchRoute('/todo/today');
+                  navigate('/todo/today');
+                }}
                 title={t('common.switchToTodo')}
                 className="h-7 w-7 xs:h-8 xs:w-8 sm:h-10 sm:w-10 touch-target"
               >

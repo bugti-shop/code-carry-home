@@ -32,14 +32,17 @@ import { useNotificationListener } from "@/hooks/useNotificationListener";
 const StreakMilestoneCelebration = lazy(() => import("@/components/StreakMilestoneCelebration").then(m => ({ default: m.StreakMilestoneCelebration })));
 const StreakTierCelebration = lazy(() => import("@/components/StreakTierCelebration").then(m => ({ default: m.StreakTierCelebration })));
 const SmartReviewPrompt = lazy(() => import("@/components/SmartReviewPrompt").then(m => ({ default: m.SmartReviewPrompt })));
-const SubscriptionExpiryBanner = lazy(() => import("@/components/SubscriptionExpiryBanner").then(m => ({ default: m.SubscriptionExpiryBanner })));
 
 const ComboOverlay = lazy(() => import("@/components/ComboOverlay").then(m => ({ default: m.ComboOverlay })));
 const UrgentReminderOverlay = lazy(() => import("@/components/UrgentReminderOverlay").then(m => ({ default: m.UrgentReminderOverlay })));
 const SyncConflictSheet = lazy(() => import("@/components/SyncConflictSheet").then(m => ({ default: m.SyncConflictSheet })));
-const Today = lazy(() => import("./pages/todo/Today"));
+const preloadTodayPage = () => import("./pages/todo/Today");
+const preloadNotesDashboardPage = () => import("./pages/Index");
+const Today = lazy(preloadTodayPage);
 
-const Index = lazy(() => import("./pages/Index"));
+const Index = lazy(preloadNotesDashboardPage);
+void preloadTodayPage();
+void preloadNotesDashboardPage();
 
 // Lazy load everything else - they load in background after first paint
 const Notes = lazy(() => import("./pages/Notes"));
@@ -66,7 +69,9 @@ let hasResolvedInitialDashboard = false;
 
 // Minimal fallback — keeps layout stable during chunk load
 const EmptyFallback = () => (
-  <div className="min-h-screen bg-background" />
+  <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="h-9 w-9 rounded-full border-2 border-border border-t-primary animate-spin" aria-hidden="true" />
+  </div>
 );
 
 // Detect stale chunk errors and auto-reload once
@@ -359,7 +364,6 @@ const AppContent = () => {
       {/* Only render app content if user has active subscription or is in onboarding */}
       {!subscriptionExpired && (
         <>
-          <SubscriptionExpiryBanner />
           <StreakMilestoneCelebration />
           <StreakTierCelebration />
           <SmartReviewPrompt />
