@@ -6,7 +6,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import en from './locales/en.json';
 
 // Lazy locale loaders — only fetched when user switches language
-const lazyLocales: Record<string, () => Promise<{ default: Record<string, string> }>> = {
+const lazyLocales: Record<string, () => Promise<any>> = {
   es: () => import('./locales/es.json'),
   fr: () => import('./locales/fr.json'),
   de: () => import('./locales/de.json'),
