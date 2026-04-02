@@ -328,7 +328,7 @@ const Notes = () => {
   return (
     <div className="min-h-screen min-h-screen-dynamic bg-background pb-14">
       <header className="bg-background sticky top-0 z-10" style={{ paddingTop: 'var(--safe-top, 0px)' }}>
-         <div className="container mx-auto px-2 xs:px-3 sm:px-4 pt-1.5 pb-2">
+         <div className="container mx-auto px-2 xs:px-3 sm:px-4 pt-3 pb-2">
           <div className="flex items-center justify-between gap-1 xs:gap-2">
             <div className="flex items-center gap-1.5 xs:gap-2 min-w-0 flex-shrink-0">
               <AppLogo size="sm" />
