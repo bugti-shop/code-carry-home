@@ -74,32 +74,20 @@ export default defineConfig(({ mode }) => ({
     cssMinify: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-dnd': ['@hello-pangea/dnd'],
-          'vendor-radix': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-select',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-accordion',
-            '@radix-ui/react-alert-dialog',
-            '@radix-ui/react-checkbox',
-            '@radix-ui/react-collapsible',
-            '@radix-ui/react-scroll-area',
-            '@radix-ui/react-switch',
-            '@radix-ui/react-tooltip',
-            '@radix-ui/react-toggle',
-            '@radix-ui/react-toggle-group',
-            '@radix-ui/react-slider',
-            '@radix-ui/react-progress',
-            '@radix-ui/react-radio-group',
-          ],
-          'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
-          'vendor-date': ['date-fns'],
-          'vendor-motion': ['framer-motion'],
-          'vendor-mapbox': ['mapbox-gl'],
-          'vendor-supabase': ['@supabase/supabase-js'],
+        manualChunks(id) {
+          if (id.includes('@revenuecat')) return 'vendor-revenuecat';
+          if (id.includes('@hello-pangea/dnd')) return 'vendor-dnd';
+          if (id.includes('lucide-react')) return 'vendor-icons';
+          if (id.includes('recharts') || id.includes('d3-')) return 'vendor-recharts';
+          if (id.includes('react-router')) return 'vendor-router';
+          if (id.includes('@radix-ui')) return 'vendor-radix';
+          if (id.includes('i18next')) return 'vendor-i18n';
+          if (id.includes('date-fns')) return 'vendor-date';
+          if (id.includes('framer-motion')) return 'vendor-motion';
+          if (id.includes('mapbox-gl')) return 'vendor-mapbox';
+          if (id.includes('@supabase')) return 'vendor-supabase';
+          if (id.includes('@capacitor')) return 'vendor-capacitor';
+          if (id.includes('@capgo')) return 'vendor-capacitor';
         },
       },
     },

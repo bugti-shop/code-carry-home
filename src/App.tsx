@@ -37,8 +37,7 @@ const SubscriptionExpiryBanner = lazy(() => import("@/components/SubscriptionExp
 const ComboOverlay = lazy(() => import("@/components/ComboOverlay").then(m => ({ default: m.ComboOverlay })));
 const UrgentReminderOverlay = lazy(() => import("@/components/UrgentReminderOverlay").then(m => ({ default: m.UrgentReminderOverlay })));
 const SyncConflictSheet = lazy(() => import("@/components/SyncConflictSheet").then(m => ({ default: m.SyncConflictSheet })));
-// Eager load only the two most critical pages for instant first render
-import Today from "./pages/todo/Today";
+const Today = lazy(() => import("./pages/todo/Today"));
 
 const Index = lazy(() => import("./pages/Index"));
 
