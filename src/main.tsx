@@ -169,12 +169,11 @@ const renderApp = () => {
   );
 };
 
-let rendered = false;
-const renderOnce = () => { if (!rendered) { rendered = true; renderApp(); } };
+// Render immediately — don't block on cache warming
+renderApp();
 
-// Render immediately if cache warms fast, otherwise render after 150ms
-warmSettingsCache().finally(renderOnce);
-setTimeout(renderOnce, 150);
+// Warm settings cache in background (non-blocking)
+warmSettingsCache().catch(() => {});
 
 // Defer ALL non-critical initialization until after first paint
 scheduleDeferred(async () => {
