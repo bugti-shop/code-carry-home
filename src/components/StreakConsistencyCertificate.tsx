@@ -119,7 +119,7 @@ export const StreakConsistencyCertificate = ({ currentStreak, totalCompletions, 
 
         {/* "I'm on a" text */}
         <p style={{
-          color: '#000000cc',
+          color: '#ffffffdd',
           fontSize: 22,
           fontWeight: 700,
           margin: 0,
