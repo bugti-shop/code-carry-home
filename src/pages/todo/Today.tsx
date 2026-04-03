@@ -55,14 +55,35 @@ const lazyRetry = <T extends React.ComponentType<any>>(
 
 // Lazy load alternate views and heavy sheets
 const TodaySheets = lazyRetry(() => import('@/components/todo/TodaySheets').then(m => ({ default: m.TodaySheets })));
-const KanbanView = lazyRetry(() => import('@/components/todo/KanbanView').then(m => ({ default: m.KanbanView })));
-const KanbanStatusView = lazyRetry(() => import('@/components/todo/KanbanStatusView').then(m => ({ default: m.KanbanStatusView })));
-const TimelineView = lazyRetry(() => import('@/components/todo/TimelineView').then(m => ({ default: m.TimelineView })));
-const ProgressView = lazyRetry(() => import('@/components/todo/ProgressView').then(m => ({ default: m.ProgressView })));
-const PriorityView = lazyRetry(() => import('@/components/todo/PriorityView').then(m => ({ default: m.PriorityView })));
-const HistoryView = lazyRetry(() => import('@/components/todo/HistoryView').then(m => ({ default: m.HistoryView })));
-const GroupedView = lazyRetry(() => import('@/components/todo/GroupedView').then(m => ({ default: m.GroupedView })));
-const FlatView = lazy(() => import('@/components/todo/FlatView').then(m => ({ default: m.FlatView })));
+
+// Preload factories for view components — called eagerly so chunks are cached before user switches
+const kanbanFactory = () => import('@/components/todo/KanbanView').then(m => ({ default: m.KanbanView }));
+const kanbanStatusFactory = () => import('@/components/todo/KanbanStatusView').then(m => ({ default: m.KanbanStatusView }));
+const timelineFactory = () => import('@/components/todo/TimelineView').then(m => ({ default: m.TimelineView }));
+const progressFactory = () => import('@/components/todo/ProgressView').then(m => ({ default: m.ProgressView }));
+const priorityFactory = () => import('@/components/todo/PriorityView').then(m => ({ default: m.PriorityView }));
+const historyFactory = () => import('@/components/todo/HistoryView').then(m => ({ default: m.HistoryView }));
+const groupedFactory = () => import('@/components/todo/GroupedView').then(m => ({ default: m.GroupedView }));
+const flatFactory = () => import('@/components/todo/FlatView').then(m => ({ default: m.FlatView }));
+
+const KanbanView = lazyRetry(kanbanFactory);
+const KanbanStatusView = lazyRetry(kanbanStatusFactory);
+const TimelineView = lazyRetry(timelineFactory);
+const ProgressView = lazyRetry(progressFactory);
+const PriorityView = lazyRetry(priorityFactory);
+const HistoryView = lazyRetry(historyFactory);
+const GroupedView = lazyRetry(groupedFactory);
+const FlatView = lazy(flatFactory);
+
+// Eagerly preload all view chunks so switching is instant
+void kanbanFactory();
+void kanbanStatusFactory();
+void timelineFactory();
+void progressFactory();
+void priorityFactory();
+void historyFactory();
+void groupedFactory();
+void flatFactory();
 
 const Today = () => {
   const { t } = useTranslation();
