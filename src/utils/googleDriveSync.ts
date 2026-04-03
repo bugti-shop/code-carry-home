@@ -571,6 +571,19 @@ export const uploadToDrive = async (): Promise<void> => {
 
   const categories = await getCategories();
 
+  // Warm up file ID cache with a single batch list call
+  try {
+    const res = await driveFetch(
+      `${DRIVE_API}/files?spaces=appDataFolder&q='appDataFolder' in parents and trashed=false&fields=files(id,name)&pageSize=50`,
+    );
+    if (res.ok) {
+      const data = await res.json();
+      for (const f of data.files || []) {
+        if (f.name && f.id) fileIdCache.set(f.name, f.id);
+      }
+    }
+  } catch {}
+
   // Upload all categories + deletions in parallel for speed
   await Promise.allSettled([
     ...categories.map(async (cat) => {
