@@ -75,6 +75,7 @@ const TodoSettings = () => {
   const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
   const [showHelpDialog, setShowHelpDialog] = useState(false);
   const [showSyncBackupSheet, setShowSyncBackupSheet] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
   
   // Notification settings
   const [taskRemindersEnabled, setTaskRemindersEnabled] = useState(true);
@@ -209,7 +210,23 @@ const TodoSettings = () => {
     }
   };
 
+
+  const handleRestoreFromCloud = async () => {
+    try {
+      setIsRestoring(true);
+      const { restoreFromDrive } = await import('@/utils/googleDriveSync');
+      await restoreFromDrive();
+      toast.success('Data restored from cloud successfully!');
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err) {
+      toast.error('Failed to restore from cloud. Make sure you are signed in.');
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
   const handleDeleteData = () => setShowDeleteDialog(true);
+
 
   const confirmDeleteData = async () => {
     // Delete all data from Google Drive first
@@ -529,6 +546,7 @@ const TodoSettings = () => {
             <SettingsRow label={t('settings.restoreData')} onClick={handleRestoreData} />
             <SettingsRow label={t('settings.downloadData')} onClick={handleDownloadData} />
             <SettingsRow label="Sync Backup History" onClick={() => setShowSyncBackupSheet(true)} />
+            <SettingsRow label="Restore from Cloud" onClick={handleRestoreFromCloud} />
             <SettingsRow label={t('settings.deleteData')} onClick={handleDeleteData} />
           </div>
 
