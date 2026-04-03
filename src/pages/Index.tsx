@@ -855,8 +855,8 @@ const Index = () => {
               </button>
             </div>
           </div>
-          <div className="h-[1px] bg-border mt-3" />
         </div>
+        <div className="h-[1px] bg-border mt-1.5" />
       </header>
 
       <main className="container mx-auto px-2 xs:px-3 sm:px-4 py-2 xs:py-3">
