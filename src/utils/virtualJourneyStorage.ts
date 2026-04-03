@@ -249,6 +249,11 @@ export const saveJourneyData = (data: VirtualJourneyData) => {
   _journeyCache = sanitized;
   setSetting(STORAGE_KEY, sanitized).catch(console.error);
   window.dispatchEvent(new Event('journeyUpdated'));
+
+  // Auto-sync journey to Drive
+  import('@/utils/googleDriveSync').then(({ syncJourneyToDrive }) => {
+    syncJourneyToDrive().catch(() => {});
+  }).catch(() => {});
 };
 
 export const startJourney = (journeyId: string): VirtualJourneyData => {

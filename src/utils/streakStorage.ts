@@ -255,6 +255,11 @@ export const recordCompletion = async (
   // Save updated data
   await saveStreakData(storageKey, data);
   
+  // Auto-sync streaks to Drive after recording completion
+  import('@/utils/googleDriveSync').then(({ syncStreaksToDrive }) => {
+    syncStreaksToDrive().catch(() => {});
+  }).catch(() => {});
+
   return { data, streakIncremented, newMilestone, usedFreeze, earnedFreeze, usedGracePeriod };
 };
 

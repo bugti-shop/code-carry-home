@@ -370,6 +370,14 @@ const PREFER_LOCAL_SETTINGS_KEYS = new Set([
   'todoCollapsedSections',
 ]);
 
+/**
+ * Settings keys where we should MERGE rather than overwrite.
+ * For array values, we take the union. For objects, we deep-merge preferring more data.
+ */
+const MERGE_UNION_SETTINGS_KEYS = new Set([
+  'flowist_seen_certificates',
+]);
+
 const getSafeTimestamp = (value: unknown): number => {
   if (!value) return 0;
   const timestamp = new Date(value as any).getTime();
@@ -412,6 +420,22 @@ const mergeSettingsData = (
     if (key in (localData || {})) {
       merged[key] = localData[key];
     }
+  }
+
+  // Union-merge array settings (certificates seen, etc.)
+  for (const key of MERGE_UNION_SETTINGS_KEYS) {
+    const localVal = localData?.[key];
+    const remoteVal = remoteData?.[key];
+    if (Array.isArray(localVal) || Array.isArray(remoteVal)) {
+      merged[key] = [...new Set([...(Array.isArray(remoteVal) ? remoteVal : []), ...(Array.isArray(localVal) ? localVal : [])])];
+    }
+  }
+
+  // First step earned — keep whichever exists (never overwrite with null)
+  if (localData?.flowist_first_step_earned) {
+    merged.flowist_first_step_earned = localData.flowist_first_step_earned;
+  } else if (remoteData?.flowist_first_step_earned) {
+    merged.flowist_first_step_earned = remoteData.flowist_first_step_earned;
   }
 
   return merged;
@@ -569,6 +593,14 @@ export const downloadFromDrive = async (): Promise<void> => {
   const token = await getValidAccessToken();
   if (!token) throw new Error('Not signed in');
 
+  // Create a versioned backup BEFORE merging remote data
+  try {
+    const { createPreSyncBackup } = await import('@/utils/syncBackupHistory');
+    await createPreSyncBackup();
+  } catch (e) {
+    console.warn('[Sync] Failed to create pre-sync backup:', e);
+  }
+
   // 1. Sync deletion records first
   const remoteDeletions = await downloadFile<DeletionRecord[]>('flowist_deletions.json');
   const localDeletions = loadDeletions();
@@ -599,7 +631,9 @@ export const downloadFromDrive = async (): Promise<void> => {
           let merged: any;
 
           if (Array.isArray(localData) && Array.isArray(remoteData)) {
-            merged = mergeArraysById(localData, remoteData);
+            merged = cat.conflictKey === 'tasks'
+              ? mergeTaskArrays(localData, remoteData)
+              : mergeArraysById(localData, remoteData);
             const deletionCategory = cat.conflictKey as DeletionRecord['category'];
             if (['notes', 'tasks', 'habits', 'folders'].includes(deletionCategory)) {
               merged = applyDeletions(merged, mergedDeletions, deletionCategory);
@@ -666,6 +700,50 @@ export const uploadCategory = async (
   }
 };
 
+/**
+ * Task-specific merge that NEVER downgrades a completed task to uncompleted.
+ * If a task is completed locally (has completedAt), the remote uncompleted version is ignored.
+ */
+const mergeTaskArrays = (local: any[], remote: any[]): any[] => {
+  const map = new Map<string, any>();
+
+  for (const item of local) map.set(item.id, item);
+
+  for (const rItem of remote) {
+    const existing = map.get(rItem.id);
+    if (!existing) {
+      map.set(rItem.id, rItem);
+      continue;
+    }
+
+    // RULE: Never un-complete a locally completed task
+    if (existing.completed && !rItem.completed) {
+      // Local is completed, remote is not — keep local (more progressed)
+      continue;
+    }
+
+    // RULE: If remote is completed and local is not — take remote (more progressed)
+    if (!existing.completed && rItem.completed) {
+      map.set(rItem.id, rItem);
+      continue;
+    }
+
+    // Both same completion status — use timestamps to pick newer
+    const localTime = new Date(existing.modifiedAt || existing.completedAt || existing.createdAt || 0).getTime();
+    const remoteTime = new Date(rItem.modifiedAt || rItem.completedAt || rItem.createdAt || 0).getTime();
+    if (remoteTime > localTime) {
+      // Remote is newer but preserve local completion if it was completed
+      if (existing.completed && rItem.completed) {
+        map.set(rItem.id, { ...rItem, completedAt: rItem.completedAt || existing.completedAt });
+      } else {
+        map.set(rItem.id, rItem);
+      }
+    }
+  }
+
+  return Array.from(map.values());
+};
+
 // Convenience helpers for common save-on-change scenarios
 export const syncNotesToDrive = async () => {
   const { loadNotesFromDB } = await import('@/utils/noteStorage');
@@ -701,6 +779,24 @@ export const syncTagsToDrive = async () => {
   const { getAllTags } = await import('@/utils/tagStorage');
   const data = await getAllTags();
   if (data) await uploadCategory('flowist_tags.json', data);
+};
+
+export const syncStreaksToDrive = async () => {
+  const { loadStreakData } = await import('@/utils/streakStorage');
+  const data = await loadStreakData('flowist_task_streak');
+  if (data) await uploadCategory('flowist_streaks.json', data);
+};
+
+export const syncGamificationToDrive = async () => {
+  const { loadAchievementsData } = await import('@/utils/gamificationStorage');
+  const data = await loadAchievementsData();
+  if (data) await uploadCategory('flowist_gamification.json', data);
+};
+
+export const syncJourneyToDrive = async () => {
+  const { loadJourneyData } = await import('@/utils/virtualJourneyStorage');
+  const data = loadJourneyData();
+  if (data) await uploadCategory('flowist_journey.json', data);
 };
 
 // ── Full sync (download → upload → mark synced) ─────────────────────────
