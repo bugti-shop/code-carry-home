@@ -752,9 +752,19 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   }, [checkStripeSubscription]);
 
   // Listen for sign-out event — reset all subscription state and show paywall
+  // Works for both web (Stripe) and native (RevenueCat/Google Play)
   useEffect(() => {
-    const handleSignOut = () => {
+    const handleSignOut = async () => {
       console.log('SubscriptionContext: User signed out, resetting subscription state');
+      // RevenueCat logout on native (disassociates Google Play subscription from user)
+      if (Capacitor.isNativePlatform() && isInitialized) {
+        try {
+          await Purchases.logOut();
+          console.log('RevenueCat: Logged out on sign-out');
+        } catch (err) {
+          console.error('RevenueCat: Logout on sign-out failed:', err);
+        }
+      }
       setRcIsPro(false);
       setLocalProAccess(false);
       setIsAdminBypass(false);
@@ -765,6 +775,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setIsWebSubscriptionResolved(true);
       (window as any).__stripePlanType = undefined;
       (window as any).__stripeIsTrialing = undefined;
+      // Clear local trial start so it doesn't grant access after sign-out
+      setSetting('flowist_trial_start', 0).catch(() => {});
+      setSetting('flowist_admin_bypass', false).catch(() => {});
       try {
         localStorage.removeItem('flowist_stripe_subscribed');
         localStorage.removeItem('flowist_stripe_customer_email');
@@ -774,7 +787,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     };
     window.addEventListener('flowistSignedOut', handleSignOut);
     return () => window.removeEventListener('flowistSignedOut', handleSignOut);
-  }, []);
+  }, [isInitialized]);
 
   // Re-login to RevenueCat when Google auth state changes (sign in / sign out)
   useEffect(() => {
