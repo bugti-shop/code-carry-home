@@ -18,6 +18,7 @@ import {
 } from '@/utils/driveSyncConflict';
 import {
   loadDeletions,
+  loadDeletionsAsync,
   saveDeletions,
   mergeDeletions,
   applyDeletions,
@@ -578,8 +579,10 @@ export const uploadToDrive = async (): Promise<void> => {
         console.warn(`Failed to upload ${cat.fileName}:`, err);
       }
     }),
-    // Always upload deletion records
-    upsertFile('flowist_deletions.json', loadDeletions()).catch((err) =>
+    // Always upload deletion records (ensure loaded from IndexedDB first)
+    loadDeletionsAsync().then((dels) =>
+      upsertFile('flowist_deletions.json', dels.length > 0 ? dels : loadDeletions()),
+    ).catch((err) =>
       console.warn('Failed to upload deletions:', err),
     ),
   ]);
@@ -601,9 +604,12 @@ export const downloadFromDrive = async (): Promise<void> => {
     console.warn('[Sync] Failed to create pre-sync backup:', e);
   }
 
-  // 1. Sync deletion records first
-  const remoteDeletions = await downloadFile<DeletionRecord[]>('flowist_deletions.json');
-  const localDeletions = loadDeletions();
+  // 1. Sync deletion records first — ensure local deletions are loaded from IndexedDB
+  const [remoteDeletions, localDeletionsFromDB] = await Promise.all([
+    downloadFile<DeletionRecord[]>('flowist_deletions.json'),
+    loadDeletionsAsync(),
+  ]);
+  const localDeletions = localDeletionsFromDB.length > 0 ? localDeletionsFromDB : loadDeletions();
   const mergedDeletions = mergeDeletions(localDeletions, remoteDeletions || []);
   saveDeletions(mergedDeletions);
 
