@@ -209,7 +209,23 @@ const TodoSettings = () => {
     }
   };
 
-  const handleDeleteData = () => setShowDeleteDialog(true);
+  const [isRestoring, setIsRestoring] = useState(false);
+
+  const handleRestoreFromCloud = async () => {
+    try {
+      setIsRestoring(true);
+      const { restoreFromDrive } = await import('@/utils/googleDriveSync');
+      await restoreFromDrive();
+      toast.success('Data restored from cloud successfully!');
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err) {
+      toast.error('Failed to restore from cloud. Make sure you are signed in.');
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
+
 
   const confirmDeleteData = async () => {
     // Delete all data from Google Drive first
