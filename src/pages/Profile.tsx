@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, CloudDownload } from 'lucide-react';
 import { useGoogleDriveSync } from '@/hooks/useGoogleDriveSync';
 import { useRevenueCat } from '@/contexts/RevenueCatContext';
 import { ArrowLeft, Settings, Loader2, Camera, LogOut } from 'lucide-react';
@@ -389,6 +389,23 @@ export default function Profile() {
                   <LogOut className="h-4 w-4" />
                 </Button>
               </div>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  try {
+                    const { restoreFromDrive } = await import('@/utils/googleDriveSync');
+                    await restoreFromDrive();
+                    toast({ title: t('profile.restoreSuccess', 'Data restored from cloud!') });
+                    setTimeout(() => window.location.reload(), 1500);
+                  } catch {
+                    toast({ title: t('profile.restoreFailed', 'Restore failed'), description: t('profile.restoreFailedDesc', 'Make sure you are signed in.'), variant: 'destructive' });
+                  }
+                }}
+                className="w-full h-10 rounded-lg text-sm font-medium"
+              >
+                <CloudDownload className="h-4 w-4 mr-2" />
+                {t('profile.restoreFromCloud', 'Restore from Cloud')}
+              </Button>
               {lastSyncTime > 0 && (
                 <p className="text-xs text-muted-foreground text-center">
                   {t('profile.lastSynced')}: {new Date(lastSyncTime).toLocaleString()}

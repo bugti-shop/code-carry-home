@@ -99,15 +99,23 @@ const driveFetch = async (
 
 // ── Drive CRUD primitives ─────────────────────────────────────────────────
 
-/** Find a file by name in appDataFolder. Returns file ID or null. */
+/** In-memory file ID cache to skip redundant findFile lookups */
+const fileIdCache = new Map<string, string>();
+
+/** Find a file by name in appDataFolder. Returns file ID or null. Uses cache. */
 const findFile = async (fileName: string): Promise<string | null> => {
+  const cached = fileIdCache.get(fileName);
+  if (cached) return cached;
+
   const q = encodeURIComponent(`name='${fileName}' and 'appDataFolder' in parents and trashed=false`);
   const res = await driveFetch(
     `${DRIVE_API}/files?spaces=appDataFolder&q=${q}&fields=files(id,name,modifiedTime)`,
   );
   if (!res.ok) throw new Error(`Drive list failed: ${res.status}`);
   const data = await res.json();
-  return data.files?.[0]?.id || null;
+  const id = data.files?.[0]?.id || null;
+  if (id) fileIdCache.set(fileName, id);
+  return id;
 };
 
 /** Read a JSON file from Drive by file ID */
@@ -146,6 +154,7 @@ const createFile = async (fileName: string, data: any): Promise<string> => {
   });
   if (!res.ok) throw new Error(`Drive create failed: ${res.status}`);
   const result = await res.json();
+  fileIdCache.set(fileName, result.id);
   return result.id;
 };
 
@@ -209,6 +218,7 @@ export const deleteNamedFile = async (fileName: string): Promise<void> => {
   const fileId = await findFile(fileName);
   if (fileId) {
     await deleteFile(fileId);
+    fileIdCache.delete(fileName);
   }
 };
 
@@ -560,6 +570,19 @@ export const uploadToDrive = async (): Promise<void> => {
   if (!token) throw new Error('Not signed in');
 
   const categories = await getCategories();
+
+  // Warm up file ID cache with a single batch list call
+  try {
+    const res = await driveFetch(
+      `${DRIVE_API}/files?spaces=appDataFolder&q='appDataFolder' in parents and trashed=false&fields=files(id,name)&pageSize=50`,
+    );
+    if (res.ok) {
+      const data = await res.json();
+      for (const f of data.files || []) {
+        if (f.name && f.id) fileIdCache.set(f.name, f.id);
+      }
+    }
+  } catch {}
 
   // Upload all categories + deletions in parallel for speed
   await Promise.allSettled([
