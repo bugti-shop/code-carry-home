@@ -79,6 +79,7 @@ export const StreakConsistencyCertificate = ({ currentStreak, totalCompletions, 
       const blob = await exportElementToBlob(element);
 
       // Restore original positions
+      if (introText) introText.style.marginTop = origIntroMargin || '';
       if (streakNum) streakNum.style.marginTop = origNumMargin || '';
       if (streakLabel) streakLabel.style.marginTop = origLabelMargin || '';
       if (!blob) return;
