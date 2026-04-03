@@ -168,7 +168,7 @@ export const mergeArraysById = <T extends { id: string; updatedAt?: any; modifie
     } else {
       const localTime = new Date(existing.updatedAt || existing.modifiedAt || existing.createdAt || 0).getTime();
       const remoteTime = new Date(rItem.updatedAt || rItem.modifiedAt || rItem.createdAt || 0).getTime();
-      if (remoteTime > localTime) {
+      if (remoteTime > localTime && remoteTime > 0) {
         map.set(rItem.id, rItem);
       }
     }
