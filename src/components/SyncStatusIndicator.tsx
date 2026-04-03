@@ -145,7 +145,7 @@ export function SyncNowButton({ className }: { className?: string }) {
       ) : (
         <>
           <RefreshCw className={cn('h-4 w-4', isSyncing && 'animate-spin')} />
-          {isSyncing ? 'Syncing...' : 'Sync Now'}
+          {isSyncing ? 'Uploading...' : 'Upload to Cloud'}
         </>
       )}
     </Button>
