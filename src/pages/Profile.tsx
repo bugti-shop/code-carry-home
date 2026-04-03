@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, CloudDownload } from 'lucide-react';
 import { useGoogleDriveSync } from '@/hooks/useGoogleDriveSync';
 import { useRevenueCat } from '@/contexts/RevenueCatContext';
 import { ArrowLeft, Settings, Loader2, Camera, LogOut } from 'lucide-react';
