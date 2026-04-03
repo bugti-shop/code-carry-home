@@ -16,7 +16,7 @@ interface StreakConsistencyCertificateProps {
 }
 
 const getShareText = (streak: number, totalTasks: number, userName: string) => {
-  return `🔥 I'm on a ${streak} day productivity streak!\n\nI've completed ${totalTasks} tasks with consistency on Flowist! Every day counts. 💪\n\n${userName ? `— ${userName}` : ''}\n#Productivity #Streak #Flowist #Consistency`;
+  return `🔥 I'm on a ${streak} day productivity streak!\n\nI've completed ${totalTasks} tasks with consistency on Flowist! Every day counts. 💪\n\n${userName ? `${userName}` : ''}\n#Productivity #Streak #Flowist #Consistency`;
 };
 
 const getStreakColor = (_streak: number) => {
