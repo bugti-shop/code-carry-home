@@ -141,7 +141,7 @@ export const StreakConsistencyCertificate = ({ currentStreak, totalCompletions, 
         {/* Big streak number */}
         <p style={{
           color: '#ffffff',
-          fontSize: 48,
+          fontSize: currentStreak >= 10000 ? 36 : currentStreak >= 1000 ? 42 : 48,
           fontWeight: 900,
           margin: '0 0 2px',
           lineHeight: 1,
@@ -150,7 +150,7 @@ export const StreakConsistencyCertificate = ({ currentStreak, totalCompletions, 
           textShadow: `0 4px 20px ${colors.glow}`,
           textAlign: 'left',
         }}>
-          {currentStreak}
+          {currentStreak.toLocaleString()}
         </p>
 
         {/* "day/days productivity streak!" */}
