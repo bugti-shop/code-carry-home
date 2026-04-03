@@ -428,14 +428,20 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
         toast.success(t('todayPage.deletedTasks', { count: selectedItems.length }));
         break;
       case 'complete':
+        const completionTimestamp = new Date();
         playCompletionSound();
-        setItems(prev => prev.map(i => selectedTaskIds.has(i.id) ? { ...i, completed: true } : i));
+        setItems(prev => prev.map(i => selectedTaskIds.has(i.id) ? {
+          ...i,
+          completed: true,
+          completedAt: i.completed ? i.completedAt : completionTimestamp,
+          modifiedAt: completionTimestamp,
+        } : i));
         setSelectedTaskIds(new Set()); setIsSelectionMode(false);
         toast.success(t('todayPage.completedTasks', { count: selectedItems.length }));
         break;
       case 'pin':
         if (!requireFeature('pin_feature')) return;
-        setItems(prev => prev.map(i => selectedTaskIds.has(i.id) ? { ...i, isPinned: !i.isPinned } : i));
+        setItems(prev => prev.map(i => selectedTaskIds.has(i.id) ? { ...i, isPinned: !i.isPinned, modifiedAt: new Date() } : i));
         toast.success(t('todayPage.pinnedTasks', { count: selectedItems.length }));
         setSelectedTaskIds(new Set()); setIsSelectionMode(false);
         break;
@@ -459,19 +465,22 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
   }, [items, selectedTaskIds, uncompletedItems, requireFeature, setItems, setSelectedTaskIds, setIsSelectionMode, setIsMoveToFolderOpen, setIsPrioritySheetOpen, setIsBulkDateSheetOpen, setIsBulkReminderSheetOpen, setIsBulkRepeatSheetOpen, setIsBulkSectionMoveOpen, setIsBulkStatusOpen, setIsSelectActionsOpen, convertToNotes, t]);
 
   const handleMoveToFolder = useCallback((folderId: string | null) => {
-    setItems(prev => prev.map(i => selectedTaskIds.has(i.id) ? { ...i, folderId: folderId || undefined } : i));
+    const now = new Date();
+    setItems(prev => prev.map(i => selectedTaskIds.has(i.id) ? { ...i, folderId: folderId || undefined, modifiedAt: now } : i));
     setSelectedTaskIds(new Set()); setIsSelectionMode(false);
     toast.success(t('todayPage.movedTasks', { count: selectedTaskIds.size }));
   }, [selectedTaskIds, setItems, setSelectedTaskIds, setIsSelectionMode, t]);
 
   const handleSetPriority = useCallback((priority: Priority) => {
-    setItems(prev => prev.map(i => selectedTaskIds.has(i.id) ? { ...i, priority } : i));
+    const now = new Date();
+    setItems(prev => prev.map(i => selectedTaskIds.has(i.id) ? { ...i, priority, modifiedAt: now } : i));
     setSelectedTaskIds(new Set()); setIsSelectionMode(false);
     toast.success(t('todayPage.updatedPriority', { count: selectedTaskIds.size }));
   }, [selectedTaskIds, setItems, setSelectedTaskIds, setIsSelectionMode, t]);
 
   const handleMoveTaskToFolder = useCallback((taskId: string, folderId: string | null) => {
-    setItems(prev => prev.map(i => i.id === taskId ? { ...i, folderId: folderId || undefined } : i));
+    const now = new Date();
+    setItems(prev => prev.map(i => i.id === taskId ? { ...i, folderId: folderId || undefined, modifiedAt: now } : i));
     toast.success(t('todayPage.taskMoved'));
   }, [setItems, t]);
 
