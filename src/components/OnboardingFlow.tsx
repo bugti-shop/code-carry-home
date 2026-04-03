@@ -898,7 +898,11 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             isDefault: false,
             createdAt: new Date(),
           }));
-          await setSetting('folders', [...existingFolders, ...newFolders]);
+          const merged = [...existingFolders, ...newFolders];
+          await setSetting('folders', merged);
+          // Verify persistence
+          const verify = await getSetting<Folder[]>('folders', []);
+          console.log('[Onboarding] Saved notes folders:', merged.length, 'Verified:', verify.length, verify.map(f => f.name));
           window.dispatchEvent(new Event('foldersUpdated'));
         }
       } catch (e) {
@@ -918,7 +922,11 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             isDefault: false,
             createdAt: new Date(),
           }));
-          await setSetting('todoFolders', [...existingFolders, ...newFolders]);
+          const merged = [...existingFolders, ...newFolders];
+          await setSetting('todoFolders', merged);
+          // Verify persistence
+          const verify = await getSetting<Folder[]>('todoFolders', []);
+          console.log('[Onboarding] Saved task folders:', merged.length, 'Verified:', verify.length, verify.map(f => f.name));
           window.dispatchEvent(new Event('foldersUpdated'));
         }
       } catch (e) {

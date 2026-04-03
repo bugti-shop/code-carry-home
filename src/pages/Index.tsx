@@ -141,7 +141,8 @@ const Index = () => {
   useEffect(() => {
     const loadFolders = async () => {
       const savedFolders = await getSetting<Folder[] | null>('folders', null);
-      if (savedFolders) {
+      console.log('[Notes] Loaded folders from settings:', savedFolders?.length ?? 0, savedFolders?.map((f: any) => f.name));
+      if (savedFolders && savedFolders.length > 0) {
         setFolders(savedFolders.map((f: Folder) => ({
           ...f,
           createdAt: new Date(f.createdAt),
