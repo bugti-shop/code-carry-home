@@ -217,15 +217,7 @@ const OnboardingFolderCreation = ({ type, folders, setFolders, progressPercent, 
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="mb-5"
         >
-          <motion.div
-            initial={{ scale: 0, rotate: -20 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 15 }}
-            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 shadow-lg"
-            style={{ background: accentGradient }}
-          >
-            <span className="text-2xl">{icon}</span>
-          </motion.div>
+          {/* Icon removed per design */}
           <h1 className="text-[26px] font-black text-[#1a1a1a] font-['Nunito'] tracking-tight leading-tight">{title}</h1>
           <motion.p
             initial={{ opacity: 0 }}
