@@ -101,9 +101,9 @@ export const TodoLayout = ({ children, title, searchValue, onSearchChange }: Tod
       <main className="pb-14">
         {children}
         <div className="text-center py-2">
-          <a href="/privacy-policy" className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors">Privacy Policy</a>
-          <span className="text-[10px] text-muted-foreground/30 mx-1">·</span>
-          <a href="/terms" className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors">Terms</a>
+          <a href="/privacy-policy" className="text-[10px] text-background hover:text-muted-foreground transition-colors">Privacy Policy</a>
+          <span className="text-[10px] text-background mx-1">·</span>
+          <a href="/terms" className="text-[10px] text-background hover:text-muted-foreground transition-colors">Terms</a>
         </div>
       </main>
       <TodoBottomNavigation />
