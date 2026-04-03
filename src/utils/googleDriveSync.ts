@@ -579,8 +579,10 @@ export const uploadToDrive = async (): Promise<void> => {
         console.warn(`Failed to upload ${cat.fileName}:`, err);
       }
     }),
-    // Always upload deletion records
-    upsertFile('flowist_deletions.json', loadDeletions()).catch((err) =>
+    // Always upload deletion records (ensure loaded from IndexedDB first)
+    loadDeletionsAsync().then((dels) =>
+      upsertFile('flowist_deletions.json', dels.length > 0 ? dels : loadDeletions()),
+    ).catch((err) =>
       console.warn('Failed to upload deletions:', err),
     ),
   ]);
