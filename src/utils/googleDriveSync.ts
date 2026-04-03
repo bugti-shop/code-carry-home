@@ -1,13 +1,12 @@
 /**
- * Google Drive Sync — THE primary data storage layer.
- * All app data is stored as JSON files in the user's Google Drive appDataFolder.
- * Supabase is used ONLY for authentication; all CRUD operations go through Drive.
+ * Google Drive Sync — UPLOAD-ONLY cloud backup.
+ * All app data lives locally in IndexedDB. Drive is used as a cloud backup.
  *
  * Architecture:
- * - On app open → download latest data from Drive → merge into local
- * - On save (notes/tasks/etc.) → upload changed data to Drive
- * - Background auto-sync every 5 minutes
- * - Token auto-refresh before every operation
+ * - On first sign-in on a new device → one-time restore from Drive
+ * - On every save (notes/tasks/etc.) → upload to Drive
+ * - Background upload every 5 minutes
+ * - NO automatic download/merge after initial restore
  */
 
 import { backgroundTokenRefresh, getValidAccessToken, getStoredGoogleUser, refreshGoogleToken } from '@/utils/googleAuth';
