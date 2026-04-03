@@ -203,7 +203,7 @@ const OnboardingFolderCreation = ({ type, folders, setFolders, progressPercent, 
         <div className="flex-1 flex flex-col gap-0.5">
           <span className="text-[11px] font-semibold text-[#999] text-right">{stepLabel}</span>
           <div className="h-[17px] rounded-[6px] bg-[#e5e5e5] overflow-hidden">
-            <motion.div className="h-full rounded-[6px]" style={{ background: accentGradient }} initial={{ width: '0%' }} animate={{ width: progressPercent }} transition={{ duration: 0.5, ease: 'easeOut' }} />
+            <motion.div className="h-full rounded-[6px]" style={{ backgroundColor: '#3c78f0' }} initial={{ width: '0%' }} animate={{ width: progressPercent }} transition={{ duration: 0.5, ease: 'easeOut' }} />
           </div>
         </div>
       </div>
