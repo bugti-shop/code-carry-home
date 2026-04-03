@@ -18,6 +18,7 @@ import {
 } from '@/utils/driveSyncConflict';
 import {
   loadDeletions,
+  loadDeletionsAsync,
   saveDeletions,
   mergeDeletions,
   applyDeletions,
