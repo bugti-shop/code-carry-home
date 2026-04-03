@@ -73,6 +73,11 @@ export const unlockAchievement = async (achievementId: string): Promise<{ unlock
   data.achievementDates[achievementId] = new Date().toISOString();
   await setSetting(ACHIEVEMENTS_STORAGE_KEY, data);
   
+  // Auto-sync gamification to Drive
+  import('@/utils/googleDriveSync').then(({ syncGamificationToDrive }) => {
+    syncGamificationToDrive().catch(() => {});
+  }).catch(() => {});
+
   window.dispatchEvent(new CustomEvent('achievementUnlocked', { detail: { achievement } }));
   
   return { unlocked: true, achievement };

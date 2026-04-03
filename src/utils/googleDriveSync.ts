@@ -370,6 +370,14 @@ const PREFER_LOCAL_SETTINGS_KEYS = new Set([
   'todoCollapsedSections',
 ]);
 
+/**
+ * Settings keys where we should MERGE rather than overwrite.
+ * For array values, we take the union. For objects, we deep-merge preferring more data.
+ */
+const MERGE_UNION_SETTINGS_KEYS = new Set([
+  'flowist_seen_certificates',
+]);
+
 const getSafeTimestamp = (value: unknown): number => {
   if (!value) return 0;
   const timestamp = new Date(value as any).getTime();
@@ -412,6 +420,22 @@ const mergeSettingsData = (
     if (key in (localData || {})) {
       merged[key] = localData[key];
     }
+  }
+
+  // Union-merge array settings (certificates seen, etc.)
+  for (const key of MERGE_UNION_SETTINGS_KEYS) {
+    const localVal = localData?.[key];
+    const remoteVal = remoteData?.[key];
+    if (Array.isArray(localVal) || Array.isArray(remoteVal)) {
+      merged[key] = [...new Set([...(Array.isArray(remoteVal) ? remoteVal : []), ...(Array.isArray(localVal) ? localVal : [])])];
+    }
+  }
+
+  // First step earned — keep whichever exists (never overwrite with null)
+  if (localData?.flowist_first_step_earned) {
+    merged.flowist_first_step_earned = localData.flowist_first_step_earned;
+  } else if (remoteData?.flowist_first_step_earned) {
+    merged.flowist_first_step_earned = remoteData.flowist_first_step_earned;
   }
 
   return merged;
