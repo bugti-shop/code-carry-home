@@ -920,7 +920,9 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             isDefault: false,
             createdAt: new Date(),
           }));
-          await setSetting('todoFolders', [...existingFolders, ...newFolders]);
+          const merged = [...existingFolders, ...newFolders];
+          await setSetting('todoFolders', merged);
+          console.log('[Onboarding] Saved task folders:', merged.length, merged.map(f => f.name));
           window.dispatchEvent(new Event('foldersUpdated'));
         }
       } catch (e) {
