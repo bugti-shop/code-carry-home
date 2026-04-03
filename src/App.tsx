@@ -268,6 +268,10 @@ const AppContent = () => {
     startTransition(() => {
       setShowOnboarding(false);
     });
+    // Ensure Notes dashboard reloads folders created during onboarding
+    setTimeout(() => {
+      window.dispatchEvent(new Event('foldersUpdated'));
+    }, 300);
   }, []);
   
   // Initialize keyboard height detection for mobile toolbar positioning
