@@ -900,7 +900,9 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
           }));
           const merged = [...existingFolders, ...newFolders];
           await setSetting('folders', merged);
-          console.log('[Onboarding] Saved notes folders:', merged.length, merged.map(f => f.name));
+          // Verify persistence
+          const verify = await getSetting<Folder[]>('folders', []);
+          console.log('[Onboarding] Saved notes folders:', merged.length, 'Verified:', verify.length, verify.map(f => f.name));
           window.dispatchEvent(new Event('foldersUpdated'));
         }
       } catch (e) {
