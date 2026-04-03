@@ -289,8 +289,11 @@ const OnboardingFolderCreation = ({ type, folders, setFolders, progressPercent, 
           <motion.button
             onClick={handleCreate}
             disabled={!folderName.trim()}
-            className="w-full py-3 rounded-xl text-[15px] font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed text-white shadow-md"
-            style={{ background: folderName.trim() ? accentGradient : '#ccc' }}
+            className="w-full py-3 rounded-xl text-[15px] font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shadow-md active:translate-y-[2px]"
+            style={{
+              background: folderName.trim() ? accentGradient : '#ebeff2',
+              color: folderName.trim() ? '#fff' : '#82878a',
+            }}
             whileTap={{ scale: 0.97 }}
           >
             {t('onboarding.createFolder')}
@@ -355,10 +358,11 @@ const OnboardingFolderCreation = ({ type, folders, setFolders, progressPercent, 
       <div className="px-6 pb-6 pt-2" style={{ paddingBottom: 'max(var(--safe-bottom, 0px), 12px)' }}>
         <motion.button
           onClick={() => { triggerHaptic(); goNext(); }}
-          className="w-full py-3.5 rounded-2xl text-[17px] font-bold text-white"
+          className="w-full py-3.5 rounded-2xl text-[17px] font-bold active:translate-y-[2px]"
           style={{
-            background: folders.length > 0 ? 'linear-gradient(135deg, #1a1a1a 0%, #333 100%)' : '#888',
-            boxShadow: folders.length > 0 ? '0 8px 0 0 #000' : '0 6px 0 0 #555',
+            background: folders.length > 0 ? 'linear-gradient(135deg, #1a1a1a 0%, #333 100%)' : '#ebeff2',
+            boxShadow: folders.length > 0 ? '0 8px 0 0 #000' : '0 6px 0 0 #d1d5d8',
+            color: folders.length > 0 ? '#f7f7f7' : '#82878a',
           }}
           whileTap={{ scale: 0.97, y: 4 }}
           transition={{ type: 'spring', stiffness: 400 }}
