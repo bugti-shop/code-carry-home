@@ -65,15 +65,19 @@ export const StreakConsistencyCertificate = ({ currentStreak, totalCompletions, 
       const element = cardRef.current;
       if (!element) return;
 
-      // Temporarily adjust streak number position for export
+      // Temporarily adjust positions for export
       const streakNum = element.querySelector('[data-streak-number]') as HTMLElement | null;
-      const origMargin = streakNum?.style.marginTop;
+      const streakLabel = element.querySelector('[data-streak-label]') as HTMLElement | null;
+      const origNumMargin = streakNum?.style.marginTop;
+      const origLabelMargin = streakLabel?.style.marginTop;
       if (streakNum) streakNum.style.marginTop = '-12px';
+      if (streakLabel) streakLabel.style.marginTop = '6px';
 
       const blob = await exportElementToBlob(element);
 
-      // Restore original position
-      if (streakNum) streakNum.style.marginTop = origMargin || '';
+      // Restore original positions
+      if (streakNum) streakNum.style.marginTop = origNumMargin || '';
+      if (streakLabel) streakLabel.style.marginTop = origLabelMargin || '';
       if (!blob) return;
 
       await shareImageBlob({
