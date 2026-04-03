@@ -296,18 +296,15 @@ const AppContent = () => {
 
   // Listen for "secure your subscription" message (purchase without sign-up)
   useEffect(() => {
-    const handler = () => {
-      import('@/lib/errorHandling').then(({ showErrorToast }) => {
-        // Use a toast to inform user
-      }).catch(() => {});
-      // Use window alert-style toast via custom event
-      window.dispatchEvent(new CustomEvent('showToast', {
-        detail: {
+    const handler = async () => {
+      try {
+        const { toast: uiToast } = await import('@/components/ui/use-toast');
+        uiToast({
           title: '🔒 Secure Your Subscription',
           description: 'If you want to secure your subscription, please sign up with your Google account in Profile.',
           duration: 15000,
-        }
-      }));
+        });
+      } catch {}
     };
     window.addEventListener('showSecureSubscriptionMessage', handler);
     return () => window.removeEventListener('showSecureSubscriptionMessage', handler);
