@@ -378,7 +378,7 @@ export default function Profile() {
                   className="flex-1 h-11 rounded-lg px-4 py-2.5 text-sm font-bold bg-primary text-primary-foreground border-b-4 border-[hsl(var(--primary-darker))] shadow-[0_10px_22px_hsl(var(--primary)/0.22)] hover:bg-[hsl(var(--primary-dark))] active:border-b-0 active:translate-y-1"
                 >
                   <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                  {isSyncing ? t('profile.syncing') : t('profile.syncNow')}
+                  {isSyncing ? t('profile.uploading', 'Uploading...') : t('profile.uploadToCloud', 'Upload to Cloud')}
                 </Button>
                 <Button
                   variant="outline"

@@ -105,7 +105,7 @@ export function SyncStatusIndicator({ className }: { className?: string }) {
   );
 }
 
-/** Sync Now button for Profile */
+/** Upload to Cloud button for Profile */
 export function SyncNowButton({ className }: { className?: string }) {
   const { user, signIn } = useGoogleAuth();
   const [status, setStatus] = useState<SyncStatus>('idle');
@@ -145,7 +145,7 @@ export function SyncNowButton({ className }: { className?: string }) {
       ) : (
         <>
           <RefreshCw className={cn('h-4 w-4', isSyncing && 'animate-spin')} />
-          {isSyncing ? 'Syncing...' : 'Sync Now'}
+          {isSyncing ? 'Uploading...' : 'Upload to Cloud'}
         </>
       )}
     </Button>
