@@ -225,6 +225,7 @@ const TodoSettings = () => {
     }
   };
 
+  const handleDeleteData = () => setShowDeleteDialog(true);
 
 
   const confirmDeleteData = async () => {
