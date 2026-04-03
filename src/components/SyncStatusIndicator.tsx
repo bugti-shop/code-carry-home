@@ -105,7 +105,7 @@ export function SyncStatusIndicator({ className }: { className?: string }) {
   );
 }
 
-/** Sync Now button for Profile */
+/** Upload to Cloud button for Profile */
 export function SyncNowButton({ className }: { className?: string }) {
   const { user, signIn } = useGoogleAuth();
   const [status, setStatus] = useState<SyncStatus>('idle');
