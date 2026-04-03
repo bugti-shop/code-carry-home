@@ -23,7 +23,7 @@ export function useGoogleDriveSync() {
       return;
     }
     const cleanupManualSync = setupManualSyncListener();
-    startAutoSync();
+    startAutoSync().catch(() => {});
     return () => {
       cleanupManualSync();
       stopAutoSync();

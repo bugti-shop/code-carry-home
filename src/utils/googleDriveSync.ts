@@ -1,13 +1,12 @@
 /**
- * Google Drive Sync — THE primary data storage layer.
- * All app data is stored as JSON files in the user's Google Drive appDataFolder.
- * Supabase is used ONLY for authentication; all CRUD operations go through Drive.
+ * Google Drive Sync — UPLOAD-ONLY cloud backup.
+ * All app data lives locally in IndexedDB. Drive is used as a cloud backup.
  *
  * Architecture:
- * - On app open → download latest data from Drive → merge into local
- * - On save (notes/tasks/etc.) → upload changed data to Drive
- * - Background auto-sync every 5 minutes
- * - Token auto-refresh before every operation
+ * - On first sign-in on a new device → one-time restore from Drive
+ * - On every save (notes/tasks/etc.) → upload to Drive
+ * - Background upload every 5 minutes
+ * - NO automatic download/merge after initial restore
  */
 
 import { backgroundTokenRefresh, getValidAccessToken, getStoredGoogleUser, refreshGoogleToken } from '@/utils/googleAuth';
@@ -805,7 +804,52 @@ export const syncJourneyToDrive = async () => {
   if (data) await uploadCategory('flowist_journey.json', data);
 };
 
-// ── Full sync (download → upload → mark synced) ─────────────────────────
+// ── Restore flag — tracks if this device already restored from Drive ─────
+
+const getRestoreKey = (email: string) => `flowist_restore_done_${email}`;
+
+const hasRestoredOnThisDevice = (email: string): boolean => {
+  try {
+    return localStorage.getItem(getRestoreKey(email)) === 'true';
+  } catch {
+    return false;
+  }
+};
+
+const markRestoredOnThisDevice = (email: string) => {
+  try {
+    localStorage.setItem(getRestoreKey(email), 'true');
+  } catch {}
+};
+
+/**
+ * One-time restore from Google Drive.
+ * Called ONLY on first sign-in on a new device/browser.
+ * Downloads remote data and merges into local (empty) state.
+ */
+export const restoreFromDrive = async (): Promise<void> => {
+  const user = await getStoredGoogleUser();
+  if (!user?.email) return;
+
+  if (!navigator.onLine) {
+    emitStatus('offline');
+    return;
+  }
+
+  try {
+    emitStatus('syncing');
+    await downloadFromDrive();
+    markRestoredOnThisDevice(user.email);
+    emitStatus('synced');
+    setTimeout(() => emitStatus('idle'), 5000);
+  } catch (err) {
+    console.error('Google Drive restore failed:', err);
+    emitStatus('error');
+    setTimeout(() => emitStatus('idle'), 30000);
+  }
+};
+
+// ── Full sync (UPLOAD ONLY — local → Drive) ─────────────────────────────
 
 export const syncWithDrive = async (): Promise<void> => {
   const user = await getStoredGoogleUser();
@@ -819,10 +863,7 @@ export const syncWithDrive = async (): Promise<void> => {
   try {
     emitStatus('syncing');
 
-    // First download remote data to merge
-    await downloadFromDrive();
-
-    // Then upload local data (which now includes merged remote data)
+    // Upload local data to Drive (one-way: local → cloud)
     await uploadToDrive();
 
     emitStatus('synced');
@@ -832,7 +873,6 @@ export const syncWithDrive = async (): Promise<void> => {
   } catch (err) {
     console.error('Google Drive sync failed:', err);
     emitStatus('error');
-    // Auto-clear error after 30s so next retry cycle shows proper state
     setTimeout(() => emitStatus('idle'), 30000);
   }
 };
@@ -841,24 +881,36 @@ export const syncWithDrive = async (): Promise<void> => {
 
 let hasInitialSynced = false;
 let autoSyncInterval: ReturnType<typeof setInterval> | null = null;
-const AUTO_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes — continuous background sync
+const AUTO_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 /**
- * Start continuous background sync with Google Drive.
- * - Initial download on login
- * - Full sync every 5 minutes for 24/7 data freshness
- * - Offline queue processing on reconnect
+ * Start sync with Google Drive.
+ * - On first sign-in on this device → restore from Drive (one-time)
+ * - Then upload-only every 5 minutes
+ * - All data lives locally in IndexedDB; Drive is just a backup
  */
-export const startAutoSync = () => {
+export const startAutoSync = async () => {
   if (hasInitialSynced) return;
   hasInitialSynced = true;
 
-  // Download latest from Drive once on login
-  setTimeout(() => {
-    downloadFromDrive().catch(() => {});
-  }, 5000);
+  const user = await getStoredGoogleUser();
 
-  // Recurring full sync every 5 minutes for 24/7 Drive sync
+  // If this is a NEW device/browser (never restored before), do a one-time restore
+  if (user?.email && !hasRestoredOnThisDevice(user.email)) {
+    setTimeout(() => {
+      restoreFromDrive().then(() => {
+        // After restore, do an upload to ensure Drive has latest
+        uploadToDrive().catch(() => {});
+      }).catch(() => {});
+    }, 5000);
+  } else {
+    // Already restored before — just upload local data
+    setTimeout(() => {
+      uploadToDrive().catch(() => {});
+    }, 5000);
+  }
+
+  // Recurring upload-only sync every 5 minutes
   autoSyncInterval = setInterval(() => {
     if (!navigator.onLine) return;
     backgroundTokenRefresh()
