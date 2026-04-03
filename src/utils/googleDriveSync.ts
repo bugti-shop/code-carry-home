@@ -99,15 +99,23 @@ const driveFetch = async (
 
 // ── Drive CRUD primitives ─────────────────────────────────────────────────
 
-/** Find a file by name in appDataFolder. Returns file ID or null. */
+/** In-memory file ID cache to skip redundant findFile lookups */
+const fileIdCache = new Map<string, string>();
+
+/** Find a file by name in appDataFolder. Returns file ID or null. Uses cache. */
 const findFile = async (fileName: string): Promise<string | null> => {
+  const cached = fileIdCache.get(fileName);
+  if (cached) return cached;
+
   const q = encodeURIComponent(`name='${fileName}' and 'appDataFolder' in parents and trashed=false`);
   const res = await driveFetch(
     `${DRIVE_API}/files?spaces=appDataFolder&q=${q}&fields=files(id,name,modifiedTime)`,
   );
   if (!res.ok) throw new Error(`Drive list failed: ${res.status}`);
   const data = await res.json();
-  return data.files?.[0]?.id || null;
+  const id = data.files?.[0]?.id || null;
+  if (id) fileIdCache.set(fileName, id);
+  return id;
 };
 
 /** Read a JSON file from Drive by file ID */
