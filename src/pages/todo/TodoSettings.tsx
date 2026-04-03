@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { TodoBottomNavigation } from '@/components/TodoBottomNavigation';
@@ -22,6 +22,7 @@ import { AppLockSetup } from '@/components/AppLockSetup';
 import { downloadBackup, downloadData, restoreFromBackup } from '@/utils/dataBackup';
 import { createNativeBackup, isNativePlatform } from '@/utils/nativeBackup';
 import { BackupSuccessDialog } from '@/components/BackupSuccessDialog';
+const SyncBackupSheet = lazy(() => import('@/components/SyncBackupSheet').then(m => ({ default: m.SyncBackupSheet })));
 
 
 import { Capacitor } from '@capacitor/core';
@@ -73,6 +74,7 @@ const TodoSettings = () => {
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
   const [showHelpDialog, setShowHelpDialog] = useState(false);
+  const [showSyncBackupSheet, setShowSyncBackupSheet] = useState(false);
   
   // Notification settings
   const [taskRemindersEnabled, setTaskRemindersEnabled] = useState(true);
@@ -526,6 +528,7 @@ const TodoSettings = () => {
             </button>
             <SettingsRow label={t('settings.restoreData')} onClick={handleRestoreData} />
             <SettingsRow label={t('settings.downloadData')} onClick={handleDownloadData} />
+            <SettingsRow label="Sync Backup History" onClick={() => setShowSyncBackupSheet(true)} />
             <SettingsRow label={t('settings.deleteData')} onClick={handleDeleteData} />
           </div>
 
@@ -855,6 +858,11 @@ const TodoSettings = () => {
         filePath={backupFilePath}
       />
 
+      {showSyncBackupSheet && (
+        <Suspense fallback={null}>
+          <SyncBackupSheet open={showSyncBackupSheet} onOpenChange={setShowSyncBackupSheet} />
+        </Suspense>
+      )}
 
       
 
