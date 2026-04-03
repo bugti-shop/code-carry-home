@@ -138,7 +138,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   // Local state
   const [localProAccess, setLocalProAccess] = useState(false);
   const [localLoading, setLocalLoading] = useState(true);
-  const [showPaywall, setShowPaywall] = useState(false);
+  // On web, default to showing paywall until subscription is verified
+  // This prevents any flash of app access on refresh before server check completes
+  const [showPaywall, setShowPaywall] = useState(!Capacitor.isNativePlatform());
   const [paywallFeature, setPaywallFeature] = useState<string | null>(null);
   const [isLocalTrial, setIsLocalTrial] = useState(false);
   const [localTrialExpired, setLocalTrialExpired] = useState(false);
@@ -945,9 +947,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const closePaywall = useCallback(() => {
-    setShowPaywall(false);
-    setPaywallFeature(null);
-  }, []);
+    // Only allow closing paywall if user actually has verified access
+    // This prevents bypass via refresh or back-button from Stripe checkout
+    if (rcIsPro || localProAccess || isAdminBypass) {
+      setShowPaywall(false);
+      setPaywallFeature(null);
+    }
+  }, [rcIsPro, localProAccess, isAdminBypass]);
 
   const unlockPro = useCallback(async () => {
     await setSetting('flowist_admin_bypass', true);
