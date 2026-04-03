@@ -66,12 +66,15 @@ export const StreakConsistencyCertificate = ({ currentStreak, totalCompletions, 
       if (!element) return;
 
       // Temporarily adjust positions for export
+      const introText = element.querySelector('[data-streak-intro]') as HTMLElement | null;
       const streakNum = element.querySelector('[data-streak-number]') as HTMLElement | null;
       const streakLabel = element.querySelector('[data-streak-label]') as HTMLElement | null;
+      const origIntroMargin = introText?.style.marginTop;
       const origNumMargin = streakNum?.style.marginTop;
       const origLabelMargin = streakLabel?.style.marginTop;
+      if (introText) introText.style.marginTop = '-13px';
       if (streakNum) streakNum.style.marginTop = '-12px';
-      if (streakLabel) streakLabel.style.marginTop = '6px';
+      if (streakLabel) streakLabel.style.marginTop = '13px';
 
       const blob = await exportElementToBlob(element);
 
