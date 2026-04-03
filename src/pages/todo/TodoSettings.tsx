@@ -210,7 +210,6 @@ const TodoSettings = () => {
     }
   };
 
-  const [isRestoring, setIsRestoring] = useState(false);
 
   const handleRestoreFromCloud = async () => {
     try {
