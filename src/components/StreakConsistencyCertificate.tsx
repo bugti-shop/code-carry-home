@@ -65,7 +65,15 @@ export const StreakConsistencyCertificate = ({ currentStreak, totalCompletions, 
       const element = cardRef.current;
       if (!element) return;
 
+      // Temporarily adjust streak number position for export
+      const streakNum = element.querySelector('[data-streak-number]') as HTMLElement | null;
+      const origMargin = streakNum?.style.marginTop;
+      if (streakNum) streakNum.style.marginTop = '-6px';
+
       const blob = await exportElementToBlob(element);
+
+      // Restore original position
+      if (streakNum) streakNum.style.marginTop = origMargin || '';
       if (!blob) return;
 
       await shareImageBlob({
