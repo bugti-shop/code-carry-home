@@ -1416,9 +1416,9 @@ const Index = () => {
         currentFolderId={notes.find(n => n.id === movingNoteId)?.folderId}
       />
       <div className="text-center py-2 pb-16">
-        <a href="/privacy-policy" className="text-[10px] text-background hover:text-muted-foreground transition-colors">Privacy Policy</a>
+        <a href="https://www.flowist.me/privacy-policy" className="text-[10px] text-background hover:text-muted-foreground transition-colors">Privacy Policy</a>
         <span className="text-[10px] text-background mx-1">·</span>
-        <a href="/terms" className="text-[10px] text-background hover:text-muted-foreground transition-colors">Terms</a>
+        <a href="https://www.flowist.me/terms-and-conditions" className="text-[10px] text-background hover:text-muted-foreground transition-colors">Terms</a>
       </div>
     </div>
   );
