@@ -236,7 +236,7 @@ const AppContent = () => {
   const [isAppLocked, setIsAppLocked] = useState<boolean | null>(null);
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
   
-  const { isPro, isLoading: subLoading, openPaywall, localTrialExpired, graceExpired } = useSubscription();
+  const { isPro, isLoading: subLoading, isVerifyingCheckout, openPaywall, localTrialExpired, graceExpired } = useSubscription();
 
   // Check onboarding status
   useEffect(() => {
@@ -365,8 +365,9 @@ const AppContent = () => {
     );
   }
 
-  // If subscription expired and onboarding completed, block app with paywall only
-  const subscriptionExpired = !subLoading && !isPro && showOnboarding === false;
+  // Never render protected app screens until onboarding + subscription state are fully resolved.
+  // This prevents temporary access flashes after returning from Stripe without a valid subscription.
+  const canRenderProtectedApp = showOnboarding === false && !subLoading && !isVerifyingCheckout && isPro;
 
   return (
     <>
@@ -381,8 +382,8 @@ const AppContent = () => {
       <PremiumPaywall />
       
 
-      {/* Only render app content if user has active subscription or is in onboarding */}
-      {!subscriptionExpired && (
+      {/* Only render app content after subscription access is fully verified */}
+      {canRenderProtectedApp && (
         <>
           <StreakMilestoneCelebration />
           <StreakTierCelebration />

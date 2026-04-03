@@ -545,6 +545,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const checkStripeSubscription = useCallback(async () => {
     if (Capacitor.isNativePlatform()) return;
     try {
+      setIsWebSubscriptionResolved(false);
       const { data: { session } } = await supabase.auth.getSession();
       const storedEmail = (() => {
         try {
@@ -562,6 +563,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       if (!session?.access_token && !storedEmail) {
         if (!isAdminBypass) {
           setRcIsPro(false);
+          setShowPaywall(true);
         }
         return;
       }
@@ -595,6 +597,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         // Only clear if not admin bypass
         if (!isAdminBypass) {
           setRcIsPro(false);
+          setShowPaywall(true);
           try {
             localStorage.removeItem('flowist_stripe_subscribed');
             localStorage.removeItem('flowist_stripe_customer_email');
@@ -976,9 +979,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         setPaywallFeature(null);
         return true;
       }
+      setRcIsPro(false);
+      setShowPaywall(true);
       return false;
     } catch (err) {
       console.error('checkStripeByEmail failed:', err);
+      setRcIsPro(false);
+      setShowPaywall(true);
       return false;
     }
   }, []);
