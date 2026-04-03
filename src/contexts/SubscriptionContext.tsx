@@ -665,6 +665,12 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
               setPaywallFeature(null);
               setIsWebSubscriptionResolved(true);
               setIsVerifyingCheckout(false);
+              
+              // If no authenticated user, show "secure your subscription" message
+              const { data: { session: currentSession } } = await supabase.auth.getSession();
+              if (!currentSession?.user) {
+                window.dispatchEvent(new CustomEvent('showSecureSubscriptionMessage'));
+              }
               return;
             }
           } catch (err) {
