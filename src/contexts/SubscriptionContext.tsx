@@ -665,6 +665,12 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
               setPaywallFeature(null);
               setIsWebSubscriptionResolved(true);
               setIsVerifyingCheckout(false);
+              
+              // If no authenticated user, show "secure your subscription" message
+              const { data: { session: currentSession } } = await supabase.auth.getSession();
+              if (!currentSession?.user) {
+                window.dispatchEvent(new CustomEvent('showSecureSubscriptionMessage'));
+              }
               return;
             }
           } catch (err) {
@@ -744,6 +750,31 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     window.addEventListener('stripeSubscriptionRestored', handleRestore);
     return () => window.removeEventListener('stripeSubscriptionRestored', handleRestore);
   }, [checkStripeSubscription]);
+
+  // Listen for sign-out event — reset all subscription state and show paywall
+  useEffect(() => {
+    const handleSignOut = () => {
+      console.log('SubscriptionContext: User signed out, resetting subscription state');
+      setRcIsPro(false);
+      setLocalProAccess(false);
+      setIsAdminBypass(false);
+      setCustomerInfo(null);
+      setIsLocalTrial(false);
+      setLocalTrialExpired(false);
+      setGraceExpired(false);
+      setIsWebSubscriptionResolved(true);
+      (window as any).__stripePlanType = undefined;
+      (window as any).__stripeIsTrialing = undefined;
+      try {
+        localStorage.removeItem('flowist_stripe_subscribed');
+        localStorage.removeItem('flowist_stripe_customer_email');
+      } catch {}
+      // Show paywall immediately
+      setShowPaywall(true);
+    };
+    window.addEventListener('flowistSignedOut', handleSignOut);
+    return () => window.removeEventListener('flowistSignedOut', handleSignOut);
+  }, []);
 
   // Re-login to RevenueCat when Google auth state changes (sign in / sign out)
   useEffect(() => {

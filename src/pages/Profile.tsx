@@ -92,6 +92,14 @@ export default function Profile() {
 
   const handleSignOut = async () => {
     await signOut();
+    // Clear all local subscription flags so paywall shows after sign out
+    try {
+      localStorage.removeItem('flowist_stripe_subscribed');
+      localStorage.removeItem('flowist_stripe_customer_email');
+      localStorage.removeItem('flowist_trial_used');
+    } catch {}
+    // Dispatch event so SubscriptionContext resets state
+    window.dispatchEvent(new CustomEvent('flowistSignedOut'));
     toast({ title: t('profile.signedOut', 'Signed out'), description: t('profile.signedOutDesc2', 'Google account disconnected.') });
   };
 

@@ -293,7 +293,22 @@ const AppContent = () => {
   
   // In-app notification listener — captures events from all sources
   useNotificationListener();
-  
+
+  // Listen for "secure your subscription" message (purchase without sign-up)
+  useEffect(() => {
+    const handler = async () => {
+      try {
+        const { toast: uiToast } = await import('@/components/ui/use-toast');
+        uiToast({
+          title: '🔒 Secure Your Subscription',
+          description: 'If you want to secure your subscription, please sign up with your Google account in Profile.',
+          duration: 15000,
+        });
+      } catch {}
+    };
+    window.addEventListener('showSecureSubscriptionMessage', handler);
+    return () => window.removeEventListener('showSecureSubscriptionMessage', handler);
+  }, []);
 
   // Defer non-critical sync hooks until after first paint
   const deferredInit = useRef(false);
