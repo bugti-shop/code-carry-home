@@ -289,8 +289,11 @@ const OnboardingFolderCreation = ({ type, folders, setFolders, progressPercent, 
           <motion.button
             onClick={handleCreate}
             disabled={!folderName.trim()}
-            className="w-full py-3 rounded-xl text-[15px] font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed text-white shadow-md"
-            style={{ background: folderName.trim() ? accentGradient : '#ccc' }}
+            className="w-full py-3 rounded-xl text-[15px] font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shadow-md active:translate-y-[2px]"
+            style={{
+              background: folderName.trim() ? accentGradient : '#ebeff2',
+              color: folderName.trim() ? '#fff' : '#82878a',
+            }}
             whileTap={{ scale: 0.97 }}
           >
             {t('onboarding.createFolder')}
