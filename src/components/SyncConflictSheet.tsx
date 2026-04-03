@@ -145,11 +145,8 @@ export const SyncConflictSheet = () => {
   useEffect(() => {
     const onDetected = (e: CustomEvent<{ conflicts: SyncConflict[] }>) => {
       const incoming = e.detail.conflicts;
-      // Auto-resolve: default to keeping cloud data
-      for (const c of incoming) {
-        resolveConflict(c.category, 'keep_remote');
-      }
-      // Don't show the sheet — conflicts are auto-resolved
+      setConflicts(incoming);
+      setOpen(incoming.length > 0);
     };
     const onResolved = () => {
       setConflicts([]);

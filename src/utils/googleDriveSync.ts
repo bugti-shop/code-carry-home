@@ -351,6 +351,31 @@ const getCategories = async (): Promise<SyncCategory[]> => {
 
 const SETTINGS_ARRAY_KEYS_TO_MERGE = ['folders', 'todoFolders', 'todoSections'] as const;
 
+const PREFER_LOCAL_SETTINGS_KEYS = new Set([
+  'todoShowCompleted',
+  'todoDateFilter',
+  'todoPriorityFilter',
+  'todoStatusFilter',
+  'todoTagFilter',
+  'todoViewMode',
+  'todoHideDetailsOptions',
+  'todoSortBy',
+  'todoSmartList',
+  'todoSelectedFolder',
+  'todoDefaultSectionId',
+  'todoTaskAddPosition',
+  'todoShowStatusBadge',
+  'todoCompactMode',
+  'todoGroupByOption',
+  'todoCollapsedSections',
+]);
+
+const getSafeTimestamp = (value: unknown): number => {
+  if (!value) return 0;
+  const timestamp = new Date(value as any).getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
+};
+
 const isSettingsArrayWithIds = (value: unknown): value is SettingsArrayItem[] => {
   return (
     Array.isArray(value) &&
@@ -383,6 +408,12 @@ const mergeSettingsData = (
     }
   }
 
+  for (const key of PREFER_LOCAL_SETTINGS_KEYS) {
+    if (key in (localData || {})) {
+      merged[key] = localData[key];
+    }
+  }
+
   return merged;
 };
 
@@ -402,12 +433,28 @@ const mergeJourneyData = (local: any, remote: any): any => {
       } else {
         const lTasks = Number((localP as any)?.tasksCompleted) || 0;
         const rTasks = Number(remoteP?.tasksCompleted) || 0;
-        if (lTasks > rTasks) mergedProgress[key] = localP;
+        const lMilestoneIndex = Number((localP as any)?.currentMilestoneIndex) || 0;
+        const rMilestoneIndex = Number(remoteP?.currentMilestoneIndex) || 0;
+        const lMilestoneTasks = Number((localP as any)?.currentMilestoneTasks) || 0;
+        const rMilestoneTasks = Number(remoteP?.currentMilestoneTasks) || 0;
+        const preferLocal =
+          lTasks > rTasks ||
+          (lTasks === rTasks &&
+            (lMilestoneIndex > rMilestoneIndex ||
+              (lMilestoneIndex === rMilestoneIndex && lMilestoneTasks > rMilestoneTasks)));
+
+        if (preferLocal) mergedProgress[key] = localP;
+
         const lReached = Array.isArray((localP as any)?.milestonesReached) ? (localP as any).milestonesReached : [];
         const rReached = Array.isArray(remoteP?.milestonesReached) ? remoteP.milestonesReached : [];
         const winner = mergedProgress[key] as any;
+        winner.tasksCompleted = Math.max(Number(winner.tasksCompleted) || 0, lTasks, rTasks);
+        winner.currentMilestoneIndex = Math.max(Number(winner.currentMilestoneIndex) || 0, lMilestoneIndex, rMilestoneIndex);
+        winner.currentMilestoneTasks = Math.max(Number(winner.currentMilestoneTasks) || 0, lMilestoneTasks, rMilestoneTasks);
         winner.milestonesReached = [...new Set([...lReached, ...rReached])];
         winner.milestonesReachedAt = { ...(remoteP?.milestonesReachedAt || {}), ...((localP as any)?.milestonesReachedAt || {}), ...(winner.milestonesReachedAt || {}) };
+        winner.startedAt = winner.startedAt || (localP as any)?.startedAt || remoteP?.startedAt || new Date().toISOString();
+        winner.completedAt = winner.completedAt || remoteP?.completedAt || (localP as any)?.completedAt;
       }
     }
   }
@@ -419,6 +466,52 @@ const mergeJourneyData = (local: any, remote: any): any => {
     completedJourneys: [...new Set([...lCompleted, ...rCompleted])],
     journeyProgress: mergedProgress,
     totalTasksEver: Math.max(Number(l.totalTasksEver) || 0, Number(r.totalTasksEver) || 0),
+  };
+};
+
+const mergeStreakData = (local: any, remote: any): any => {
+  const l = local || {};
+  const r = remote || {};
+  const localLastCompletion = getSafeTimestamp(l.lastCompletionTime || l.lastCompletionDate);
+  const remoteLastCompletion = getSafeTimestamp(r.lastCompletionTime || r.lastCompletionDate);
+  const latest = localLastCompletion >= remoteLastCompletion ? l : r;
+  const localMilestones = Array.isArray(l.milestones) ? l.milestones : [];
+  const remoteMilestones = Array.isArray(r.milestones) ? r.milestones : [];
+
+  return {
+    ...r,
+    ...l,
+    ...latest,
+    currentStreak: Math.max(Number(l.currentStreak) || 0, Number(r.currentStreak) || 0),
+    longestStreak: Math.max(Number(l.longestStreak) || 0, Number(r.longestStreak) || 0),
+    streakFreezes: Math.max(Number(l.streakFreezes) || 0, Number(r.streakFreezes) || 0),
+    totalCompletions: Math.max(Number(l.totalCompletions) || 0, Number(r.totalCompletions) || 0),
+    milestones: [...new Set([...remoteMilestones, ...localMilestones])].sort((a, b) => Number(a) - Number(b)),
+    weekHistory: { ...(r.weekHistory || {}), ...(l.weekHistory || {}) },
+    dailyTaskCount:
+      latest.lastTaskCountDate && l.lastTaskCountDate === r.lastTaskCountDate && l.lastTaskCountDate === latest.lastTaskCountDate
+        ? Math.max(Number(l.dailyTaskCount) || 0, Number(r.dailyTaskCount) || 0)
+        : Number(latest.dailyTaskCount) || 0,
+    lastTaskCountDate: latest.lastTaskCountDate || l.lastTaskCountDate || r.lastTaskCountDate || null,
+    lastCompletionDate: latest.lastCompletionDate || l.lastCompletionDate || r.lastCompletionDate || null,
+    lastCompletionTime: latest.lastCompletionTime || l.lastCompletionTime || r.lastCompletionTime || null,
+    freezesEarnedToday: Boolean(latest.freezesEarnedToday || l.freezesEarnedToday || r.freezesEarnedToday),
+    gracePeriodUsed: Boolean(latest.gracePeriodUsed),
+  };
+};
+
+const mergeAchievementsData = (local: any, remote: any): any => {
+  const localUnlocked = Array.isArray(local?.unlockedAchievements) ? local.unlockedAchievements : [];
+  const remoteUnlocked = Array.isArray(remote?.unlockedAchievements) ? remote.unlockedAchievements : [];
+
+  return {
+    ...(remote || {}),
+    ...(local || {}),
+    unlockedAchievements: [...new Set([...remoteUnlocked, ...localUnlocked])],
+    achievementDates: {
+      ...(remote?.achievementDates || {}),
+      ...(local?.achievementDates || {}),
+    },
   };
 };
 
@@ -516,8 +609,12 @@ export const downloadFromDrive = async (): Promise<void> => {
               merged = mergeSettingsData(localData || {}, remoteData || {}, mergedDeletions);
             } else if (cat.conflictKey === 'journey') {
               merged = mergeJourneyData(localData || {}, remoteData || {});
+            } else if (cat.conflictKey === 'streaks') {
+              merged = mergeStreakData(localData || {}, remoteData || {});
+            } else if (cat.conflictKey === 'gamification') {
+              merged = mergeAchievementsData(localData || {}, remoteData || {});
             } else {
-              merged = { ...localData, ...remoteData };
+              merged = { ...remoteData, ...localData };
             }
           } else {
             merged = remoteData;
@@ -525,6 +622,15 @@ export const downloadFromDrive = async (): Promise<void> => {
 
           await cat.save(merged);
           await storeHash(cat.conflictKey, merged);
+
+          if (cat.conflictKey === 'tasks') {
+            window.dispatchEvent(new Event('tasksRestored'));
+          }
+
+          if (cat.conflictKey === 'settings') {
+            window.dispatchEvent(new Event('foldersRestored'));
+            window.dispatchEvent(new Event('sectionsRestored'));
+          }
         } catch (err) {
           console.warn(`Failed to download ${cat.fileName}:`, err);
         }
