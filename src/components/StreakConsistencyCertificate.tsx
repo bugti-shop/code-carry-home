@@ -40,22 +40,137 @@ export const StreakConsistencyCertificate = ({ currentStreak, totalCompletions, 
   const displayName = cardName.trim();
 
   const handleShare = useCallback(async () => {
-    if (!cardRef.current) return;
     setIsSharing(true);
     triggerHaptic('medium').catch(() => {});
 
     try {
-      const element = cardRef.current;
-      const canvas = await lazyHtml2canvas(element, {
-        backgroundColor: null,
-        useCORS: true,
-        logging: false,
-        scale: Math.max(2, Math.min(window.devicePixelRatio || 2, 4)),
-        width: element.offsetWidth,
-        height: element.offsetHeight,
-        scrollX: 0,
-        scrollY: 0,
-      });
+      const W = 800;
+      const H = 520;
+      const canvas = document.createElement('canvas');
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext('2d')!;
+
+      // Background gradient
+      const grad = ctx.createLinearGradient(0, 0, W, H);
+      grad.addColorStop(0, '#f98e40');
+      grad.addColorStop(1, '#f87415');
+      ctx.fillStyle = grad;
+      roundRect(ctx, 0, 0, W, H, 32);
+      ctx.fill();
+
+      // Decorative circles
+      ctx.globalAlpha = 0.12;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(W - 60, -20, 140, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(-20, H + 10, 100, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Flame watermark
+      ctx.globalAlpha = 0.12;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      // Simple teardrop shape
+      const fx = W - 120, fy = H / 2 - 40;
+      ctx.moveTo(fx, fy - 80);
+      ctx.bezierCurveTo(fx + 50, fy - 20, fx + 60, fy + 40, fx, fy + 70);
+      ctx.bezierCurveTo(fx - 60, fy + 40, fx - 50, fy - 20, fx, fy - 80);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      // "I'm on a"
+      ctx.fillStyle = 'rgba(255,255,255,0.87)';
+      ctx.font = '700 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText("I'm on a", 48, 72);
+
+      // Big streak number
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 88px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.shadowColor = 'rgba(248, 116, 21, 0.4)';
+      ctx.shadowBlur = 20;
+      ctx.shadowOffsetY = 4;
+      ctx.fillText(String(currentStreak), 48, 165);
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+
+      // "day productivity streak!"
+      ctx.fillStyle = 'rgba(255,255,255,0.87)';
+      ctx.font = '700 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('day productivity', 48, 210);
+      ctx.fillText('streak!', 48, 250);
+
+      // User name
+      if (displayName) {
+        ctx.fillStyle = 'rgba(255,255,255,0.73)';
+        ctx.font = '600 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.fillText(displayName, 48, 290);
+      }
+
+      // Stats
+      const statsY = 370;
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(String(totalCompletions), 48, statsY);
+      ctx.fillStyle = 'rgba(255,255,255,0.67)';
+      ctx.font = '500 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('Tasks Done', 48, statsY + 20);
+
+      const col2X = 170;
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(String(longestStreak), col2X, statsY);
+      ctx.fillStyle = 'rgba(255,255,255,0.67)';
+      ctx.font = '500 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('Best Streak', col2X, statsY + 20);
+
+      // QR Code - draw as white rounded rect with text
+      const qrX = W - 200, qrY = H - 100;
+      ctx.fillStyle = '#ffffff';
+      roundRect(ctx, qrX, qrY, 56, 56, 8);
+      ctx.fill();
+      // Draw a simple QR placeholder pattern
+      ctx.fillStyle = '#000000';
+      ctx.font = '700 8px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('QR', qrX + 28, qrY + 32);
+      ctx.textAlign = 'left';
+
+      // Try to render actual QR from the DOM
+      try {
+        const qrSvg = cardRef.current?.querySelector('svg[viewBox]') as SVGElement | null;
+        if (qrSvg) {
+          const svgData = new XMLSerializer().serializeToString(qrSvg);
+          const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+          const url = URL.createObjectURL(svgBlob);
+          const img = new Image();
+          await new Promise<void>((resolve) => {
+            img.onload = () => {
+              ctx.fillStyle = '#ffffff';
+              roundRect(ctx, qrX, qrY, 56, 56, 8);
+              ctx.fill();
+              ctx.drawImage(img, qrX + 4, qrY + 4, 48, 48);
+              URL.revokeObjectURL(url);
+              resolve();
+            };
+            img.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+            img.src = url;
+          });
+        }
+      } catch { /* fallback to text QR */ }
+
+      // Branding text
+      ctx.fillStyle = 'rgba(255,255,255,0.87)';
+      ctx.font = '700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('Flowist', qrX + 66, qrY + 25);
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.font = '400 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('Notepad & To Do List', qrX + 66, qrY + 42);
 
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
       if (!blob) { setIsSharing(false); return; }
@@ -72,7 +187,7 @@ export const StreakConsistencyCertificate = ({ currentStreak, totalCompletions, 
     } finally {
       setIsSharing(false);
     }
-  }, [currentStreak, totalCompletions, displayName]);
+  }, [currentStreak, totalCompletions, longestStreak, displayName]);
 
   const handleCopyText = useCallback(async () => {
     const text = getShareText(currentStreak, totalCompletions, displayName);
