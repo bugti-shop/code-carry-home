@@ -787,7 +787,7 @@ const Index = () => {
           paddingTop: 'var(--safe-top, 0px)',
         }}
       >
-        <div className="container mx-auto px-2 xs:px-3 sm:px-4 py-2">
+        <div className="container mx-auto px-2 xs:px-3 sm:px-4 pt-2 pb-1.5">
           <div className="flex items-center justify-between mb-2 xs:mb-3 sm:mb-4 gap-1 xs:gap-2">
             <div className="flex items-center gap-1.5 xs:gap-2 min-w-0 flex-shrink-0">
               <AppLogo size="sm" />
@@ -855,8 +855,8 @@ const Index = () => {
               </button>
             </div>
           </div>
-          <div className="h-[1px] bg-border mt-3" />
         </div>
+        <div className="h-[1px] bg-border" />
       </header>
 
       <main className="container mx-auto px-2 xs:px-3 sm:px-4 py-2 xs:py-3">

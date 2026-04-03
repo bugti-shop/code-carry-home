@@ -38,7 +38,7 @@ export const TodoLayout = ({ children, title, searchValue, onSearchChange }: Tod
           paddingTop: 'var(--safe-top, 0px)',
         }}
       >
-        <div className="container mx-auto px-3 sm:px-4 pt-3 pb-2">
+        <div className="container mx-auto px-3 sm:px-4 pt-3 pb-1.5">
           <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
             <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
               <AppLogo />
