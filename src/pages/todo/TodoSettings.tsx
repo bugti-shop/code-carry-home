@@ -75,6 +75,7 @@ const TodoSettings = () => {
   const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
   const [showHelpDialog, setShowHelpDialog] = useState(false);
   const [showSyncBackupSheet, setShowSyncBackupSheet] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
   
   // Notification settings
   const [taskRemindersEnabled, setTaskRemindersEnabled] = useState(true);
