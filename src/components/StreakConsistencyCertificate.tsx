@@ -68,7 +68,7 @@ export const StreakConsistencyCertificate = ({ currentStreak, totalCompletions, 
       // Temporarily adjust streak number position for export
       const streakNum = element.querySelector('[data-streak-number]') as HTMLElement | null;
       const origMargin = streakNum?.style.marginTop;
-      if (streakNum) streakNum.style.marginTop = '-6px';
+      if (streakNum) streakNum.style.marginTop = '-12px';
 
       const blob = await exportElementToBlob(element);
 
