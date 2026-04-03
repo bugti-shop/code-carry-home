@@ -529,6 +529,7 @@ const TodoSettings = () => {
             <SettingsRow label={t('settings.restoreData')} onClick={handleRestoreData} />
             <SettingsRow label={t('settings.downloadData')} onClick={handleDownloadData} />
             <SettingsRow label="Sync Backup History" onClick={() => setShowSyncBackupSheet(true)} />
+            <SettingsRow label="Restore from Cloud" onClick={handleRestoreFromCloud} />
             <SettingsRow label={t('settings.deleteData')} onClick={handleDeleteData} />
           </div>
 
