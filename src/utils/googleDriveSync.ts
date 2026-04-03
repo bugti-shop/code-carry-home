@@ -218,6 +218,7 @@ export const deleteNamedFile = async (fileName: string): Promise<void> => {
   const fileId = await findFile(fileName);
   if (fileId) {
     await deleteFile(fileId);
+    fileIdCache.delete(fileName);
   }
 };
 
