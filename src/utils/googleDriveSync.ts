@@ -154,6 +154,7 @@ const createFile = async (fileName: string, data: any): Promise<string> => {
   });
   if (!res.ok) throw new Error(`Drive create failed: ${res.status}`);
   const result = await res.json();
+  fileIdCache.set(fileName, result.id);
   return result.id;
 };
 
