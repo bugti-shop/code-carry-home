@@ -898,7 +898,9 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             isDefault: false,
             createdAt: new Date(),
           }));
-          await setSetting('folders', [...existingFolders, ...newFolders]);
+          const merged = [...existingFolders, ...newFolders];
+          await setSetting('folders', merged);
+          console.log('[Onboarding] Saved notes folders:', merged.length, merged.map(f => f.name));
           window.dispatchEvent(new Event('foldersUpdated'));
         }
       } catch (e) {
