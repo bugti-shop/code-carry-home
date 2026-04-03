@@ -70,7 +70,15 @@ interface StreakConsistencyCertificateProps {
 }
 
 const getShareText = (streak: number, totalTasks: number, userName: string) => {
-  return `🔥 I'm on a ${streak} day productivity streak!\n\nI've completed ${totalTasks} tasks with consistency on Flowist! Every day counts. 💪\n\n${userName ? `${userName}` : ''}\n#Productivity #Streak #Flowist #Consistency`;
+  const lines = [
+    `🔥 I'm on a ${streak}-day productivity streak!`,
+    '',
+    `✅ ${totalTasks} tasks completed with consistency.`,
+    `💪 Every day counts!`,
+  ];
+  if (userName) lines.push('', `— ${userName}`);
+  lines.push('', 'Track your productivity with Flowist 👇', 'https://play.google.com/store/apps/details?id=nota.npd.com');
+  return lines.join('\n');
 };
 
 const getStreakColor = (_streak: number) => {
