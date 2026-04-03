@@ -1180,6 +1180,16 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
 
         {/* Continue button */}
         <div className="px-6 pb-6 pt-2" style={{ paddingBottom: 'max(var(--safe-bottom, 0px), 12px)' }}>
+          <p className="text-center text-[11px] text-[#999] mb-3 px-4">
+            {t('onboarding.continue')}{' '}
+            <a href="https://www.flowist.me/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline text-[#999]">
+              {t('privacy.title', 'Privacy Policy')}
+            </a>
+            {' & '}
+            <a href="https://www.flowist.me/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="underline text-[#999]">
+              {t('terms.title', 'Terms & Conditions')}
+            </a>
+          </p>
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
