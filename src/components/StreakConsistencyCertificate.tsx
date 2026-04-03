@@ -8,59 +8,15 @@ import { shareImageBlob } from '@/utils/shareImage';
 
 const QRCodeSVG = lazy(() => import('qrcode.react').then(m => ({ default: m.QRCodeSVG })));
 
-const loadImage = (src: string) =>
-  new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error('Failed to load certificate export image'));
-    image.src = src;
+const exportElementToBlob = async (element: HTMLElement): Promise<Blob | null> => {
+  const html2canvas = (await import('html2canvas')).default;
+  const canvas = await html2canvas(element, {
+    scale: 4,
+    useCORS: true,
+    backgroundColor: null,
+    logging: false,
   });
-
-const exportElementToBlob = async (element: HTMLElement, scale = 4): Promise<Blob | null> => {
-  await document.fonts?.ready;
-
-  const rect = element.getBoundingClientRect();
-  const width = Math.max(1, Math.round(rect.width));
-  const height = Math.max(1, Math.round(rect.height));
-  const clonedElement = element.cloneNode(true) as HTMLElement;
-
-  clonedElement.style.width = `${width}px`;
-  clonedElement.style.height = `${height}px`;
-  clonedElement.style.margin = '0';
-  clonedElement.style.transform = 'none';
-
-  const wrapper = document.createElement('div');
-  wrapper.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
-  wrapper.style.width = `${width}px`;
-  wrapper.style.height = `${height}px`;
-  wrapper.style.display = 'flex';
-  wrapper.style.overflow = 'hidden';
-  wrapper.appendChild(clonedElement);
-
-  const serializedMarkup = new XMLSerializer().serializeToString(wrapper);
-  const svgMarkup = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${width * scale}" height="${height * scale}" viewBox="0 0 ${width} ${height}">
-      <foreignObject width="100%" height="100%">${serializedMarkup}</foreignObject>
-    </svg>
-  `;
-
-  const svgBlob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
-  const svgUrl = URL.createObjectURL(svgBlob);
-
-  try {
-    const image = await loadImage(svgUrl);
-    const canvas = document.createElement('canvas');
-    canvas.width = width * scale;
-    canvas.height = height * scale;
-
-    const context = canvas.getContext('2d');
-    if (!context) return null;
-
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    return await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
-  } finally {
-    URL.revokeObjectURL(svgUrl);
-  }
+  return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
 };
 
 interface StreakConsistencyCertificateProps {
