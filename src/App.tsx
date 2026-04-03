@@ -11,6 +11,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SubscriptionProvider, useSubscription } from "@/contexts/SubscriptionContext";
 import { NotesProvider } from "@/contexts/NotesContext";
 import { GoogleAuthProvider } from "@/contexts/GoogleAuthContext";
+import { useGoogleDriveSync } from "@/hooks/useGoogleDriveSync";
 const PremiumPaywall = lazy(() => import("@/components/PremiumPaywall").then(m => ({ default: m.PremiumPaywall })));
 const OnboardingFlow = lazy(() => import("@/components/OnboardingFlow").then(m => ({ default: m.OnboardingFlow })));
 
@@ -226,6 +227,11 @@ const AppRoutes = () => {
   );
 };
 
+const DriveSyncBootstrap = () => {
+  useGoogleDriveSync();
+  return null;
+};
+
 const AppContent = () => {
   const [isAppLocked, setIsAppLocked] = useState<boolean | null>(null);
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
@@ -415,6 +421,7 @@ const App = () => (
       <LazyMotion features={domAnimation}>
         <TooltipProvider>
           <GoogleAuthProvider>
+            <DriveSyncBootstrap />
             <NotesProvider>
               <SubscriptionProvider>
                 <AppContent />

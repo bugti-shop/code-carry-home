@@ -7,6 +7,9 @@ import { syncWithDrive, startAutoSync, stopAutoSync, setupManualSyncListener } f
 
 type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error' | 'offline' | 'reauth';
 
+let activeSyncConsumers = 0;
+let cleanupManualSyncListener: (() => void) | null = null;
+
 export function useGoogleDriveSync() {
   const { user } = useGoogleAuth();
   const [status, setStatus] = useState<SyncStatus>('idle');
@@ -19,14 +22,24 @@ export function useGoogleDriveSync() {
 
   useEffect(() => {
     if (!user) {
-      stopAutoSync();
       return;
     }
-    const cleanupManualSync = setupManualSyncListener();
-    startAutoSync().catch(() => {});
+
+    activeSyncConsumers += 1;
+
+    if (activeSyncConsumers === 1) {
+      cleanupManualSyncListener = setupManualSyncListener();
+      startAutoSync().catch(() => {});
+    }
+
     return () => {
-      cleanupManualSync();
-      stopAutoSync();
+      activeSyncConsumers = Math.max(0, activeSyncConsumers - 1);
+
+      if (activeSyncConsumers === 0) {
+        cleanupManualSyncListener?.();
+        cleanupManualSyncListener = null;
+        stopAutoSync();
+      }
     };
   }, [user?.email]);
 
