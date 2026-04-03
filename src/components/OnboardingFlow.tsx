@@ -283,8 +283,9 @@ const OnboardingFolderCreation = ({ type, folders, setFolders, progressPercent, 
             disabled={!folderName.trim()}
             className="w-full py-3 rounded-xl text-[15px] font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shadow-md active:translate-y-[2px]"
             style={{
-              background: folderName.trim() ? accentGradient : '#ebeff2',
-              color: folderName.trim() ? '#fff' : '#82878a',
+              background: folderName.trim() ? '#1a1a1a' : '#ebeff2',
+              color: folderName.trim() ? '#f7f7f7' : '#82878a',
+              boxShadow: folderName.trim() ? '0 4px 0 0 #000' : 'none',
             }}
             whileTap={{ scale: 0.97 }}
           >
