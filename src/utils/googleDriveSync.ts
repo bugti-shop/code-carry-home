@@ -601,9 +601,12 @@ export const downloadFromDrive = async (): Promise<void> => {
     console.warn('[Sync] Failed to create pre-sync backup:', e);
   }
 
-  // 1. Sync deletion records first
-  const remoteDeletions = await downloadFile<DeletionRecord[]>('flowist_deletions.json');
-  const localDeletions = loadDeletions();
+  // 1. Sync deletion records first — ensure local deletions are loaded from IndexedDB
+  const [remoteDeletions, localDeletionsFromDB] = await Promise.all([
+    downloadFile<DeletionRecord[]>('flowist_deletions.json'),
+    loadDeletionsAsync(),
+  ]);
+  const localDeletions = localDeletionsFromDB.length > 0 ? localDeletionsFromDB : loadDeletions();
   const mergedDeletions = mergeDeletions(localDeletions, remoteDeletions || []);
   saveDeletions(mergedDeletions);
 
