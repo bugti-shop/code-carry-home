@@ -71,7 +71,7 @@ interface StreakConsistencyCertificateProps {
 
 const getShareText = (streak: number, totalTasks: number, userName: string) => {
   const lines = [
-    `🔥 I'm on a ${streak}-day productivity streak!`,
+    `🔥 I'm on a ${streak}-${streak === 1 ? 'day' : 'days'} productivity streak!`,
     '',
     `✅ ${totalTasks} tasks completed with consistency.`,
     `💪 Every day counts!`,
@@ -197,7 +197,7 @@ export const StreakConsistencyCertificate = ({ currentStreak, totalCompletions, 
           {currentStreak}
         </p>
 
-        {/* "day productivity streak!" */}
+        {/* "day/days productivity streak!" */}
         <p style={{
           color: '#ffffffdd',
           fontSize: 22,
@@ -207,7 +207,7 @@ export const StreakConsistencyCertificate = ({ currentStreak, totalCompletions, 
           position: 'relative',
           zIndex: 1,
         }}>
-          day productivity<br />streak!
+          {currentStreak === 1 ? 'day' : 'days'} productivity<br />streak!
         </p>
 
         {/* User name */}
