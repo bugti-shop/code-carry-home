@@ -203,7 +203,7 @@ const OnboardingFolderCreation = ({ type, folders, setFolders, progressPercent, 
         <div className="flex-1 flex flex-col gap-0.5">
           <span className="text-[11px] font-semibold text-[#999] text-right">{stepLabel}</span>
           <div className="h-[17px] rounded-[6px] bg-[#e5e5e5] overflow-hidden">
-            <motion.div className="h-full rounded-[6px]" style={{ background: accentGradient }} initial={{ width: '0%' }} animate={{ width: progressPercent }} transition={{ duration: 0.5, ease: 'easeOut' }} />
+            <motion.div className="h-full rounded-[6px]" style={{ backgroundColor: '#3c78f0' }} initial={{ width: '0%' }} animate={{ width: progressPercent }} transition={{ duration: 0.5, ease: 'easeOut' }} />
           </div>
         </div>
       </div>
@@ -217,15 +217,7 @@ const OnboardingFolderCreation = ({ type, folders, setFolders, progressPercent, 
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="mb-5"
         >
-          <motion.div
-            initial={{ scale: 0, rotate: -20 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 15 }}
-            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 shadow-lg"
-            style={{ background: accentGradient }}
-          >
-            <span className="text-2xl">{icon}</span>
-          </motion.div>
+          {/* Icon removed per design */}
           <h1 className="text-[26px] font-black text-[#1a1a1a] font-['Nunito'] tracking-tight leading-tight">{title}</h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -291,8 +283,9 @@ const OnboardingFolderCreation = ({ type, folders, setFolders, progressPercent, 
             disabled={!folderName.trim()}
             className="w-full py-3 rounded-xl text-[15px] font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shadow-md active:translate-y-[2px]"
             style={{
-              background: folderName.trim() ? accentGradient : '#ebeff2',
-              color: folderName.trim() ? '#fff' : '#82878a',
+              background: folderName.trim() ? '#1a1a1a' : '#ebeff2',
+              color: folderName.trim() ? '#f7f7f7' : '#82878a',
+              boxShadow: folderName.trim() ? '0 4px 0 0 #000' : 'none',
             }}
             whileTap={{ scale: 0.97 }}
           >
