@@ -805,7 +805,52 @@ export const syncJourneyToDrive = async () => {
   if (data) await uploadCategory('flowist_journey.json', data);
 };
 
-// ── Full sync (download → upload → mark synced) ─────────────────────────
+// ── Restore flag — tracks if this device already restored from Drive ─────
+
+const getRestoreKey = (email: string) => `flowist_restore_done_${email}`;
+
+const hasRestoredOnThisDevice = (email: string): boolean => {
+  try {
+    return localStorage.getItem(getRestoreKey(email)) === 'true';
+  } catch {
+    return false;
+  }
+};
+
+const markRestoredOnThisDevice = (email: string) => {
+  try {
+    localStorage.setItem(getRestoreKey(email), 'true');
+  } catch {}
+};
+
+/**
+ * One-time restore from Google Drive.
+ * Called ONLY on first sign-in on a new device/browser.
+ * Downloads remote data and merges into local (empty) state.
+ */
+export const restoreFromDrive = async (): Promise<void> => {
+  const user = await getStoredGoogleUser();
+  if (!user?.email) return;
+
+  if (!navigator.onLine) {
+    emitStatus('offline');
+    return;
+  }
+
+  try {
+    emitStatus('syncing');
+    await downloadFromDrive();
+    markRestoredOnThisDevice(user.email);
+    emitStatus('synced');
+    setTimeout(() => emitStatus('idle'), 5000);
+  } catch (err) {
+    console.error('Google Drive restore failed:', err);
+    emitStatus('error');
+    setTimeout(() => emitStatus('idle'), 30000);
+  }
+};
+
+// ── Full sync (UPLOAD ONLY — local → Drive) ─────────────────────────────
 
 export const syncWithDrive = async (): Promise<void> => {
   const user = await getStoredGoogleUser();
@@ -819,10 +864,7 @@ export const syncWithDrive = async (): Promise<void> => {
   try {
     emitStatus('syncing');
 
-    // First download remote data to merge
-    await downloadFromDrive();
-
-    // Then upload local data (which now includes merged remote data)
+    // Upload local data to Drive (one-way: local → cloud)
     await uploadToDrive();
 
     emitStatus('synced');
@@ -832,7 +874,6 @@ export const syncWithDrive = async (): Promise<void> => {
   } catch (err) {
     console.error('Google Drive sync failed:', err);
     emitStatus('error');
-    // Auto-clear error after 30s so next retry cycle shows proper state
     setTimeout(() => emitStatus('idle'), 30000);
   }
 };
