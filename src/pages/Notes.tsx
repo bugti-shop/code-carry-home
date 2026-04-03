@@ -403,7 +403,6 @@ const Notes = () => {
 
         {/* Search Bar */}
         <div className="mb-4">
-          <div className="h-[1px] bg-border mb-3" />
           <div className="relative">
             <input
               type="text"
@@ -422,6 +421,7 @@ const Notes = () => {
               </button>
             )}
           </div>
+          <div className="h-[1px] bg-border mt-3" />
         </div>
 
         {/* Tag filter chips */}
