@@ -882,24 +882,36 @@ export const syncWithDrive = async (): Promise<void> => {
 
 let hasInitialSynced = false;
 let autoSyncInterval: ReturnType<typeof setInterval> | null = null;
-const AUTO_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes — continuous background sync
+const AUTO_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 /**
- * Start continuous background sync with Google Drive.
- * - Initial download on login
- * - Full sync every 5 minutes for 24/7 data freshness
- * - Offline queue processing on reconnect
+ * Start sync with Google Drive.
+ * - On first sign-in on this device → restore from Drive (one-time)
+ * - Then upload-only every 5 minutes
+ * - All data lives locally in IndexedDB; Drive is just a backup
  */
-export const startAutoSync = () => {
+export const startAutoSync = async () => {
   if (hasInitialSynced) return;
   hasInitialSynced = true;
 
-  // Download latest from Drive once on login
-  setTimeout(() => {
-    downloadFromDrive().catch(() => {});
-  }, 5000);
+  const user = await getStoredGoogleUser();
 
-  // Recurring full sync every 5 minutes for 24/7 Drive sync
+  // If this is a NEW device/browser (never restored before), do a one-time restore
+  if (user?.email && !hasRestoredOnThisDevice(user.email)) {
+    setTimeout(() => {
+      restoreFromDrive().then(() => {
+        // After restore, do an upload to ensure Drive has latest
+        uploadToDrive().catch(() => {});
+      }).catch(() => {});
+    }, 5000);
+  } else {
+    // Already restored before — just upload local data
+    setTimeout(() => {
+      uploadToDrive().catch(() => {});
+    }, 5000);
+  }
+
+  // Recurring upload-only sync every 5 minutes
   autoSyncInterval = setInterval(() => {
     if (!navigator.onLine) return;
     backgroundTokenRefresh()
