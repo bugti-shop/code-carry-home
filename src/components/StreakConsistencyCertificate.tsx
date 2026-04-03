@@ -19,12 +19,8 @@ const getShareText = (streak: number, totalTasks: number, userName: string) => {
   return `🔥 I'm on a ${streak} day productivity streak!\n\nI've completed ${totalTasks} tasks with consistency on Flowist! Every day counts. 💪\n\n${userName ? `— ${userName}` : ''}\n#Productivity #Streak #Flowist #Consistency`;
 };
 
-const getStreakColor = (streak: number) => {
-  if (streak >= 100) return { bg: 'linear-gradient(135deg, hsl(280, 85%, 55%), hsl(320, 90%, 50%))', accent: '#e040fb', glow: 'hsl(300, 80%, 60%)' };
-  if (streak >= 60) return { bg: 'linear-gradient(135deg, hsl(35, 95%, 50%), hsl(15, 90%, 55%))', accent: '#ff6d00', glow: 'hsl(30, 90%, 55%)' };
-  if (streak >= 30) return { bg: 'linear-gradient(135deg, hsl(25, 95%, 55%), hsl(40, 95%, 50%))', accent: '#ffa726', glow: 'hsl(35, 90%, 55%)' };
-  if (streak >= 7) return { bg: 'linear-gradient(135deg, hsl(200, 85%, 50%), hsl(220, 90%, 55%))', accent: '#42a5f5', glow: 'hsl(210, 80%, 55%)' };
-  return { bg: 'linear-gradient(135deg, hsl(140, 70%, 45%), hsl(160, 75%, 50%))', accent: '#66bb6a', glow: 'hsl(150, 70%, 50%)' };
+const getStreakColor = (_streak: number) => {
+  return { bg: 'linear-gradient(135deg, #f98e40, #f87415)', accent: '#f87415', glow: 'rgba(248, 116, 21, 0.4)' };
 };
 
 export const StreakConsistencyCertificate = ({ currentStreak, totalCompletions, longestStreak }: StreakConsistencyCertificateProps) => {
