@@ -1,26 +1,66 @@
 import { useState, useRef, useCallback, useEffect, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { m as motion } from 'framer-motion';
-import { Share2, Edit3, Check, Copy, Flame } from 'lucide-react';
+import { Share2, Edit3, Check, Copy } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { triggerHaptic } from '@/utils/haptics';
-import { lazyHtml2canvas } from '@/utils/lazyHtml2canvas';
 import { shareImageBlob } from '@/utils/shareImage';
 
 const QRCodeSVG = lazy(() => import('qrcode.react').then(m => ({ default: m.QRCodeSVG })));
 
-const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
+const loadImage = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('Failed to load certificate export image'));
+    image.src = src;
+  });
+
+const exportElementToBlob = async (element: HTMLElement, scale = 4): Promise<Blob | null> => {
+  await document.fonts?.ready;
+
+  const rect = element.getBoundingClientRect();
+  const width = Math.max(1, Math.round(rect.width));
+  const height = Math.max(1, Math.round(rect.height));
+  const clonedElement = element.cloneNode(true) as HTMLElement;
+
+  clonedElement.style.width = `${width}px`;
+  clonedElement.style.height = `${height}px`;
+  clonedElement.style.margin = '0';
+  clonedElement.style.transform = 'none';
+
+  const wrapper = document.createElement('div');
+  wrapper.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+  wrapper.style.width = `${width}px`;
+  wrapper.style.height = `${height}px`;
+  wrapper.style.display = 'flex';
+  wrapper.style.overflow = 'hidden';
+  wrapper.appendChild(clonedElement);
+
+  const serializedMarkup = new XMLSerializer().serializeToString(wrapper);
+  const svgMarkup = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width * scale}" height="${height * scale}" viewBox="0 0 ${width} ${height}">
+      <foreignObject width="100%" height="100%">${serializedMarkup}</foreignObject>
+    </svg>
+  `;
+
+  const svgBlob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
+  const svgUrl = URL.createObjectURL(svgBlob);
+
+  try {
+    const image = await loadImage(svgUrl);
+    const canvas = document.createElement('canvas');
+    canvas.width = width * scale;
+    canvas.height = height * scale;
+
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    return await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  } finally {
+    URL.revokeObjectURL(svgUrl);
+  }
 };
 
 interface StreakConsistencyCertificateProps {
@@ -58,136 +98,11 @@ export const StreakConsistencyCertificate = ({ currentStreak, totalCompletions, 
     triggerHaptic('medium').catch(() => {});
 
     try {
-      const W = 800;
-      const H = 520;
-      const canvas = document.createElement('canvas');
-      canvas.width = W;
-      canvas.height = H;
-      const ctx = canvas.getContext('2d')!;
+      const element = cardRef.current;
+      if (!element) return;
 
-      // Background gradient
-      const grad = ctx.createLinearGradient(0, 0, W, H);
-      grad.addColorStop(0, '#f98e40');
-      grad.addColorStop(1, '#f87415');
-      ctx.fillStyle = grad;
-      roundRect(ctx, 0, 0, W, H, 32);
-      ctx.fill();
-
-      // Decorative circles
-      ctx.globalAlpha = 0.12;
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(W - 60, -20, 140, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(-20, H + 10, 100, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Flame watermark
-      ctx.globalAlpha = 0.12;
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      // Simple teardrop shape
-      const fx = W - 120, fy = H / 2 - 40;
-      ctx.moveTo(fx, fy - 80);
-      ctx.bezierCurveTo(fx + 50, fy - 20, fx + 60, fy + 40, fx, fy + 70);
-      ctx.bezierCurveTo(fx - 60, fy + 40, fx - 50, fy - 20, fx, fy - 80);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-
-      // "I'm on a"
-      ctx.fillStyle = 'rgba(255,255,255,0.87)';
-      ctx.font = '700 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText("I'm on a", 48, 72);
-
-      // Big streak number
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '900 88px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.shadowColor = 'rgba(248, 116, 21, 0.4)';
-      ctx.shadowBlur = 20;
-      ctx.shadowOffsetY = 4;
-      ctx.fillText(String(currentStreak), 48, 165);
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
-
-      // "day productivity streak!"
-      ctx.fillStyle = 'rgba(255,255,255,0.87)';
-      ctx.font = '700 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.fillText('day productivity', 48, 210);
-      ctx.fillText('streak!', 48, 250);
-
-      // User name
-      if (displayName) {
-        ctx.fillStyle = 'rgba(255,255,255,0.73)';
-        ctx.font = '600 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.fillText(displayName, 48, 290);
-      }
-
-      // Stats
-      const statsY = 370;
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '800 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.fillText(String(totalCompletions), 48, statsY);
-      ctx.fillStyle = 'rgba(255,255,255,0.67)';
-      ctx.font = '500 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.fillText('Tasks Done', 48, statsY + 20);
-
-      const col2X = 170;
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '800 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.fillText(String(longestStreak), col2X, statsY);
-      ctx.fillStyle = 'rgba(255,255,255,0.67)';
-      ctx.font = '500 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.fillText('Best Streak', col2X, statsY + 20);
-
-      // QR Code - draw as white rounded rect with text
-      const qrX = W - 200, qrY = H - 100;
-      ctx.fillStyle = '#ffffff';
-      roundRect(ctx, qrX, qrY, 56, 56, 8);
-      ctx.fill();
-      // Draw a simple QR placeholder pattern
-      ctx.fillStyle = '#000000';
-      ctx.font = '700 8px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('QR', qrX + 28, qrY + 32);
-      ctx.textAlign = 'left';
-
-      // Try to render actual QR from the DOM
-      try {
-        const qrSvg = cardRef.current?.querySelector('svg[viewBox]') as SVGElement | null;
-        if (qrSvg) {
-          const svgData = new XMLSerializer().serializeToString(qrSvg);
-          const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-          const url = URL.createObjectURL(svgBlob);
-          const img = new Image();
-          await new Promise<void>((resolve) => {
-            img.onload = () => {
-              ctx.fillStyle = '#ffffff';
-              roundRect(ctx, qrX, qrY, 56, 56, 8);
-              ctx.fill();
-              ctx.drawImage(img, qrX + 4, qrY + 4, 48, 48);
-              URL.revokeObjectURL(url);
-              resolve();
-            };
-            img.onerror = () => { URL.revokeObjectURL(url); resolve(); };
-            img.src = url;
-          });
-        }
-      } catch { /* fallback to text QR */ }
-
-      // Branding text
-      ctx.fillStyle = 'rgba(255,255,255,0.87)';
-      ctx.font = '700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText('Flowist', qrX + 66, qrY + 25);
-      ctx.fillStyle = 'rgba(255,255,255,0.6)';
-      ctx.font = '400 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.fillText('Notepad & To Do List', qrX + 66, qrY + 42);
-
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
-      if (!blob) { setIsSharing(false); return; }
+      const blob = await exportElementToBlob(element);
+      if (!blob) return;
 
       await shareImageBlob({
         blob,
