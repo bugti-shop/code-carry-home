@@ -801,8 +801,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem('flowist_stripe_subscribed');
         localStorage.removeItem('flowist_stripe_customer_email');
       } catch {}
-      // Show paywall immediately
-      setShowPaywall(true);
+      // Reset onboarding so user goes back to language selection page
+      setShowPaywall(false);
+      setSetting('onboarding_completed', false).catch(() => {});
+      window.dispatchEvent(new CustomEvent('flowistOnboardingReset'));
     };
     window.addEventListener('flowistSignedOut', handleSignOut);
     return () => window.removeEventListener('flowistSignedOut', handleSignOut);

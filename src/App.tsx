@@ -255,19 +255,11 @@ const AppContent = () => {
     if (subLoading || showOnboarding) return;
     // Paid subscriber — always allow access
     if (isPro) return;
-    // Grace period expired (trial 8 days + grace 3 days = 11 days total) — redirect to onboarding page 1
+    // No active subscription — redirect to language selection (onboarding page 1)
     // User data is preserved, only onboarding_completed flag is reset
-    if (graceExpired) {
-      setSetting('onboarding_completed', false).then(() => {
-        setShowOnboarding(true);
-      });
-    } else if (localTrialExpired) {
-      // Trial expired but still in grace period — show paywall as warning
-      openPaywall();
-    } else if (!localTrialExpired) {
-      // No subscription and no trial — show paywall
-      openPaywall();
-    }
+    setSetting('onboarding_completed', false).then(() => {
+      setShowOnboarding(true);
+    });
   }, [isPro, subLoading, showOnboarding, openPaywall, localTrialExpired, graceExpired]);
 
   const handleOnboardingComplete = useCallback(() => {
