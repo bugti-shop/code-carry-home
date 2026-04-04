@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NotesCalendarView } from '@/components/NotesCalendarView';
-import { CalendarSyncBadge } from '@/components/CalendarSyncBadge';
+
 import { AppLogo } from '@/components/AppLogo';
 import { Plus, StickyNote, FileText, FileEdit, Pen, FileCode, Mic, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
