@@ -32,8 +32,26 @@ const DRIVE_UPLOAD_API = 'https://www.googleapis.com/upload/drive/v3';
 
 type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error' | 'offline';
 
+export interface SyncCategoryProgress {
+  name: string;
+  label: string;
+  status: 'pending' | 'in_progress' | 'done' | 'error' | 'skipped';
+  itemCount?: number;
+}
+
+export interface SyncProgressEvent {
+  mode: 'upload' | 'download';
+  categories: SyncCategoryProgress[];
+  completed: number;
+  total: number;
+}
+
 const emitStatus = (status: SyncStatus) => {
   window.dispatchEvent(new CustomEvent('syncStatusChanged', { detail: { status } }));
+};
+
+const emitProgress = (progress: SyncProgressEvent) => {
+  window.dispatchEvent(new CustomEvent('syncProgress', { detail: progress }));
 };
 
 // ── Token-aware fetch wrapper ─────────────────────────────────────────────
