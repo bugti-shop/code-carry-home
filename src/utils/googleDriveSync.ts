@@ -567,7 +567,12 @@ const setLastSyncTime = async () => {
 
 export const uploadToDrive = async (): Promise<void> => {
   const token = await getValidAccessToken();
-  if (!token) throw new Error('Not signed in');
+  if (!token) {
+    console.error('[DriveSync] ❌ Upload failed — no valid access token');
+    throw new Error('Not signed in');
+  }
+
+  console.log('[DriveSync] 📤 Starting upload to Google Drive...');
 
   const categories = await getCategories();
 
@@ -578,36 +583,62 @@ export const uploadToDrive = async (): Promise<void> => {
     );
     if (res.ok) {
       const data = await res.json();
+      const fileCount = data.files?.length || 0;
+      console.log(`[DriveSync] 📂 Found ${fileCount} existing files in Drive appDataFolder`);
       for (const f of data.files || []) {
         if (f.name && f.id) fileIdCache.set(f.name, f.id);
       }
+    } else {
+      console.error(`[DriveSync] ❌ File list failed: ${res.status} ${res.statusText}`);
     }
-  } catch {}
+  } catch (e) {
+    console.error('[DriveSync] ❌ File list error:', e);
+  }
 
-  // Upload all categories + deletions in parallel for speed
+  // Load all data first, then upload in parallel for speed
+  const uploadResults: { name: string; success: boolean; itemCount?: number }[] = [];
+
   await Promise.allSettled([
     ...categories.map(async (cat) => {
       try {
-        // Check selective sync preference
         const enabled = await isCategoryEnabled(cat.selectiveSyncKey);
-        if (!enabled) return;
+        if (!enabled) {
+          uploadResults.push({ name: cat.fileName, success: true, itemCount: -1 });
+          return;
+        }
 
         const data = await cat.load();
         if (data !== null && data !== undefined) {
+          const count = Array.isArray(data) ? data.length : (typeof data === 'object' ? Object.keys(data).length : 1);
+          console.log(`[DriveSync] ⬆️ Uploading ${cat.fileName} (${count} items)...`);
           await upsertFile(cat.fileName, data);
           await storeHash(cat.conflictKey, data);
+          uploadResults.push({ name: cat.fileName, success: true, itemCount: count });
+          console.log(`[DriveSync] ✅ ${cat.fileName} uploaded successfully`);
+        } else {
+          console.log(`[DriveSync] ⏭️ ${cat.fileName} — no data to upload`);
+          uploadResults.push({ name: cat.fileName, success: true, itemCount: 0 });
         }
       } catch (err) {
-        console.warn(`Failed to upload ${cat.fileName}:`, err);
+        console.error(`[DriveSync] ❌ Failed to upload ${cat.fileName}:`, err);
+        uploadResults.push({ name: cat.fileName, success: false });
       }
     }),
-    // Always upload deletion records (ensure loaded from IndexedDB first)
-    loadDeletionsAsync().then((dels) =>
-      upsertFile('flowist_deletions.json', dels.length > 0 ? dels : loadDeletions()),
-    ).catch((err) =>
-      console.warn('Failed to upload deletions:', err),
+    // Always upload deletion records
+    loadDeletionsAsync().then((dels) => {
+      const deletions = dels.length > 0 ? dels : loadDeletions();
+      console.log(`[DriveSync] ⬆️ Uploading deletions (${deletions.length} records)...`);
+      return upsertFile('flowist_deletions.json', deletions);
+    }).then(() => {
+      console.log('[DriveSync] ✅ Deletions uploaded');
+    }).catch((err) =>
+      console.error('[DriveSync] ❌ Failed to upload deletions:', err),
     ),
   ]);
+
+  const succeeded = uploadResults.filter(r => r.success).length;
+  const failed = uploadResults.filter(r => !r.success).length;
+  console.log(`[DriveSync] 📤 Upload complete: ${succeeded} succeeded, ${failed} failed`);
 
   await setLastSyncTime();
 };

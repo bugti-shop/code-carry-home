@@ -404,7 +404,13 @@ export default function Profile() {
                     const { restoreFromDrive } = await import('@/utils/googleDriveSync');
                     await restoreFromDrive();
                     toast({ title: t('profile.restoreSuccess', 'Data restored from cloud!') });
-                    setTimeout(() => window.location.reload(), 1500);
+                    // Notify UI to reload data without page refresh
+                    window.dispatchEvent(new Event('tasksRestored'));
+                    window.dispatchEvent(new Event('foldersRestored'));
+                    window.dispatchEvent(new Event('sectionsRestored'));
+                    window.dispatchEvent(new Event('streakUpdated'));
+                    window.dispatchEvent(new Event('journeyUpdated'));
+                    window.dispatchEvent(new Event('notesUpdated'));
                   } catch {
                     toast({ title: t('profile.restoreFailed', 'Restore failed'), description: t('profile.restoreFailedDesc', 'Make sure you are signed in.'), variant: 'destructive' });
                   }
