@@ -258,33 +258,25 @@ export const NotesCalendarView = ({
                 className={cn(
                   "w-10 h-10 flex items-center justify-center rounded-full text-base font-normal transition-all",
                   !isCurrentMonth && (useLightText ? "text-white/30" : "text-muted-foreground/40"),
-                  isCurrentMonth && !isToday && !isSelected && (useLightText ? "text-white" : "text-foreground"),
-                  isToday && "bg-primary text-primary-foreground font-normal",
-                  isSelected && !isToday && (useLightText 
-                    ? "bg-white/20 text-white font-normal ring-2 ring-white/30" 
-                    : "bg-primary/20 text-primary font-normal ring-2 ring-primary/30")
+                  isCurrentMonth && !isToday && !isSelected && !hasAnyIndicator && (useLightText ? "text-white" : "text-foreground"),
+                  isCurrentMonth && !isToday && !isSelected && hasAnyIndicator && "text-white",
+                  isToday && "text-white font-normal",
+                  isSelected && !isToday && !hasAnyIndicator && (useLightText 
+                    ? "text-white font-normal ring-2 ring-white/30" 
+                    : "text-white font-normal ring-2 ring-white/30")
                 )}
+                style={{
+                  backgroundColor: isToday
+                    ? '#3c78f0'
+                    : (isSelected && !isToday)
+                      ? '#3c78f0'
+                      : (hasAnyIndicator && isCurrentMonth && !isToday)
+                        ? '#3c78f0'
+                        : undefined,
+                }}
               >
                 {format(day, "d")}
               </span>
-              
-              {/* Dot indicators */}
-              {hasAnyIndicator && isCurrentMonth && (
-                <div className="flex gap-0.5 absolute bottom-0.5">
-                  {hasTaskOnDay && (
-                    <div className={cn("w-1 h-1 rounded-full", useLightText ? "bg-white" : "bg-primary")} />
-                  )}
-                  {hasEventOnDay && (
-                    <div className={cn("w-1 h-1 rounded-full", useLightText ? "bg-white" : "bg-primary")} />
-                  )}
-                  {hasNoteOnDay && !hasTaskOnDay && !hasEventOnDay && (
-                    <div className={cn("w-1 h-1 rounded-full", useLightText ? "bg-white" : "bg-primary")} />
-                  )}
-                  {hasSystemEventOnDay && (
-                    <div className={cn("w-1 h-1 rounded-full", useLightText ? "bg-white" : "bg-primary")} />
-                  )}
-                </div>
-              )}
             </button>
           );
         })}

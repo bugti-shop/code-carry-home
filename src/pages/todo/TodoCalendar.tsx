@@ -1096,10 +1096,6 @@ const TodoCalendar = () => {
           onBackgroundSettingsClick={() => setIsBackgroundSheetOpen(true)}
         />
 
-        {/* Persistent Sync Calendar Button - Always visible at top */}
-        <div className="px-4 pt-2">
-          <CalendarSyncBadge alwaysVisible />
-        </div>
 
         {/* Events and Tasks for selected date */}
         {date && hasItemsForDate && (
