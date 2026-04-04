@@ -190,13 +190,6 @@ const TodoSettings = () => {
       const { restoreFromDrive } = await import('@/utils/googleDriveSync');
       await restoreFromDrive();
       toast.success('Data restored from cloud successfully!');
-      // Notify UI to reload data without page refresh
-      window.dispatchEvent(new Event('tasksRestored'));
-      window.dispatchEvent(new Event('foldersRestored'));
-      window.dispatchEvent(new Event('sectionsRestored'));
-      window.dispatchEvent(new Event('streakUpdated'));
-      window.dispatchEvent(new Event('journeyUpdated'));
-      window.dispatchEvent(new Event('notesUpdated'));
     } catch (err) {
       toast.error('Failed to restore from cloud. Make sure you are signed in.');
     } finally {
