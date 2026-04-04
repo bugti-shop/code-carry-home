@@ -73,6 +73,16 @@ export default defineConfig(({ mode }) => ({
   build: {
     target: 'es2020',
     minify: 'terser',
+    terserOptions: {
+      mangle: {
+        toplevel: true,
+        properties: false,
+      },
+      compress: {
+        passes: 2,
+        toplevel: true,
+      },
+    },
     cssMinify: true,
     rollupOptions: {
       output: {
