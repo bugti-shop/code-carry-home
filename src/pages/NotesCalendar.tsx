@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NotesCalendarView } from '@/components/NotesCalendarView';
-import { CalendarSyncBadge } from '@/components/CalendarSyncBadge';
+
 import { AppLogo } from '@/components/AppLogo';
 import { Plus, StickyNote, FileText, FileEdit, Pen, FileCode, Mic, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -37,7 +37,7 @@ const NotesCalendar = () => {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [calendarBackground, setCalendarBackground] = useState<string>('none');
   const [isBackgroundSheetOpen, setIsBackgroundSheetOpen] = useState(false);
-  const [isSyncOpen, setIsSyncOpen] = useState(false);
+  
   
   // Load folders and background preference
   useEffect(() => {
@@ -167,16 +167,8 @@ const NotesCalendar = () => {
           emptyStateSubMessage={t('calendar.clickToCreate', 'Click "+" to create your notes.')}
           calendarBackground={calendarBackground}
           onBackgroundSettingsClick={() => setIsBackgroundSheetOpen(true)}
-          showSyncCalendar
-          onSyncCalendarClick={() => setIsSyncOpen(true)}
         />
 
-        {/* Sync Calendar (hidden, triggered from menu) */}
-        {isSyncOpen && (
-          <div className="px-4 py-2">
-            <CalendarSyncBadge alwaysVisible />
-          </div>
-        )}
 
         {/* Notes for Selected Date - Scrollable */}
         {selectedDateNotes.length > 0 && (

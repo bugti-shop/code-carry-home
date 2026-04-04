@@ -82,8 +82,6 @@ const TodoSettings = () => {
   const [noteRemindersEnabled, setNoteRemindersEnabled] = useState(true);
   const [dailyDigestEnabled, setDailyDigestEnabled] = useState(false);
   const [overdueAlertsEnabled, setOverdueAlertsEnabled] = useState(true);
-  const [calendarSyncEnabled, setCalendarSyncEnabled] = useState(false);
-  const [syncDirection, setSyncDirection] = useState<'bidirectional' | 'push' | 'pull'>('bidirectional');
   const currentLanguage = languages.find(l => l.code === i18n.language) || languages[0];
 
   // Load settings
@@ -92,8 +90,6 @@ const TodoSettings = () => {
     getSetting<boolean>('noteRemindersEnabled', true).then(setNoteRemindersEnabled);
     getSetting<boolean>('dailyDigestEnabled', false).then(setDailyDigestEnabled);
     getSetting<boolean>('overdueAlertsEnabled', true).then(setOverdueAlertsEnabled);
-    getSetting<boolean>('systemCalendarSyncEnabled', false).then(setCalendarSyncEnabled);
-    getSetting<'bidirectional' | 'push' | 'pull'>('calendarSyncDirection', 'bidirectional').then(setSyncDirection);
     
   }, []);
 
@@ -129,29 +125,6 @@ const TodoSettings = () => {
     toast.success(enabled ? t('settings.overdueAlertsEnabled', 'Overdue alerts enabled') : t('settings.overdueAlertsDisabled', 'Overdue alerts disabled'));
   };
 
-  const handleCalendarSyncToggle = async (enabled: boolean) => {
-    try {
-      if (enabled) {
-        const { requestCalendarPermissions, setCalendarSyncEnabled: setSync } = await import('@/utils/systemCalendarSync');
-        const granted = await requestCalendarPermissions();
-        if (!granted) {
-          toast.error(t('settings.calendarPermissionDenied', 'Calendar permission denied. Please grant access in device settings.'));
-          return;
-        }
-        await setSync(true);
-        setCalendarSyncEnabled(true);
-        toast.success(t('settings.calendarSyncEnabled', 'System calendar sync enabled'));
-      } else {
-        const { setCalendarSyncEnabled: setSync } = await import('@/utils/systemCalendarSync');
-        await setSync(false);
-        setCalendarSyncEnabled(false);
-        toast.success(t('settings.calendarSyncDisabled', 'System calendar sync disabled'));
-      }
-    } catch (error) {
-      console.error('Error toggling calendar sync:', error);
-      toast.error(t('errors.calendarSyncFailed', 'Failed to toggle calendar sync'));
-    }
-  };
 
 
   const handleBackupData = async () => {
@@ -440,82 +413,6 @@ const TodoSettings = () => {
                   </div>
                   <Switch checked={overdueAlertsEnabled} onCheckedChange={handleOverdueAlertsToggle} />
                 </div>
-                <div className="flex items-center justify-between px-4 py-3">
-                  <div className="flex-1 pr-4">
-                    <span className="text-foreground text-sm block">📅 {t('settings.calendarSync', 'System Calendar Sync')}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {t('settings.calendarSyncDesc', 'Sync tasks & events with your device calendar')}
-                    </span>
-                  </div>
-                  <Switch checked={calendarSyncEnabled} onCheckedChange={handleCalendarSyncToggle} />
-                </div>
-                {calendarSyncEnabled && (
-                  <div className="px-4 py-3 text-xs text-muted-foreground bg-muted/30 space-y-2">
-                    <p className="font-medium text-foreground text-xs mb-1">{t('settings.syncDirection', 'Sync Direction')}</p>
-                    {([
-                      { value: 'bidirectional' as const, label: '🔄 ' + t('settings.syncBidirectional', 'Bidirectional'), desc: t('settings.syncBidirectionalDesc', 'App ↔ Calendar') },
-                      { value: 'push' as const, label: '📤 ' + t('settings.syncPushOnly', 'App → Calendar'), desc: t('settings.syncPushDesc', 'Only push app events to device calendar') },
-                      { value: 'pull' as const, label: '📥 ' + t('settings.syncPullOnly', 'Calendar → App'), desc: t('settings.syncPullDesc', 'Only import device calendar events') },
-                    ]).map(opt => (
-                      <button
-                        key={opt.value}
-                        className={`w-full text-left px-3 py-2 rounded-md border text-xs transition-colors ${
-                          syncDirection === opt.value
-                            ? 'border-primary bg-primary/10 text-foreground'
-                            : 'border-border text-muted-foreground'
-                        }`}
-                        onClick={async () => {
-                          setSyncDirection(opt.value);
-                          await setSetting('calendarSyncDirection', opt.value);
-                          toast.success(`Sync direction: ${opt.desc}`);
-                        }}
-                      >
-                        <span className="block">{opt.label}</span>
-                        <span className="block text-[10px] opacity-70">{opt.desc}</span>
-                      </button>
-                    ))}
-                    <button
-                      className="w-full mt-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-primary bg-primary/10 text-primary text-xs font-medium transition-colors hover:bg-primary/20"
-                      onClick={async () => {
-                        try {
-                          const { performFullCalendarSync } = await import('@/utils/systemCalendarSync');
-                          const { loadTasksFromDB } = await import('@/utils/taskStorage');
-                          const tasks = await loadTasksFromDB().catch(() => []);
-                          const events = await getSetting<any[]>('calendarEvents', []).catch(() => []);
-                          toast.loading('📅 Syncing...', { id: 'manual-sync' });
-                          const result = await performFullCalendarSync(tasks, events);
-                          const parts = [];
-                          if (result.pushed > 0) parts.push(`${result.pushed} pushed`);
-                          if (result.pulled > 0) parts.push(`${result.pulled} new`);
-                          if (result.updated > 0) parts.push(`${result.updated} updated`);
-                          toast.success(parts.length > 0 ? `📅 ${t('calendarSync.synced', 'Synced')}: ${parts.join(', ')}` : `📅 ${t('calendarSync.alreadyInSync', 'Already in sync')}`, { id: 'manual-sync' });
-                        } catch (e) {
-                          toast.error(t('calendarSync.syncFailed', 'Sync failed'), { id: 'manual-sync' });
-                        }
-                      }}
-                    >
-                      🔄 {t('calendarSync.syncNow', 'Sync Now')}
-                    </button>
-                    <button
-                      className="mt-1 text-xs text-destructive underline"
-                      onClick={async () => {
-                        try {
-                          const { clearDuplicateCalendarEvents } = await import('@/utils/systemCalendarSync');
-                          const removed = await clearDuplicateCalendarEvents();
-                          if (removed > 0) {
-                            toast.success(`🧹 ${t('calendarSync.removedDuplicates', 'Removed {{count}} duplicate event(s)', { count: removed })}`);
-                          } else {
-                            toast.success(`✅ ${t('calendarSync.noDuplicates', 'No duplicate events found')}`);
-                          }
-                        } catch (e) {
-                          toast.error(t('calendarSync.clearDuplicatesFailed', 'Failed to clear duplicates'));
-                        }
-                      }}
-                    >
-                      🧹 {t('settings.clearDuplicateEvents', 'Clear Duplicate Events')}
-                    </button>
-                  </div>
-                )}
               </div>
             )}
           </div>

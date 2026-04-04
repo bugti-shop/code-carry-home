@@ -1,5 +1,5 @@
 import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameMonth } from "date-fns";
-import { ChevronLeft, ChevronRight, ChevronDown, MoreVertical, Image, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, MoreVertical, Image } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { loadNotesFromDB } from '@/utils/noteStorage';
 import { useTranslation } from "react-i18next";
@@ -24,8 +24,6 @@ interface NotesCalendarViewProps {
   showEmptyState?: boolean;
   calendarBackground?: string;
   onBackgroundSettingsClick?: () => void;
-  showSyncCalendar?: boolean;
-  onSyncCalendarClick?: () => void;
 }
 
 const BACKGROUND_GRADIENTS: Record<string, string | null> = {
@@ -60,8 +58,6 @@ export const NotesCalendarView = ({
   showEmptyState = false,
   calendarBackground = 'none',
   onBackgroundSettingsClick,
-  showSyncCalendar = true,
-  onSyncCalendarClick,
 }: NotesCalendarViewProps) => {
   const { t } = useTranslation();
   const resolvedEmptyMessage = emptyStateMessage || t('calendar.noNotes', 'No notes for the day.');
@@ -214,12 +210,6 @@ export const NotesCalendarView = ({
               <DropdownMenuItem onClick={handleGoToToday}>
                 {t('calendar.goToToday', 'Go to Today')}
               </DropdownMenuItem>
-              {showSyncCalendar && (
-                <DropdownMenuItem onClick={onSyncCalendarClick} className="gap-2">
-                  <RefreshCw className="h-4 w-4" />
-                  {t('calendar.syncCalendar', 'Sync Calendar')}
-                </DropdownMenuItem>
-              )}
               {onBackgroundSettingsClick && (
                 <DropdownMenuItem onClick={onBackgroundSettingsClick} className="gap-2">
                   <Image className="h-4 w-4" />
@@ -268,33 +258,25 @@ export const NotesCalendarView = ({
                 className={cn(
                   "w-10 h-10 flex items-center justify-center rounded-full text-base font-normal transition-all",
                   !isCurrentMonth && (useLightText ? "text-white/30" : "text-muted-foreground/40"),
-                  isCurrentMonth && !isToday && !isSelected && (useLightText ? "text-white" : "text-foreground"),
-                  isToday && "bg-primary text-primary-foreground font-normal",
-                  isSelected && !isToday && (useLightText 
-                    ? "bg-white/20 text-white font-normal ring-2 ring-white/30" 
-                    : "bg-primary/20 text-primary font-normal ring-2 ring-primary/30")
+                  isCurrentMonth && !isToday && !isSelected && !hasAnyIndicator && (useLightText ? "text-white" : "text-foreground"),
+                  isCurrentMonth && !isToday && !isSelected && hasAnyIndicator && "text-white",
+                  isToday && "text-white font-normal",
+                  isSelected && !isToday && !hasAnyIndicator && (useLightText 
+                    ? "text-white font-normal ring-2 ring-white/30" 
+                    : "text-white font-normal ring-2 ring-white/30")
                 )}
+                style={{
+                  backgroundColor: isToday
+                    ? '#3c78f0'
+                    : (isSelected && !isToday)
+                      ? '#3c78f0'
+                      : (hasAnyIndicator && isCurrentMonth && !isToday)
+                        ? '#3c78f0'
+                        : undefined,
+                }}
               >
                 {format(day, "d")}
               </span>
-              
-              {/* Dot indicators */}
-              {hasAnyIndicator && isCurrentMonth && (
-                <div className="flex gap-0.5 absolute bottom-0.5">
-                  {hasTaskOnDay && (
-                    <div className={cn("w-1 h-1 rounded-full", useLightText ? "bg-white" : "bg-primary")} />
-                  )}
-                  {hasEventOnDay && (
-                    <div className={cn("w-1 h-1 rounded-full", useLightText ? "bg-white" : "bg-primary")} />
-                  )}
-                  {hasNoteOnDay && !hasTaskOnDay && !hasEventOnDay && (
-                    <div className={cn("w-1 h-1 rounded-full", useLightText ? "bg-white" : "bg-primary")} />
-                  )}
-                  {hasSystemEventOnDay && (
-                    <div className={cn("w-1 h-1 rounded-full", useLightText ? "bg-white" : "bg-primary")} />
-                  )}
-                </div>
-              )}
             </button>
           );
         })}
