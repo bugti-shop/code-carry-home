@@ -90,8 +90,6 @@ const TodoSettings = () => {
     getSetting<boolean>('noteRemindersEnabled', true).then(setNoteRemindersEnabled);
     getSetting<boolean>('dailyDigestEnabled', false).then(setDailyDigestEnabled);
     getSetting<boolean>('overdueAlertsEnabled', true).then(setOverdueAlertsEnabled);
-    getSetting<boolean>('systemCalendarSyncEnabled', false).then(setCalendarSyncEnabled);
-    getSetting<'bidirectional' | 'push' | 'pull'>('calendarSyncDirection', 'bidirectional').then(setSyncDirection);
     
   }, []);
 
