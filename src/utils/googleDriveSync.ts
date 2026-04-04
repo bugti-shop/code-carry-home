@@ -647,7 +647,12 @@ export const uploadToDrive = async (): Promise<void> => {
 
 export const downloadFromDrive = async (): Promise<void> => {
   const token = await getValidAccessToken();
-  if (!token) throw new Error('Not signed in');
+  if (!token) {
+    console.error('[DriveSync] ❌ Download failed — no valid access token');
+    throw new Error('Not signed in');
+  }
+
+  console.log('[DriveSync] 📥 Starting download from Google Drive...');
 
   // Create a versioned backup BEFORE merging remote data
   try {
