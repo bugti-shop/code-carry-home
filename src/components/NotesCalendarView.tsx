@@ -24,8 +24,6 @@ interface NotesCalendarViewProps {
   showEmptyState?: boolean;
   calendarBackground?: string;
   onBackgroundSettingsClick?: () => void;
-  showSyncCalendar?: boolean;
-  onSyncCalendarClick?: () => void;
 }
 
 const BACKGROUND_GRADIENTS: Record<string, string | null> = {
