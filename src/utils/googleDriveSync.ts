@@ -617,17 +617,34 @@ export const uploadToDrive = async (): Promise<void> => {
 
   await warmDriveFileCache('upload');
 
-  // Load all data first, then upload in parallel for speed
-  const uploadResults: { name: string; success: boolean; itemCount?: number }[] = [];
+  // Build progress tracking
+  const catProgress: SyncCategoryProgress[] = categories.map((cat) => ({
+    name: cat.fileName,
+    label: cat.conflictKey,
+    status: 'pending' as const,
+  }));
+  let completed = 0;
+  const total = categories.length;
+
+  const updateProgress = () => {
+    emitProgress({ mode: 'upload', categories: [...catProgress], completed, total });
+  };
+
+  updateProgress();
 
   await Promise.allSettled([
-    ...categories.map(async (cat) => {
+    ...categories.map(async (cat, i) => {
       try {
         const enabled = await isCategoryEnabled(cat.selectiveSyncKey);
         if (!enabled) {
-          uploadResults.push({ name: cat.fileName, success: true, itemCount: -1 });
+          catProgress[i] = { ...catProgress[i], status: 'skipped' };
+          completed++;
+          updateProgress();
           return;
         }
+
+        catProgress[i] = { ...catProgress[i], status: 'in_progress' };
+        updateProgress();
 
         const data = await cat.load();
         if (data !== null && data !== undefined) {
@@ -635,16 +652,17 @@ export const uploadToDrive = async (): Promise<void> => {
           console.log(`[DriveSync] ⬆️ Uploading ${cat.fileName} (${count} items)...`);
           await upsertFile(cat.fileName, data);
           await storeHash(cat.conflictKey, data);
-          uploadResults.push({ name: cat.fileName, success: true, itemCount: count });
+          catProgress[i] = { ...catProgress[i], status: 'done', itemCount: count };
           console.log(`[DriveSync] ✅ ${cat.fileName} uploaded successfully`);
         } else {
-          console.log(`[DriveSync] ⏭️ ${cat.fileName} — no data to upload`);
-          uploadResults.push({ name: cat.fileName, success: true, itemCount: 0 });
+          catProgress[i] = { ...catProgress[i], status: 'done', itemCount: 0 };
         }
       } catch (err) {
         console.error(`[DriveSync] ❌ Failed to upload ${cat.fileName}:`, err);
-        uploadResults.push({ name: cat.fileName, success: false });
+        catProgress[i] = { ...catProgress[i], status: 'error' };
       }
+      completed++;
+      updateProgress();
     }),
     // Always upload deletion records
     loadDeletionsAsync().then((dels) => {
@@ -657,10 +675,6 @@ export const uploadToDrive = async (): Promise<void> => {
       console.error('[DriveSync] ❌ Failed to upload deletions:', err),
     ),
   ]);
-
-  const succeeded = uploadResults.filter(r => r.success).length;
-  const failed = uploadResults.filter(r => !r.success).length;
-  console.log(`[DriveSync] 📤 Upload complete: ${succeeded} succeeded, ${failed} failed`);
 
   await setLastSyncTime();
 };
