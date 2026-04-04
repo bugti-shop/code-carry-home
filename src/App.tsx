@@ -37,6 +37,7 @@ const SmartReviewPrompt = lazy(() => import("@/components/SmartReviewPrompt").th
 const ComboOverlay = lazy(() => import("@/components/ComboOverlay").then(m => ({ default: m.ComboOverlay })));
 const UrgentReminderOverlay = lazy(() => import("@/components/UrgentReminderOverlay").then(m => ({ default: m.UrgentReminderOverlay })));
 const SyncConflictSheet = lazy(() => import("@/components/SyncConflictSheet").then(m => ({ default: m.SyncConflictSheet })));
+const SyncProgressSheet = lazy(() => import("@/components/SyncProgressSheet").then(m => ({ default: m.SyncProgressSheet })));
 const preloadTodayPage = () => import("./pages/todo/Today");
 const preloadNotesDashboardPage = () => import("./pages/Index");
 const Today = lazy(preloadTodayPage);
@@ -391,6 +392,7 @@ const AppContent = () => {
           <ComboOverlay />
           <UrgentReminderOverlay />
           <SyncConflictSheet />
+          <SyncProgressSheet />
           <DeferredSyncInit />
           <AppRoutes />
         </>
