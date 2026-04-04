@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { recordCompletion, TASK_STREAK_KEY } from '@/utils/streakStorage';
 
 import { NotesCalendarView } from '@/components/NotesCalendarView';
-import { CalendarSyncBadge } from '@/components/CalendarSyncBadge';
+
 import { Plus, ListTodo, CalendarDays, Clock, MapPin, Repeat, Trash2, Edit, MoreVertical, X, GripVertical, LayoutList, Columns3, GitBranch, Flag, ListChecks, ChevronRight, ChevronDown, TrendingUp, History, CheckCircle2, Circle, Loader2, Sun, AlertCircle, Crown } from 'lucide-react';
 import { useSubscription, FREE_LIMITS } from '@/contexts/SubscriptionContext';
 import { getSetting, setSetting } from '@/utils/settingsStorage';
