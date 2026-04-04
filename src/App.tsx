@@ -236,7 +236,7 @@ const AppContent = () => {
   const [isAppLocked, setIsAppLocked] = useState<boolean | null>(null);
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
   
-  const { isPro, isLoading: subLoading, isVerifyingCheckout, openPaywall, localTrialExpired, graceExpired } = useSubscription();
+  const { isPro, isLoading: subLoading, isVerifyingCheckout, openPaywall, localTrialExpired, graceExpired, showPaywall } = useSubscription();
 
   // Check onboarding status
   useEffect(() => {
