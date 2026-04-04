@@ -277,7 +277,7 @@ function PaywallVariantA({ logic }: { logic: ReturnType<typeof usePaywallLogic> 
           <div className="absolute left-[10.5px] top-[20px] bottom-[20px] w-[11px] rounded-b-full" style={{ background: 'hsl(var(--primary) / 0.2)' }} />
 
           {[
-            { icon: <Unlock size={16} strokeWidth={2} />, title: t('onboarding.paywall.unlockAllFeatures'), desc: t('onboarding.paywall.unlockAllFeaturesDesc') },
+            { icon: <Check size={16} strokeWidth={2} />, title: t('onboarding.paywall.unlockAllFeatures'), desc: t('onboarding.paywall.unlockAllFeaturesDesc') },
             { icon: <Bell size={16} strokeWidth={2} />, title: t('onboarding.paywall.unlimitedEverything'), desc: t('onboarding.paywall.unlimitedEverythingDesc') },
             { icon: <Crown size={16} strokeWidth={2} />, title: t('onboarding.paywall.proMember'), desc: t('onboarding.paywall.proMemberDesc') },
           ].map((item, i) => (
