@@ -50,6 +50,24 @@ export const saveHabit = async (habit: Habit): Promise<void> => {
   });
 };
 
+export const saveHabitsBatch = async (habits: Habit[]): Promise<void> => {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = database.transaction([STORE_NAME], 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+
+    for (const habit of habits) {
+      store.put(habit);
+    }
+
+    tx.oncomplete = () => {
+      window.dispatchEvent(new Event('habitsUpdated'));
+      resolve();
+    };
+    tx.onerror = () => reject(tx.error);
+  });
+};
+
 export const deleteHabit = async (id: string): Promise<void> => {
   const database = await openDB();
   return new Promise((resolve, reject) => {

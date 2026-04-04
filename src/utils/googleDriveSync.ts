@@ -101,6 +101,29 @@ const driveFetch = async (
 
 /** In-memory file ID cache to skip redundant findFile lookups */
 const fileIdCache = new Map<string, string>();
+const INITIAL_SYNC_DELAY = 1200;
+
+const warmDriveFileCache = async (reason: 'upload' | 'restore' | 'sync' = 'sync'): Promise<void> => {
+  try {
+    const res = await driveFetch(
+      `${DRIVE_API}/files?spaces=appDataFolder&q='appDataFolder' in parents and trashed=false&fields=files(id,name)&pageSize=50`,
+    );
+
+    if (!res.ok) {
+      console.error(`[DriveSync] ❌ File list failed before ${reason}: ${res.status} ${res.statusText}`);
+      return;
+    }
+
+    const data = await res.json();
+    const fileCount = data.files?.length || 0;
+    for (const f of data.files || []) {
+      if (f.name && f.id) fileIdCache.set(f.name, f.id);
+    }
+    console.log(`[DriveSync] 📂 Cached ${fileCount} Drive files before ${reason}`);
+  } catch (e) {
+    console.error(`[DriveSync] ❌ File list error before ${reason}:`, e);
+  }
+};
 
 /** Find a file by name in appDataFolder. Returns file ID or null. Uses cache. */
 const findFile = async (fileName: string): Promise<string | null> => {
@@ -275,9 +298,9 @@ type SettingsArrayItem = {
 const getCategories = async (): Promise<SyncCategory[]> => {
   const { loadNotesFromDB, saveNotesToDB } = await import('@/utils/noteStorage');
   const { loadTasksFromDB, saveTasksToDB } = await import('@/utils/taskStorage');
-  const { loadHabits, saveHabit } = await import('@/utils/habitStorage');
+  const { loadHabits, saveHabitsBatch } = await import('@/utils/habitStorage');
   const { loadFolders, saveFolders } = await import('@/utils/folderStorage');
-  const { getAllSettings, setSetting } = await import('@/utils/settingsStorage');
+  const { getAllSettings, setManySettings, setSetting } = await import('@/utils/settingsStorage');
   const { loadStreakData, saveStreakData } = await import('@/utils/streakStorage');
   const { loadAchievementsData } = await import('@/utils/gamificationStorage');
   const { loadJourneyData, saveJourneyData } = await import('@/utils/virtualJourneyStorage');
@@ -303,9 +326,7 @@ const getCategories = async (): Promise<SyncCategory[]> => {
       conflictKey: 'habits',
       selectiveSyncKey: 'sync_habits',
       load: loadHabits,
-      save: async (data: any[]) => {
-        for (const h of data) await saveHabit(h);
-      },
+      save: async (data: any[]) => { await saveHabitsBatch(Array.isArray(data) ? data : []); },
     },
     {
       fileName: 'flowist_folders.json',
@@ -327,10 +348,10 @@ const getCategories = async (): Promise<SyncCategory[]> => {
       selectiveSyncKey: 'sync_settings',
       load: getAllSettings,
       save: async (data: Record<string, any>) => {
-        for (const [key, value] of Object.entries(data)) {
-          if (key === 'googleUser' || key.startsWith('flowist_last_drive')) continue;
-          await setSetting(key, value);
-        }
+        const entries = Object.entries(data).filter(
+          ([key]) => key !== 'googleUser' && !key.startsWith('flowist_last_drive'),
+        );
+        await setManySettings(entries);
       },
     },
     {
@@ -576,24 +597,7 @@ export const uploadToDrive = async (): Promise<void> => {
 
   const categories = await getCategories();
 
-  // Warm up file ID cache with a single batch list call
-  try {
-    const res = await driveFetch(
-      `${DRIVE_API}/files?spaces=appDataFolder&q='appDataFolder' in parents and trashed=false&fields=files(id,name)&pageSize=50`,
-    );
-    if (res.ok) {
-      const data = await res.json();
-      const fileCount = data.files?.length || 0;
-      console.log(`[DriveSync] 📂 Found ${fileCount} existing files in Drive appDataFolder`);
-      for (const f of data.files || []) {
-        if (f.name && f.id) fileIdCache.set(f.name, f.id);
-      }
-    } else {
-      console.error(`[DriveSync] ❌ File list failed: ${res.status} ${res.statusText}`);
-    }
-  } catch (e) {
-    console.error('[DriveSync] ❌ File list error:', e);
-  }
+  await warmDriveFileCache('upload');
 
   // Load all data first, then upload in parallel for speed
   const uploadResults: { name: string; success: boolean; itemCount?: number }[] = [];
@@ -654,29 +658,31 @@ export const downloadFromDrive = async (): Promise<void> => {
 
   console.log('[DriveSync] 📥 Starting download from Google Drive...');
 
-  try {
-    const { createPreSyncBackup } = await import('@/utils/syncBackupHistory');
-    await createPreSyncBackup();
-  } catch (e) {
-    console.warn('[Sync] Failed to create pre-sync backup:', e);
-  }
+  const backupPromise = import('@/utils/syncBackupHistory')
+    .then(({ createPreSyncBackup }) => createPreSyncBackup())
+    .catch((e) => {
+      console.warn('[Sync] Failed to create pre-sync backup:', e);
+    });
 
-  const [remoteDeletions, localDeletionsFromDB] = await Promise.all([
+  const [_, remoteDeletions, localDeletionsFromDB, categories] = await Promise.all([
+    warmDriveFileCache('restore'),
     downloadFile<DeletionRecord[]>('flowist_deletions.json'),
     loadDeletionsAsync(),
+    getCategories(),
   ]);
 
   const localDeletions = localDeletionsFromDB.length > 0 ? localDeletionsFromDB : loadDeletions();
   const mergedDeletions = mergeDeletions(localDeletions, remoteDeletions || []);
   saveDeletions(mergedDeletions);
 
-  const categories = await getCategories();
   const enabledCategories = await Promise.all(
     categories.map(async (cat) => ({
       cat,
       enabled: await isCategoryEnabled(cat.selectiveSyncKey),
     })),
   );
+
+  await backupPromise;
 
   await Promise.allSettled(
     enabledCategories
@@ -990,12 +996,12 @@ export const startAutoSync = async () => {
         // After restore, do an upload to ensure Drive has latest
         uploadToDrive().catch(() => {});
       }).catch(() => {});
-    }, 5000);
+    }, INITIAL_SYNC_DELAY);
   } else {
     // Already restored before — just upload local data
     setTimeout(() => {
       uploadToDrive().catch(() => {});
-    }, 5000);
+    }, INITIAL_SYNC_DELAY);
   }
 
   // Recurring upload-only sync every 5 minutes

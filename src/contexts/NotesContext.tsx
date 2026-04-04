@@ -191,7 +191,7 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         await saveNotesToDB(notes);
         lastSavedRef.current = String(notes.length);
         window.dispatchEvent(new Event('notesUpdated'));
-        // Auto-upload to Google Drive (debounced further to avoid flooding)
+        // Auto-upload to Google Drive (short debounce for faster backup without flooding)
         driveSyncTimerRef.current && clearTimeout(driveSyncTimerRef.current);
         driveSyncTimerRef.current = setTimeout(async () => {
           try {
@@ -200,7 +200,7 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           } catch (e) {
             console.warn('[NotesContext] Auto-upload to Drive failed:', e);
           }
-        }, 3000);
+        }, 1000);
       } catch (error) {
         console.error('[NotesContext] Error saving notes:', error);
       }
