@@ -236,7 +236,7 @@ const AppContent = () => {
   const [isAppLocked, setIsAppLocked] = useState<boolean | null>(null);
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
   
-  const { isPro, isLoading: subLoading, isVerifyingCheckout, openPaywall, localTrialExpired, graceExpired } = useSubscription();
+  const { isPro, isLoading: subLoading, isVerifyingCheckout, localTrialExpired, graceExpired } = useSubscription();
 
   // Check onboarding status
   useEffect(() => {
@@ -245,6 +245,13 @@ const AppContent = () => {
       setShowOnboarding(!completed);
     };
     check();
+
+    // Listen for onboarding reset (e.g. sign out, subscription cancel)
+    const handleReset = () => {
+      setShowOnboarding(true);
+    };
+    window.addEventListener('flowistOnboardingReset', handleReset);
+    return () => window.removeEventListener('flowistOnboardingReset', handleReset);
   }, []);
 
   // Handle subscription state
