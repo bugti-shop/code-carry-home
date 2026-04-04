@@ -236,7 +236,7 @@ const AppContent = () => {
   const [isAppLocked, setIsAppLocked] = useState<boolean | null>(null);
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
   
-  const { isPro, isLoading: subLoading, isVerifyingCheckout, openPaywall, localTrialExpired, graceExpired } = useSubscription();
+  const { isPro, isLoading: subLoading, isVerifyingCheckout, localTrialExpired, graceExpired } = useSubscription();
 
   // Check onboarding status
   useEffect(() => {
@@ -245,6 +245,13 @@ const AppContent = () => {
       setShowOnboarding(!completed);
     };
     check();
+
+    // Listen for onboarding reset (e.g. sign out, subscription cancel)
+    const handleReset = () => {
+      setShowOnboarding(true);
+    };
+    window.addEventListener('flowistOnboardingReset', handleReset);
+    return () => window.removeEventListener('flowistOnboardingReset', handleReset);
   }, []);
 
   // Handle subscription state
@@ -255,20 +262,12 @@ const AppContent = () => {
     if (subLoading || showOnboarding) return;
     // Paid subscriber — always allow access
     if (isPro) return;
-    // Grace period expired (trial 8 days + grace 3 days = 11 days total) — redirect to onboarding page 1
+    // No active subscription — redirect to language selection (onboarding page 1)
     // User data is preserved, only onboarding_completed flag is reset
-    if (graceExpired) {
-      setSetting('onboarding_completed', false).then(() => {
-        setShowOnboarding(true);
-      });
-    } else if (localTrialExpired) {
-      // Trial expired but still in grace period — show paywall as warning
-      openPaywall();
-    } else if (!localTrialExpired) {
-      // No subscription and no trial — show paywall
-      openPaywall();
-    }
-  }, [isPro, subLoading, showOnboarding, openPaywall, localTrialExpired, graceExpired]);
+    setSetting('onboarding_completed', false).then(() => {
+      setShowOnboarding(true);
+    });
+  }, [isPro, subLoading, showOnboarding]);
 
   const handleOnboardingComplete = useCallback(() => {
     startTransition(() => {
