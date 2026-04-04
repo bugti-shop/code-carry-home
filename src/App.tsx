@@ -1,5 +1,4 @@
 import React, { useEffect, useState, lazy, Suspense, startTransition, useRef, useCallback } from "react";
-import appLogo from "@/assets/app-logo.webp";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { Toaster } from "@/components/ui/toaster";
@@ -237,7 +236,7 @@ const AppContent = () => {
   const [isAppLocked, setIsAppLocked] = useState<boolean | null>(null);
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
   
-  const { isPro, isLoading: subLoading, isVerifyingCheckout, openPaywall, localTrialExpired, graceExpired, showPaywall } = useSubscription();
+  const { isPro, isLoading: subLoading, isVerifyingCheckout, openPaywall, localTrialExpired, graceExpired } = useSubscription();
 
   // Check onboarding status
   useEffect(() => {
@@ -370,10 +369,6 @@ const AppContent = () => {
   // This prevents temporary access flashes after returning from Stripe without a valid subscription.
   const canRenderProtectedApp = showOnboarding === false && !subLoading && !isVerifyingCheckout && isPro;
 
-  // While subscription status is being verified, show a branded splash screen
-  // instead of flashing the paywall for 2 seconds on every refresh
-  const isResolvingSubscription = subLoading || isVerifyingCheckout;
-
   return (
     <>
       <Toaster />
@@ -383,19 +378,8 @@ const AppContent = () => {
         <OnboardingFlow onComplete={handleOnboardingComplete} />
       )}
 
-      {/* Show loading splash while subscription is being verified — prevents paywall flash */}
-      {!showOnboarding && isResolvingSubscription && (
-        <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-background">
-          <img src={appLogo} alt="Flowist" className="h-16 w-16 rounded-2xl mb-4 animate-pulse" />
-          <div className="h-1 w-32 rounded-full bg-muted overflow-hidden">
-            <div className="h-full w-1/2 rounded-full bg-primary animate-[shimmer_1.5s_ease-in-out_infinite]" 
-              style={{ animation: 'shimmer 1.5s ease-in-out infinite', background: 'hsl(var(--primary))' }} />
-          </div>
-        </div>
-      )}
-
-      {/* Only show paywall after subscription check is complete and user has no access */}
-      {!isResolvingSubscription && <PremiumPaywall />}
+      
+      <PremiumPaywall />
       
 
       {/* Only render app content after subscription access is fully verified */}
