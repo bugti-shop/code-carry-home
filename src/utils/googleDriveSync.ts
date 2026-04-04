@@ -733,11 +733,17 @@ export const downloadFromDrive = async (): Promise<void> => {
             window.dispatchEvent(new Event('tasksRestored'));
           }
           if (cat.conflictKey === 'notes') {
-            window.dispatchEvent(new Event('notesUpdated'));
+            window.dispatchEvent(new Event('notesRestored'));
           }
           if (cat.conflictKey === 'settings') {
             window.dispatchEvent(new Event('foldersRestored'));
             window.dispatchEvent(new Event('sectionsRestored'));
+          }
+          if (cat.conflictKey === 'streaks') {
+            window.dispatchEvent(new Event('streakUpdated'));
+          }
+          if (cat.conflictKey === 'journey') {
+            window.dispatchEvent(new Event('journeyUpdated'));
           }
         } catch (err) {
           console.error(`[DriveSync] ❌ Failed to download ${cat.fileName}:`, err);
