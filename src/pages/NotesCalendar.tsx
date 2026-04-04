@@ -167,8 +167,6 @@ const NotesCalendar = () => {
           emptyStateSubMessage={t('calendar.clickToCreate', 'Click "+" to create your notes.')}
           calendarBackground={calendarBackground}
           onBackgroundSettingsClick={() => setIsBackgroundSheetOpen(true)}
-          showSyncCalendar
-          onSyncCalendarClick={() => setIsSyncOpen(true)}
         />
 
         {/* Sync Calendar (hidden, triggered from menu) */}
