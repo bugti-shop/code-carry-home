@@ -267,7 +267,7 @@ const AppContent = () => {
     setSetting('onboarding_completed', false).then(() => {
       setShowOnboarding(true);
     });
-  }, [isPro, subLoading, showOnboarding, openPaywall, localTrialExpired, graceExpired]);
+  }, [isPro, subLoading, showOnboarding]);
 
   const handleOnboardingComplete = useCallback(() => {
     startTransition(() => {
