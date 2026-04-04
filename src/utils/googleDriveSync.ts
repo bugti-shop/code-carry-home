@@ -716,83 +716,124 @@ export const downloadFromDrive = async (): Promise<void> => {
 
   await backupPromise;
 
+  // Build progress tracking
+  const catProgress: SyncCategoryProgress[] = categories.map((cat) => ({
+    name: cat.fileName,
+    label: cat.conflictKey,
+    status: 'pending' as const,
+  }));
+  let completed = 0;
+  const total = categories.length;
+
+  const updateProgress = () => {
+    emitProgress({ mode: 'download', categories: [...catProgress], completed, total });
+  };
+
+  updateProgress();
+
+  // Map category index for progress updates
+  const catIndexMap = new Map(categories.map((c, i) => [c.fileName, i]));
+
   await Promise.allSettled(
-    enabledCategories
-      .filter(({ enabled }) => enabled)
-      .map(async ({ cat }) => {
-        try {
-          const [remoteData, localData] = await Promise.all([
-            downloadFile<any>(cat.fileName),
-            cat.load(),
-          ]);
+    enabledCategories.map(async ({ cat, enabled }) => {
+      const idx = catIndexMap.get(cat.fileName) ?? -1;
 
-          if (remoteData === null || remoteData === undefined) {
-            console.log(`[DriveSync] ⏭️ ${cat.fileName} — not found on Drive, skipping`);
-            return;
-          }
-
-          const remoteCount = Array.isArray(remoteData)
-            ? remoteData.length
-            : typeof remoteData === 'object'
-              ? Object.keys(remoteData).length
-              : 1;
-          const localCount = Array.isArray(localData)
-            ? localData.length
-            : typeof localData === 'object' && localData !== null
-              ? Object.keys(localData).length
-              : 0;
-
-          console.log(`[DriveSync] 📥 ${cat.fileName}: remote=${remoteCount}, local=${localCount}`);
-
-          let merged: any;
-
-          if (Array.isArray(localData) && Array.isArray(remoteData)) {
-            merged = cat.conflictKey === 'tasks'
-              ? mergeTaskArrays(localData, remoteData)
-              : mergeArraysById(localData, remoteData);
-
-            const deletionCategory = cat.conflictKey as DeletionRecord['category'];
-            if (['notes', 'tasks', 'habits', 'folders'].includes(deletionCategory)) {
-              merged = applyDeletions(merged, mergedDeletions, deletionCategory);
-            }
-          } else if (remoteData && typeof remoteData === 'object' && !Array.isArray(remoteData)) {
-            if (cat.conflictKey === 'settings') {
-              merged = mergeSettingsData(localData || {}, remoteData || {}, mergedDeletions);
-            } else if (cat.conflictKey === 'journey') {
-              merged = mergeJourneyData(localData || {}, remoteData || {});
-            } else if (cat.conflictKey === 'streaks') {
-              merged = mergeStreakData(localData || {}, remoteData || {});
-            } else if (cat.conflictKey === 'gamification') {
-              merged = mergeAchievementsData(localData || {}, remoteData || {});
-            } else {
-              merged = { ...remoteData, ...localData };
-            }
-          } else {
-            merged = remoteData;
-          }
-
-          const mergedCount = Array.isArray(merged)
-            ? merged.length
-            : typeof merged === 'object' && merged !== null
-              ? Object.keys(merged).length
-              : 1;
-
-          await cat.save(merged);
-          await storeHash(cat.conflictKey, merged);
-          console.log(`[DriveSync] ✅ ${cat.fileName} restored (${mergedCount} items merged)`);
-
-          if (cat.conflictKey === 'tasks') window.dispatchEvent(new Event('tasksRestored'));
-          if (cat.conflictKey === 'notes') window.dispatchEvent(new Event('notesRestored'));
-          if (cat.conflictKey === 'settings') {
-            window.dispatchEvent(new Event('foldersRestored'));
-            window.dispatchEvent(new Event('sectionsRestored'));
-          }
-          if (cat.conflictKey === 'streaks') window.dispatchEvent(new Event('streakUpdated'));
-          if (cat.conflictKey === 'journey') window.dispatchEvent(new Event('journeyUpdated'));
-        } catch (err) {
-          console.error(`[DriveSync] ❌ Failed to download ${cat.fileName}:`, err);
+      if (!enabled) {
+        if (idx >= 0) {
+          catProgress[idx] = { ...catProgress[idx], status: 'skipped' };
+          completed++;
+          updateProgress();
         }
-      }),
+        return;
+      }
+
+      if (idx >= 0) {
+        catProgress[idx] = { ...catProgress[idx], status: 'in_progress' };
+        updateProgress();
+      }
+
+      try {
+        const [remoteData, localData] = await Promise.all([
+          downloadFile<any>(cat.fileName),
+          cat.load(),
+        ]);
+
+        if (remoteData === null || remoteData === undefined) {
+          console.log(`[DriveSync] ⏭️ ${cat.fileName} — not found on Drive, skipping`);
+          if (idx >= 0) {
+            catProgress[idx] = { ...catProgress[idx], status: 'done', itemCount: 0 };
+            completed++;
+            updateProgress();
+          }
+          return;
+        }
+
+        const remoteCount = Array.isArray(remoteData)
+          ? remoteData.length
+          : typeof remoteData === 'object'
+            ? Object.keys(remoteData).length
+            : 1;
+
+        console.log(`[DriveSync] 📥 ${cat.fileName}: remote=${remoteCount}`);
+
+        let merged: any;
+
+        if (Array.isArray(localData) && Array.isArray(remoteData)) {
+          merged = cat.conflictKey === 'tasks'
+            ? mergeTaskArrays(localData, remoteData)
+            : mergeArraysById(localData, remoteData);
+
+          const deletionCategory = cat.conflictKey as DeletionRecord['category'];
+          if (['notes', 'tasks', 'habits', 'folders'].includes(deletionCategory)) {
+            merged = applyDeletions(merged, mergedDeletions, deletionCategory);
+          }
+        } else if (remoteData && typeof remoteData === 'object' && !Array.isArray(remoteData)) {
+          if (cat.conflictKey === 'settings') {
+            merged = mergeSettingsData(localData || {}, remoteData || {}, mergedDeletions);
+          } else if (cat.conflictKey === 'journey') {
+            merged = mergeJourneyData(localData || {}, remoteData || {});
+          } else if (cat.conflictKey === 'streaks') {
+            merged = mergeStreakData(localData || {}, remoteData || {});
+          } else if (cat.conflictKey === 'gamification') {
+            merged = mergeAchievementsData(localData || {}, remoteData || {});
+          } else {
+            merged = { ...remoteData, ...localData };
+          }
+        } else {
+          merged = remoteData;
+        }
+
+        const mergedCount = Array.isArray(merged)
+          ? merged.length
+          : typeof merged === 'object' && merged !== null
+            ? Object.keys(merged).length
+            : 1;
+
+        await cat.save(merged);
+        await storeHash(cat.conflictKey, merged);
+        console.log(`[DriveSync] ✅ ${cat.fileName} restored (${mergedCount} items merged)`);
+
+        if (cat.conflictKey === 'tasks') window.dispatchEvent(new Event('tasksRestored'));
+        if (cat.conflictKey === 'notes') window.dispatchEvent(new Event('notesRestored'));
+        if (cat.conflictKey === 'settings') {
+          window.dispatchEvent(new Event('foldersRestored'));
+          window.dispatchEvent(new Event('sectionsRestored'));
+        }
+        if (cat.conflictKey === 'streaks') window.dispatchEvent(new Event('streakUpdated'));
+        if (cat.conflictKey === 'journey') window.dispatchEvent(new Event('journeyUpdated'));
+
+        if (idx >= 0) {
+          catProgress[idx] = { ...catProgress[idx], status: 'done', itemCount: mergedCount };
+        }
+      } catch (err) {
+        console.error(`[DriveSync] ❌ Failed to download ${cat.fileName}:`, err);
+        if (idx >= 0) {
+          catProgress[idx] = { ...catProgress[idx], status: 'error' };
+        }
+      }
+      completed++;
+      updateProgress();
+    }),
   );
 
   await setLastSyncTime();
