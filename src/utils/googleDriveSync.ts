@@ -567,7 +567,12 @@ const setLastSyncTime = async () => {
 
 export const uploadToDrive = async (): Promise<void> => {
   const token = await getValidAccessToken();
-  if (!token) throw new Error('Not signed in');
+  if (!token) {
+    console.error('[DriveSync] ❌ Upload failed — no valid access token');
+    throw new Error('Not signed in');
+  }
+
+  console.log('[DriveSync] 📤 Starting upload to Google Drive...');
 
   const categories = await getCategories();
 
@@ -578,36 +583,62 @@ export const uploadToDrive = async (): Promise<void> => {
     );
     if (res.ok) {
       const data = await res.json();
+      const fileCount = data.files?.length || 0;
+      console.log(`[DriveSync] 📂 Found ${fileCount} existing files in Drive appDataFolder`);
       for (const f of data.files || []) {
         if (f.name && f.id) fileIdCache.set(f.name, f.id);
       }
+    } else {
+      console.error(`[DriveSync] ❌ File list failed: ${res.status} ${res.statusText}`);
     }
-  } catch {}
+  } catch (e) {
+    console.error('[DriveSync] ❌ File list error:', e);
+  }
 
-  // Upload all categories + deletions in parallel for speed
+  // Load all data first, then upload in parallel for speed
+  const uploadResults: { name: string; success: boolean; itemCount?: number }[] = [];
+
   await Promise.allSettled([
     ...categories.map(async (cat) => {
       try {
-        // Check selective sync preference
         const enabled = await isCategoryEnabled(cat.selectiveSyncKey);
-        if (!enabled) return;
+        if (!enabled) {
+          uploadResults.push({ name: cat.fileName, success: true, itemCount: -1 });
+          return;
+        }
 
         const data = await cat.load();
         if (data !== null && data !== undefined) {
+          const count = Array.isArray(data) ? data.length : (typeof data === 'object' ? Object.keys(data).length : 1);
+          console.log(`[DriveSync] ⬆️ Uploading ${cat.fileName} (${count} items)...`);
           await upsertFile(cat.fileName, data);
           await storeHash(cat.conflictKey, data);
+          uploadResults.push({ name: cat.fileName, success: true, itemCount: count });
+          console.log(`[DriveSync] ✅ ${cat.fileName} uploaded successfully`);
+        } else {
+          console.log(`[DriveSync] ⏭️ ${cat.fileName} — no data to upload`);
+          uploadResults.push({ name: cat.fileName, success: true, itemCount: 0 });
         }
       } catch (err) {
-        console.warn(`Failed to upload ${cat.fileName}:`, err);
+        console.error(`[DriveSync] ❌ Failed to upload ${cat.fileName}:`, err);
+        uploadResults.push({ name: cat.fileName, success: false });
       }
     }),
-    // Always upload deletion records (ensure loaded from IndexedDB first)
-    loadDeletionsAsync().then((dels) =>
-      upsertFile('flowist_deletions.json', dels.length > 0 ? dels : loadDeletions()),
-    ).catch((err) =>
-      console.warn('Failed to upload deletions:', err),
+    // Always upload deletion records
+    loadDeletionsAsync().then((dels) => {
+      const deletions = dels.length > 0 ? dels : loadDeletions();
+      console.log(`[DriveSync] ⬆️ Uploading deletions (${deletions.length} records)...`);
+      return upsertFile('flowist_deletions.json', deletions);
+    }).then(() => {
+      console.log('[DriveSync] ✅ Deletions uploaded');
+    }).catch((err) =>
+      console.error('[DriveSync] ❌ Failed to upload deletions:', err),
     ),
   ]);
+
+  const succeeded = uploadResults.filter(r => r.success).length;
+  const failed = uploadResults.filter(r => !r.success).length;
+  console.log(`[DriveSync] 📤 Upload complete: ${succeeded} succeeded, ${failed} failed`);
 
   await setLastSyncTime();
 };
@@ -616,7 +647,12 @@ export const uploadToDrive = async (): Promise<void> => {
 
 export const downloadFromDrive = async (): Promise<void> => {
   const token = await getValidAccessToken();
-  if (!token) throw new Error('Not signed in');
+  if (!token) {
+    console.error('[DriveSync] ❌ Download failed — no valid access token');
+    throw new Error('Not signed in');
+  }
+
+  console.log('[DriveSync] 📥 Starting download from Google Drive...');
 
   // Create a versioned backup BEFORE merging remote data
   try {
@@ -654,7 +690,13 @@ export const downloadFromDrive = async (): Promise<void> => {
             downloadFile<any>(cat.fileName),
             cat.load(),
           ]);
-          if (remoteData === null || remoteData === undefined) return;
+          if (remoteData === null || remoteData === undefined) {
+            console.log(`[DriveSync] ⏭️ ${cat.fileName} — not found on Drive, skipping`);
+            return;
+          }
+          const remoteCount = Array.isArray(remoteData) ? remoteData.length : (typeof remoteData === 'object' ? Object.keys(remoteData).length : 1);
+          const localCount = Array.isArray(localData) ? localData.length : (typeof localData === 'object' ? Object.keys(localData || {}).length : 0);
+          console.log(`[DriveSync] 📥 ${cat.fileName}: remote=${remoteCount}, local=${localCount}`);
 
           let merged: any;
 
@@ -682,19 +724,23 @@ export const downloadFromDrive = async (): Promise<void> => {
             merged = remoteData;
           }
 
+          const mergedCount = Array.isArray(merged) ? merged.length : (typeof merged === 'object' ? Object.keys(merged).length : 1);
           await cat.save(merged);
           await storeHash(cat.conflictKey, merged);
+          console.log(`[DriveSync] ✅ ${cat.fileName} restored (${mergedCount} items merged)`);
 
           if (cat.conflictKey === 'tasks') {
             window.dispatchEvent(new Event('tasksRestored'));
           }
-
+          if (cat.conflictKey === 'notes') {
+            window.dispatchEvent(new Event('notesUpdated'));
+          }
           if (cat.conflictKey === 'settings') {
             window.dispatchEvent(new Event('foldersRestored'));
             window.dispatchEvent(new Event('sectionsRestored'));
           }
         } catch (err) {
-          console.warn(`Failed to download ${cat.fileName}:`, err);
+          console.error(`[DriveSync] ❌ Failed to download ${cat.fileName}:`, err);
         }
       }),
   );
@@ -852,23 +898,30 @@ const markRestoredOnThisDevice = (email: string) => {
  */
 export const restoreFromDrive = async (): Promise<void> => {
   const user = await getStoredGoogleUser();
-  if (!user?.email) return;
+  if (!user?.email) {
+    console.error('[DriveSync] ❌ Restore failed — no signed-in user');
+    return;
+  }
 
   if (!navigator.onLine) {
+    console.warn('[DriveSync] ⚠️ Restore skipped — device is offline');
     emitStatus('offline');
     return;
   }
 
   try {
+    console.log(`[DriveSync] 📥 Starting restore from Google Drive for ${user.email}...`);
     emitStatus('syncing');
     await downloadFromDrive();
     markRestoredOnThisDevice(user.email);
+    console.log('[DriveSync] ✅ Restore complete!');
     emitStatus('synced');
     setTimeout(() => emitStatus('idle'), 5000);
   } catch (err) {
-    console.error('Google Drive restore failed:', err);
+    console.error('[DriveSync] ❌ Google Drive restore failed:', err);
     emitStatus('error');
     setTimeout(() => emitStatus('idle'), 30000);
+    throw err; // Re-throw so callers can show error toast
   }
 };
 
