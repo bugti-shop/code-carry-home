@@ -125,29 +125,6 @@ const TodoSettings = () => {
     toast.success(enabled ? t('settings.overdueAlertsEnabled', 'Overdue alerts enabled') : t('settings.overdueAlertsDisabled', 'Overdue alerts disabled'));
   };
 
-  const handleCalendarSyncToggle = async (enabled: boolean) => {
-    try {
-      if (enabled) {
-        const { requestCalendarPermissions, setCalendarSyncEnabled: setSync } = await import('@/utils/systemCalendarSync');
-        const granted = await requestCalendarPermissions();
-        if (!granted) {
-          toast.error(t('settings.calendarPermissionDenied', 'Calendar permission denied. Please grant access in device settings.'));
-          return;
-        }
-        await setSync(true);
-        setCalendarSyncEnabled(true);
-        toast.success(t('settings.calendarSyncEnabled', 'System calendar sync enabled'));
-      } else {
-        const { setCalendarSyncEnabled: setSync } = await import('@/utils/systemCalendarSync');
-        await setSync(false);
-        setCalendarSyncEnabled(false);
-        toast.success(t('settings.calendarSyncDisabled', 'System calendar sync disabled'));
-      }
-    } catch (error) {
-      console.error('Error toggling calendar sync:', error);
-      toast.error(t('errors.calendarSyncFailed', 'Failed to toggle calendar sync'));
-    }
-  };
 
 
   const handleBackupData = async () => {
