@@ -1,4 +1,5 @@
 import React, { useEffect, useState, lazy, Suspense, startTransition, useRef, useCallback } from "react";
+import appLogo from "@/assets/app-logo.webp";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { Toaster } from "@/components/ui/toaster";
