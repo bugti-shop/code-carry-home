@@ -57,13 +57,8 @@ export function GoogleAuthProvider({ children }: { children: ReactNode }) {
           }
           setUser(stored);
         }
-        // Defer GSI script loading — only needed when user explicitly signs in
-        // This saves ~95KB of unused JS on initial page load
-        if ('requestIdleCallback' in window) {
-          requestIdleCallback(() => loadGoogleIdentityServices().catch(() => {}), { timeout: 10000 });
-        } else {
-          setTimeout(() => loadGoogleIdentityServices().catch(() => {}), 5000);
-        }
+        // GSI script is now loaded on-demand when user triggers sign-in
+        // This avoids ~95KB of unused JS on initial page load
       } catch (err) {
         console.error('Failed to load Google user:', err);
       } finally {
