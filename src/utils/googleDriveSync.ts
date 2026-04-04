@@ -883,23 +883,30 @@ const markRestoredOnThisDevice = (email: string) => {
  */
 export const restoreFromDrive = async (): Promise<void> => {
   const user = await getStoredGoogleUser();
-  if (!user?.email) return;
+  if (!user?.email) {
+    console.error('[DriveSync] ❌ Restore failed — no signed-in user');
+    return;
+  }
 
   if (!navigator.onLine) {
+    console.warn('[DriveSync] ⚠️ Restore skipped — device is offline');
     emitStatus('offline');
     return;
   }
 
   try {
+    console.log(`[DriveSync] 📥 Starting restore from Google Drive for ${user.email}...`);
     emitStatus('syncing');
     await downloadFromDrive();
     markRestoredOnThisDevice(user.email);
+    console.log('[DriveSync] ✅ Restore complete!');
     emitStatus('synced');
     setTimeout(() => emitStatus('idle'), 5000);
   } catch (err) {
-    console.error('Google Drive restore failed:', err);
+    console.error('[DriveSync] ❌ Google Drive restore failed:', err);
     emitStatus('error');
     setTimeout(() => emitStatus('idle'), 30000);
+    throw err; // Re-throw so callers can show error toast
   }
 };
 
