@@ -690,7 +690,13 @@ export const downloadFromDrive = async (): Promise<void> => {
             downloadFile<any>(cat.fileName),
             cat.load(),
           ]);
-          if (remoteData === null || remoteData === undefined) return;
+          if (remoteData === null || remoteData === undefined) {
+            console.log(`[DriveSync] ⏭️ ${cat.fileName} — not found on Drive, skipping`);
+            return;
+          }
+          const remoteCount = Array.isArray(remoteData) ? remoteData.length : (typeof remoteData === 'object' ? Object.keys(remoteData).length : 1);
+          const localCount = Array.isArray(localData) ? localData.length : (typeof localData === 'object' ? Object.keys(localData || {}).length : 0);
+          console.log(`[DriveSync] 📥 ${cat.fileName}: remote=${remoteCount}, local=${localCount}`);
 
           let merged: any;
 
