@@ -654,7 +654,6 @@ export const downloadFromDrive = async (): Promise<void> => {
 
   console.log('[DriveSync] 📥 Starting download from Google Drive...');
 
-  // Create a versioned backup BEFORE merging remote data
   try {
     const { createPreSyncBackup } = await import('@/utils/syncBackupHistory');
     await createPreSyncBackup();
@@ -662,18 +661,16 @@ export const downloadFromDrive = async (): Promise<void> => {
     console.warn('[Sync] Failed to create pre-sync backup:', e);
   }
 
-  // 1. Sync deletion records first — ensure local deletions are loaded from IndexedDB
   const [remoteDeletions, localDeletionsFromDB] = await Promise.all([
     downloadFile<DeletionRecord[]>('flowist_deletions.json'),
     loadDeletionsAsync(),
   ]);
+
   const localDeletions = localDeletionsFromDB.length > 0 ? localDeletionsFromDB : loadDeletions();
   const mergedDeletions = mergeDeletions(localDeletions, remoteDeletions || []);
   saveDeletions(mergedDeletions);
 
   const categories = await getCategories();
-
-  // 2. Auto-merge each category in parallel for speed
   const enabledCategories = await Promise.all(
     categories.map(async (cat) => ({
       cat,
@@ -690,12 +687,23 @@ export const downloadFromDrive = async (): Promise<void> => {
             downloadFile<any>(cat.fileName),
             cat.load(),
           ]);
+
           if (remoteData === null || remoteData === undefined) {
             console.log(`[DriveSync] ⏭️ ${cat.fileName} — not found on Drive, skipping`);
             return;
           }
-          const remoteCount = Array.isArray(remoteData) ? remoteData.length : (typeof remoteData === 'object' ? Object.keys(remoteData).length : 1);
-          const localCount = Array.isArray(localData) ? localData.length : (typeof localData === 'object' ? Object.keys(localData || {}).length : 0);
+
+          const remoteCount = Array.isArray(remoteData)
+            ? remoteData.length
+            : typeof remoteData === 'object'
+              ? Object.keys(remoteData).length
+              : 1;
+          const localCount = Array.isArray(localData)
+            ? localData.length
+            : typeof localData === 'object' && localData !== null
+              ? Object.keys(localData).length
+              : 0;
+
           console.log(`[DriveSync] 📥 ${cat.fileName}: remote=${remoteCount}, local=${localCount}`);
 
           let merged: any;
@@ -704,6 +712,7 @@ export const downloadFromDrive = async (): Promise<void> => {
             merged = cat.conflictKey === 'tasks'
               ? mergeTaskArrays(localData, remoteData)
               : mergeArraysById(localData, remoteData);
+
             const deletionCategory = cat.conflictKey as DeletionRecord['category'];
             if (['notes', 'tasks', 'habits', 'folders'].includes(deletionCategory)) {
               merged = applyDeletions(merged, mergedDeletions, deletionCategory);
@@ -724,27 +733,24 @@ export const downloadFromDrive = async (): Promise<void> => {
             merged = remoteData;
           }
 
-          const mergedCount = Array.isArray(merged) ? merged.length : (typeof merged === 'object' ? Object.keys(merged).length : 1);
+          const mergedCount = Array.isArray(merged)
+            ? merged.length
+            : typeof merged === 'object' && merged !== null
+              ? Object.keys(merged).length
+              : 1;
+
           await cat.save(merged);
           await storeHash(cat.conflictKey, merged);
           console.log(`[DriveSync] ✅ ${cat.fileName} restored (${mergedCount} items merged)`);
 
-          if (cat.conflictKey === 'tasks') {
-            window.dispatchEvent(new Event('tasksRestored'));
-          }
-          if (cat.conflictKey === 'notes') {
-            window.dispatchEvent(new Event('notesRestored'));
-          }
+          if (cat.conflictKey === 'tasks') window.dispatchEvent(new Event('tasksRestored'));
+          if (cat.conflictKey === 'notes') window.dispatchEvent(new Event('notesRestored'));
           if (cat.conflictKey === 'settings') {
             window.dispatchEvent(new Event('foldersRestored'));
             window.dispatchEvent(new Event('sectionsRestored'));
           }
-          if (cat.conflictKey === 'streaks') {
-            window.dispatchEvent(new Event('streakUpdated'));
-          }
-          if (cat.conflictKey === 'journey') {
-            window.dispatchEvent(new Event('journeyUpdated'));
-          }
+          if (cat.conflictKey === 'streaks') window.dispatchEvent(new Event('streakUpdated'));
+          if (cat.conflictKey === 'journey') window.dispatchEvent(new Event('journeyUpdated'));
         } catch (err) {
           console.error(`[DriveSync] ❌ Failed to download ${cat.fileName}:`, err);
         }
