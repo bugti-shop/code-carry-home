@@ -365,7 +365,8 @@ const AppContent = () => {
 
   // Never render protected app screens until onboarding + subscription state are fully resolved.
   // This prevents temporary access flashes after returning from Stripe without a valid subscription.
-  const canRenderProtectedApp = showOnboarding === false && !subLoading && !isVerifyingCheckout && isPro;
+  // Show app if user is verified pro OR was previously pro this session (prevents white flash during re-checks)
+  const canRenderProtectedApp = showOnboarding === false && !isVerifyingCheckout && (isPro || (wasEverPro.current && subLoading));
 
   return (
     <>
