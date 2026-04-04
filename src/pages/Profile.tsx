@@ -408,9 +408,6 @@ export default function Profile() {
                     toast({ title: t('profile.restoreFailed', 'Restore failed'), description: t('profile.restoreFailedDesc', 'Make sure you are signed in.'), variant: 'destructive' });
                   }
                 }}
-                    toast({ title: t('profile.restoreFailed', 'Restore failed'), description: t('profile.restoreFailedDesc', 'Make sure you are signed in.'), variant: 'destructive' });
-                  }
-                }}
                 className="w-full h-10 rounded-lg text-sm font-medium"
               >
                 <CloudDownload className="h-4 w-4 mr-2" />

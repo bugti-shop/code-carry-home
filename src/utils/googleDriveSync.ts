@@ -745,6 +745,7 @@ export const downloadFromDrive = async (): Promise<void> => {
           if (cat.conflictKey === 'journey') {
             window.dispatchEvent(new Event('journeyUpdated'));
           }
+          }
         } catch (err) {
           console.error(`[DriveSync] ❌ Failed to download ${cat.fileName}:`, err);
         }
