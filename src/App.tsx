@@ -392,6 +392,7 @@ const AppContent = () => {
           <ComboOverlay />
           <UrgentReminderOverlay />
           <SyncConflictSheet />
+          <SyncProgressSheet />
           <DeferredSyncInit />
           <AppRoutes />
         </>
