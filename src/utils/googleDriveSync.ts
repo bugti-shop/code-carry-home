@@ -724,19 +724,23 @@ export const downloadFromDrive = async (): Promise<void> => {
             merged = remoteData;
           }
 
+          const mergedCount = Array.isArray(merged) ? merged.length : (typeof merged === 'object' ? Object.keys(merged).length : 1);
           await cat.save(merged);
           await storeHash(cat.conflictKey, merged);
+          console.log(`[DriveSync] ✅ ${cat.fileName} restored (${mergedCount} items merged)`);
 
           if (cat.conflictKey === 'tasks') {
             window.dispatchEvent(new Event('tasksRestored'));
           }
-
+          if (cat.conflictKey === 'notes') {
+            window.dispatchEvent(new Event('notesUpdated'));
+          }
           if (cat.conflictKey === 'settings') {
             window.dispatchEvent(new Event('foldersRestored'));
             window.dispatchEvent(new Event('sectionsRestored'));
           }
         } catch (err) {
-          console.warn(`Failed to download ${cat.fileName}:`, err);
+          console.error(`[DriveSync] ❌ Failed to download ${cat.fileName}:`, err);
         }
       }),
   );
