@@ -154,6 +154,32 @@ export const setSetting = async <T>(key: string, value: T): Promise<void> => {
   }
 };
 
+export const setManySettings = async (
+  entries: Record<string, any> | Array<[string, any]>,
+): Promise<void> => {
+  const pairs = Array.isArray(entries) ? entries : Object.entries(entries);
+
+  for (const [key, value] of pairs) {
+    _warmCache.set(key, value);
+  }
+
+  try {
+    await withRetry((database) => new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction([STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+
+      for (const [key, value] of pairs) {
+        store.put({ key, value });
+      }
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    }));
+  } catch (error) {
+    console.error('Error saving multiple settings:', error);
+  }
+};
+
 export const removeSetting = async (key: string): Promise<void> => {
   try {
     await withRetry((database) => new Promise<void>((resolve, reject) => {

@@ -67,7 +67,7 @@ export const loadTodoItems = async (): Promise<TodoItem[]> => {
 
 // Debounced Drive upload — avoids flooding Drive API on rapid saves
 let driveSyncTimer: ReturnType<typeof setTimeout> | null = null;
-const DRIVE_SYNC_DEBOUNCE = 3000; // 3 seconds
+const DRIVE_SYNC_DEBOUNCE = 1000; // 1 second for faster cloud backup responsiveness
 
 const debouncedSyncTasksToDrive = () => {
   if (driveSyncTimer) clearTimeout(driveSyncTimer);
