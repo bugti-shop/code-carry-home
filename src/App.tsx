@@ -369,6 +369,10 @@ const AppContent = () => {
   // This prevents temporary access flashes after returning from Stripe without a valid subscription.
   const canRenderProtectedApp = showOnboarding === false && !subLoading && !isVerifyingCheckout && isPro;
 
+  // While subscription status is being verified, show a branded splash screen
+  // instead of flashing the paywall for 2 seconds on every refresh
+  const isResolvingSubscription = subLoading || isVerifyingCheckout;
+
   return (
     <>
       <Toaster />
@@ -378,8 +382,19 @@ const AppContent = () => {
         <OnboardingFlow onComplete={handleOnboardingComplete} />
       )}
 
-      
-      <PremiumPaywall />
+      {/* Show loading splash while subscription is being verified — prevents paywall flash */}
+      {!showOnboarding && isResolvingSubscription && (
+        <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-background">
+          <img src="/lovable-uploads/58db76ed-237a-4547-8022-4e3e1a0be498.png" alt="Flowist" className="h-16 w-16 rounded-2xl mb-4 animate-pulse" />
+          <div className="h-1 w-32 rounded-full bg-muted overflow-hidden">
+            <div className="h-full w-1/2 rounded-full bg-primary animate-[shimmer_1.5s_ease-in-out_infinite]" 
+              style={{ animation: 'shimmer 1.5s ease-in-out infinite', background: 'hsl(var(--primary))' }} />
+          </div>
+        </div>
+      )}
+
+      {/* Only show paywall after subscription check is complete and user has no access */}
+      {!isResolvingSubscription && <PremiumPaywall />}
       
 
       {/* Only render app content after subscription access is fully verified */}
