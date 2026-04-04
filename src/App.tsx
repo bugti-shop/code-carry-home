@@ -254,16 +254,15 @@ const AppContent = () => {
     return () => window.removeEventListener('flowistOnboardingReset', handleReset);
   }, []);
 
+  // Track whether user was ever granted access this session to prevent white flash
+  const wasEverPro = useRef(false);
+  if (isPro) wasEverPro.current = true;
+
   // Handle subscription state
-  // If user has PAID subscription (isPro via Stripe/RevenueCat), always grant access
-  // On web: no local trial — access only via Stripe-verified subscription
-  // On native: local trial still works for 8 days + 3 days grace
   useEffect(() => {
     if (subLoading || showOnboarding) return;
-    // Paid subscriber — always allow access
     if (isPro) return;
-    // No active subscription — redirect to language selection (onboarding page 1)
-    // User data is preserved, only onboarding_completed flag is reset
+    // No active subscription — redirect to language selection
     setSetting('onboarding_completed', false).then(() => {
       setShowOnboarding(true);
     });
