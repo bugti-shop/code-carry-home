@@ -161,6 +161,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
   // Check local 8-day free trial (no credit card required)
   const checkLocalTrial = useCallback(async () => {
+    if (Capacitor.isNativePlatform()) {
+      setIsLocalTrial(false);
+      setLocalTrialExpired(false);
+      setGraceExpired(false);
+      return false;
+    }
+
     try {
       const trialStart = await getSetting<number>('flowist_trial_start', 0);
       if (!trialStart) {
@@ -201,6 +208,12 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         const adminBypass = await getSetting<boolean>('flowist_admin_bypass', false);
         setLocalProAccess(!!adminBypass);
         setIsAdminBypass(!!adminBypass);
+        if (Capacitor.isNativePlatform()) {
+          setIsLocalTrial(false);
+          setLocalTrialExpired(false);
+          setGraceExpired(false);
+          await setSetting('flowist_trial_start', 0);
+        }
         // Check local free trial
         const trialActive = await checkLocalTrial();
         if (trialActive && !adminBypass) {
@@ -223,6 +236,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
     // Listen for trial start (set when onboarding completes)
     const handleTrialStart = () => {
+      if (Capacitor.isNativePlatform()) return;
       setLocalProAccess(true);
       setIsLocalTrial(true);
       setLocalTrialExpired(false);
@@ -890,7 +904,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   // On web: only Stripe-verified subscription or admin bypass grants access (no local trial)
   // On native: RevenueCat + local trial still works
   const isPro = Capacitor.isNativePlatform()
-    ? (rcIsPro || localProAccess || isLocalTrial)
+    ? (rcIsPro || localProAccess)
     : (rcIsPro || localProAccess);
   const tier: SubscriptionTier = isPro ? 'premium' : 'free';
   const isLoading = localLoading || rcLoading || (Capacitor.isNativePlatform() && !isInitialized) || (!Capacitor.isNativePlatform() && !isWebSubscriptionResolved);
