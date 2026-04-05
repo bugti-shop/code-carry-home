@@ -112,8 +112,6 @@ const ChartCard = ({ title, icon: Icon, data, type = "bar" }: {
   );
 };
 
-const ADMIN_PASSWORD = "flowist2024admin";
-
 export default function AdminOnboarding() {
   const navigate = useNavigate();
   const [rows, setRows] = useState<OnboardingRow[]>([]);
@@ -121,14 +119,26 @@ export default function AdminOnboarding() {
   const [authenticated, setAuthenticated] = useState(() => sessionStorage.getItem("admin_auth") === "true");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [verifying, setVerifying] = useState(false);
 
-  const handleLogin = () => {
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem("admin_auth", "true");
-      setAuthenticated(true);
-      setError("");
-    } else {
-      setError("Incorrect password");
+  const handleLogin = async () => {
+    setVerifying(true);
+    setError("");
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke("verify-admin", {
+        body: { password },
+      });
+      if (fnError) throw fnError;
+      if (data?.valid) {
+        sessionStorage.setItem("admin_auth", "true");
+        setAuthenticated(true);
+      } else {
+        setError("Incorrect password");
+      }
+    } catch {
+      setError("Verification failed. Try again.");
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -178,7 +188,9 @@ export default function AdminOnboarding() {
               autoFocus
             />
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button className="w-full" onClick={handleLogin}>Unlock</Button>
+            <Button className="w-full" onClick={handleLogin} disabled={verifying}>
+              {verifying ? "Verifying..." : "Unlock"}
+            </Button>
             <Button variant="ghost" className="w-full" onClick={() => navigate(-1)}>
               <ArrowLeft className="w-4 h-4 mr-2" /> Go Back
             </Button>
