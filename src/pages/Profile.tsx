@@ -381,7 +381,10 @@ export default function Profile() {
             <div className="space-y-2">
               <div className="flex gap-2">
                 <Button
-                  onClick={triggerSync}
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('openSyncProgressSheet'));
+                    triggerSync();
+                  }}
                   disabled={isSyncing}
                   className="flex-1 h-11 rounded-lg px-4 py-2.5 text-sm font-bold bg-primary text-primary-foreground border-b-4 border-[hsl(var(--primary-darker))] shadow-[0_10px_22px_hsl(var(--primary)/0.22)] hover:bg-[hsl(var(--primary-dark))] active:border-b-0 active:translate-y-1"
                 >
@@ -400,6 +403,7 @@ export default function Profile() {
               <Button
                 variant="outline"
                 onClick={async () => {
+                  window.dispatchEvent(new CustomEvent('openSyncProgressSheet'));
                   try {
                     const { restoreFromDrive } = await import('@/utils/googleDriveSync');
                     await restoreFromDrive();
