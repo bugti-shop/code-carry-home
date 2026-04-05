@@ -1221,8 +1221,7 @@ const Index = () => {
                     </h2>
                     <div className="space-y-3">
                       {filteredNotes.filter(n => n.isFavorite).map((note) => (
-                        <NoteCard
-                          key={note.id}
+                        <div key={note.id} className="cv-auto-note"><NoteCard
                           note={note}
                           onEdit={handleEditNote}
                           onDelete={handleDeleteNote}
@@ -1237,7 +1236,7 @@ const Index = () => {
                           isSelected={selectedNoteIds.includes(note.id)}
                           onToggleSelection={handleToggleNoteSelection}
                           onDuplicate={handleDuplicateNote}
-                        />
+                        /></div>
                       ))}
                     </div>
                   </div>
@@ -1270,8 +1269,7 @@ const Index = () => {
                     ) : (
                       <div className="space-y-3">
                         {filteredNotes.filter(n => !n.isFavorite).map((note) => (
-                          <NoteCard
-                            key={note.id}
+                          <div key={note.id} className="cv-auto-note"><NoteCard
                             note={note}
                             onEdit={handleEditNote}
                             onDelete={handleDeleteNote}
@@ -1287,7 +1285,7 @@ const Index = () => {
                             onToggleSelection={handleToggleNoteSelection}
                             onDuplicate={handleDuplicateNote}
                             
-                          />
+                          /></div>
                         ))}
                       </div>
                     )}
