@@ -43,17 +43,18 @@ export function SyncProgressSheet() {
     const p = e.detail;
     setProgress(p);
 
-    // Open sheet when sync starts
-    if (p.completed === 0 && p.total > 0) {
-      setIsOpen(true);
-      if (autoClose) clearTimeout(autoClose);
-    }
-
     // Auto-close 2s after all done
     if (p.completed >= p.total && p.total > 0) {
+      if (autoClose) clearTimeout(autoClose);
       const t = setTimeout(() => setIsOpen(false), 2000);
       setAutoClose(t);
     }
+  }, [autoClose]);
+
+  // Only open when user manually triggers via button
+  const handleOpen = useCallback(() => {
+    setIsOpen(true);
+    if (autoClose) clearTimeout(autoClose);
   }, [autoClose]);
 
   useEffect(() => {
