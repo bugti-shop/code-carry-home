@@ -238,7 +238,9 @@ const AppContent = () => {
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
   
   const { isPro, isLoading: subLoading, isVerifyingCheckout, localTrialExpired, graceExpired } = useSubscription();
-  const awaitingSubscriptionChoice = useRef(false);
+  const awaitingSubscriptionChoice = useRef(
+    sessionStorage.getItem('awaitingSubscriptionChoice') === 'true'
+  );
 
   // Check onboarding status
   useEffect(() => {
