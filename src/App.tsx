@@ -238,6 +238,7 @@ const AppContent = () => {
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
   
   const { isPro, isLoading: subLoading, isVerifyingCheckout, localTrialExpired, graceExpired } = useSubscription();
+  const awaitingSubscriptionChoice = useRef(false);
 
   // Check onboarding status
   useEffect(() => {
@@ -249,6 +250,7 @@ const AppContent = () => {
 
     // Listen for onboarding reset (e.g. sign out, subscription cancel)
     const handleReset = () => {
+      awaitingSubscriptionChoice.current = false;
       setShowOnboarding(true);
     };
     window.addEventListener('flowistOnboardingReset', handleReset);
@@ -261,15 +263,20 @@ const AppContent = () => {
 
   // Handle subscription state
   useEffect(() => {
-    if (subLoading || showOnboarding) return;
-    if (isPro) return;
+    if (subLoading || showOnboarding || isVerifyingCheckout) return;
+    if (isPro) {
+      awaitingSubscriptionChoice.current = false;
+      return;
+    }
     // Don't reset if onboarding just completed (trial/subscription state still propagating)
     if (onboardingJustCompleted.current) return;
+    // Don't reset while the user is intentionally moving from onboarding to paywall/checkout
+    if (awaitingSubscriptionChoice.current) return;
     // No active subscription — redirect to language selection
     setSetting('onboarding_completed', false).then(() => {
       setShowOnboarding(true);
     });
-  }, [isPro, subLoading, showOnboarding]);
+  }, [isPro, subLoading, showOnboarding, isVerifyingCheckout]);
 
   // Grace period after onboarding completes — prevents the subscription effect
   // from immediately resetting onboarding before trial/subscription state propagates
@@ -277,6 +284,7 @@ const AppContent = () => {
 
   const handleOnboardingComplete = useCallback(() => {
     onboardingJustCompleted.current = true;
+    awaitingSubscriptionChoice.current = true;
     startTransition(() => {
       setShowOnboarding(false);
     });
