@@ -79,6 +79,7 @@ serve(async (req) => {
       line_items: [{ price: PRICE_IDS[planType], quantity: 1 }],
       mode: "subscription",
       payment_method_collection: "always",
+      allow_promotion_codes: true,
       success_url: `${origin}/?stripe_success=true&plan=${planType}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/`,
       metadata: { user_id: userId || "anonymous", plan_type: planType },
