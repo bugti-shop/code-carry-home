@@ -253,6 +253,7 @@ const AppContent = () => {
     // Listen for onboarding reset (e.g. sign out, subscription cancel)
     const handleReset = () => {
       awaitingSubscriptionChoice.current = false;
+      sessionStorage.removeItem('awaitingSubscriptionChoice');
       setShowOnboarding(true);
     };
     window.addEventListener('flowistOnboardingReset', handleReset);
