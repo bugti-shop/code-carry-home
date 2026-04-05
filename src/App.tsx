@@ -263,13 +263,20 @@ const AppContent = () => {
   useEffect(() => {
     if (subLoading || showOnboarding) return;
     if (isPro) return;
+    // Don't reset if onboarding just completed (trial/subscription state still propagating)
+    if (onboardingJustCompleted.current) return;
     // No active subscription — redirect to language selection
     setSetting('onboarding_completed', false).then(() => {
       setShowOnboarding(true);
     });
   }, [isPro, subLoading, showOnboarding]);
 
+  // Grace period after onboarding completes — prevents the subscription effect
+  // from immediately resetting onboarding before trial/subscription state propagates
+  const onboardingJustCompleted = useRef(false);
+
   const handleOnboardingComplete = useCallback(() => {
+    onboardingJustCompleted.current = true;
     startTransition(() => {
       setShowOnboarding(false);
     });
@@ -277,6 +284,10 @@ const AppContent = () => {
     setTimeout(() => {
       window.dispatchEvent(new Event('foldersUpdated'));
     }, 300);
+    // Clear the grace flag after subscription state has had time to update
+    setTimeout(() => {
+      onboardingJustCompleted.current = false;
+    }, 5000);
   }, []);
   
   // Initialize keyboard height detection for mobile toolbar positioning
