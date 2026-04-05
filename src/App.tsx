@@ -221,6 +221,7 @@ const AppRoutes = () => {
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+            <Route path="/admin/onboarding" element={<AdminOnboarding />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
