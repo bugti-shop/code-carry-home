@@ -238,7 +238,9 @@ const AppContent = () => {
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
   
   const { isPro, isLoading: subLoading, isVerifyingCheckout, localTrialExpired, graceExpired } = useSubscription();
-  const awaitingSubscriptionChoice = useRef(false);
+  const awaitingSubscriptionChoice = useRef(
+    sessionStorage.getItem('awaitingSubscriptionChoice') === 'true'
+  );
 
   // Check onboarding status
   useEffect(() => {
@@ -251,6 +253,7 @@ const AppContent = () => {
     // Listen for onboarding reset (e.g. sign out, subscription cancel)
     const handleReset = () => {
       awaitingSubscriptionChoice.current = false;
+      sessionStorage.removeItem('awaitingSubscriptionChoice');
       setShowOnboarding(true);
     };
     window.addEventListener('flowistOnboardingReset', handleReset);
@@ -266,6 +269,7 @@ const AppContent = () => {
     if (subLoading || showOnboarding || isVerifyingCheckout) return;
     if (isPro) {
       awaitingSubscriptionChoice.current = false;
+      sessionStorage.removeItem('awaitingSubscriptionChoice');
       return;
     }
     // Don't reset if onboarding just completed (trial/subscription state still propagating)
@@ -285,6 +289,7 @@ const AppContent = () => {
   const handleOnboardingComplete = useCallback(() => {
     onboardingJustCompleted.current = true;
     awaitingSubscriptionChoice.current = true;
+    sessionStorage.setItem('awaitingSubscriptionChoice', 'true');
     startTransition(() => {
       setShowOnboarding(false);
     });
