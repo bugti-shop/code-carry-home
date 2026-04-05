@@ -229,10 +229,16 @@ const AppRoutes = () => {
   );
 };
 
-const DriveSyncBootstrap = () => {
+const DriveSyncBootstrapInner = () => {
   useGoogleDriveSync();
   return null;
 };
+
+const DriveSyncBootstrap = () => (
+  <ErrorBoundary fallback={null}>
+    <DriveSyncBootstrapInner />
+  </ErrorBoundary>
+);
 
 const AppContent = () => {
   const [isAppLocked, setIsAppLocked] = useState<boolean | null>(null);
