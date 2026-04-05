@@ -31,24 +31,7 @@ export const saveRefreshTokenToSupabase = async (
   if (error) {
     console.error('[TokenDB] ❌ SAVE FAILED:', error.message, error.details, error.hint);
   } else {
-    console.log('[TokenDB] ✅ Refresh token SAVED to Supabase DB');
-    try {
-      const { data: verify, error: verifyErr } = await db
-        .from('user_refresh_tokens')
-        .select('google_refresh_token')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (verifyErr) {
-        console.error('[TokenDB] ❌ VERIFY READ FAILED:', verifyErr.message);
-      } else if (verify?.google_refresh_token) {
-        console.log(`[TokenDB] ✅ VERIFIED: token exists in DB (length: ${verify.google_refresh_token.length})`);
-      } else {
-        console.error('[TokenDB] ❌ VERIFY FAILED: token NOT found after save!');
-      }
-    } catch (e) {
-      console.warn('[TokenDB] Verify read-back error:', e);
-    }
+    console.log('[TokenDB] ✅ Refresh token saved to secure backend storage');
   }
 };
 
