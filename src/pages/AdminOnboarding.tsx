@@ -244,6 +244,34 @@ export default function AdminOnboarding() {
               <div className="text-xs text-muted-foreground">Languages</div>
             </CardContent>
           </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3 text-center">
+              <Target className="w-6 h-6 mx-auto text-primary mb-1" />
+              <div className="text-2xl font-bold">{stats.notesCreated}</div>
+              <div className="text-xs text-muted-foreground">Notes Created</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3 text-center">
+              <Smartphone className="w-6 h-6 mx-auto text-primary mb-1" />
+              <div className="text-2xl font-bold">{stats.sketchesCreated}</div>
+              <div className="text-xs text-muted-foreground">Sketches Created</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3 text-center">
+              <Target className="w-6 h-6 mx-auto text-primary mb-1" />
+              <div className="text-2xl font-bold">{stats.totalTasks}</div>
+              <div className="text-xs text-muted-foreground">Tasks Created</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3 text-center">
+              <Globe className="w-6 h-6 mx-auto text-primary mb-1" />
+              <div className="text-2xl font-bold">{stats.totalNotesFolders + stats.totalTasksFolders}</div>
+              <div className="text-xs text-muted-foreground">Folders Created</div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Charts */}
