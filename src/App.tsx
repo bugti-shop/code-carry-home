@@ -44,7 +44,6 @@ const Today = lazy(preloadTodayPage);
 
 const Index = lazy(preloadNotesDashboardPage);
 void preloadTodayPage();
-void preloadNotesDashboardPage();
 
 // Lazy load everything else - they load in background after first paint
 const Notes = lazy(() => import("./pages/Notes"));

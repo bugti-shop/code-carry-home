@@ -75,16 +75,6 @@ const HistoryView = lazyRetry(historyFactory);
 const GroupedView = lazyRetry(groupedFactory);
 const FlatView = lazy(flatFactory);
 
-// Eagerly preload all view chunks so switching is instant
-void kanbanFactory();
-void kanbanStatusFactory();
-void timelineFactory();
-void progressFactory();
-void priorityFactory();
-void historyFactory();
-void groupedFactory();
-void flatFactory();
-
 const Today = () => {
   const { t } = useTranslation();
 
@@ -145,6 +135,32 @@ const Today = () => {
     processedItems, searchFilteredItems, uncompletedItems, completedItems,
     sortedSections, toggleViewSectionCollapse, handleClearFilters,
   } = state;
+
+  useEffect(() => {
+    const preloadViewChunks = () => {
+      void kanbanFactory();
+      void kanbanStatusFactory();
+      void timelineFactory();
+      void progressFactory();
+      void priorityFactory();
+      void historyFactory();
+      void groupedFactory();
+      void flatFactory();
+    };
+
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+
+    if (idleWindow.requestIdleCallback) {
+      const idleId = idleWindow.requestIdleCallback(preloadViewChunks, { timeout: 2000 });
+      return () => idleWindow.cancelIdleCallback?.(idleId);
+    }
+
+    const timeoutId = window.setTimeout(preloadViewChunks, 1500);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   // ── All actions from extracted hook ──
   const actions = useTodayActions({

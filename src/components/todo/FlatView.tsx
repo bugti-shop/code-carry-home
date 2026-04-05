@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { applyTaskOrder, updateSectionOrder } from '@/utils/taskOrderStorage';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { VirtualizedTaskList, shouldUseVirtualization } from '@/components/VirtualizedTaskList';
 
 interface FlatViewProps {
   sortedSections: TaskSection[];
@@ -43,6 +44,7 @@ export const FlatView = ({
   setOrderVersion,
 }: FlatViewProps) => {
   const { t } = useTranslation();
+  const useVirtualizedList = shouldUseVirtualization(uncompletedItems.length);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -70,6 +72,61 @@ export const FlatView = ({
     setOrderVersion(v => v + 1);
     Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
   };
+
+  if (useVirtualizedList) {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-xl border border-border/30 bg-muted/20 overflow-hidden">
+          <VirtualizedTaskList
+            items={uncompletedItems}
+            sections={sortedSections}
+            expandedTasks={new Set()}
+            onReorder={(updatedItems) => {
+              sortedSections.forEach((section) => {
+                const sectionId = section.id === sections[0]?.id ? 'default' : section.id;
+                const sectionTaskIds = updatedItems
+                  .filter((item) => item.sectionId === section.id || (!item.sectionId && section.id === sections[0]?.id))
+                  .map((item) => item.id);
+
+                updateSectionOrder(`flat-section-${sectionId}`, sectionTaskIds);
+              });
+              setOrderVersion((v) => v + 1);
+            }}
+            renderTask={(item) => (
+              <div className="bg-card rounded-lg border border-border/50">
+                {renderTaskItem(item)}
+                {renderSubtasksInline(item)}
+              </div>
+            )}
+            renderSectionHeader={(section) => renderSectionHeader(section, false)}
+            compactMode={compactMode}
+            className="max-h-[70vh]"
+          />
+        </div>
+
+        {showCompleted && completedItems.length > 0 && (
+          <Collapsible open={isCompletedOpen} onOpenChange={setIsCompletedOpen}>
+            <div className="bg-muted/50 rounded-xl p-3 border border-border/30">
+              <CollapsibleTrigger asChild>
+                <button className="w-full flex items-center justify-between px-2 py-2 hover:bg-muted/60 rounded-lg transition-colors">
+                  <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('grouping.completed')}</span>
+                  <div className="flex items-center gap-2 text-muted-foreground"><span className="text-sm font-medium">{completedItems.length}</span>{isCompletedOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</div>
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className={cn("space-y-2 mt-2", compactMode && "space-y-1 mt-1")}>
+                {completedItems.slice(0, 100).map(renderTaskItem)}
+                {completedItems.length > 100 && (
+                  <div className="px-2 py-1 text-xs text-muted-foreground text-center">
+                    {t('grouping.completed')} {completedItems.length}
+                  </div>
+                )}
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
+        )}
+      </div>
+    );
+  }
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
