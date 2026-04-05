@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Performance: skip layout/paint for off-screen list items ── */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 72px;
+}
+.cv-auto-note {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 120px;
+}
+.cv-auto-compact {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 48px;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here.
 All colors MUST be HSL.
 */

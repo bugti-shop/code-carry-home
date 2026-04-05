@@ -149,6 +149,7 @@ export const FlatView = ({
                         <Draggable key={item.id} draggableId={item.id} index={index}>
                           {(provided, snapshot) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={cn("bg-card rounded-lg border border-border/50", snapshot.isDragging && "shadow-lg ring-2 ring-primary")}>
+                              {/* cv-auto applied via parent for non-dragging items */}
                               {renderTaskItem(item)}{renderSubtasksInline(item)}
                             </div>
                           )}
@@ -171,7 +172,7 @@ export const FlatView = ({
                   <div className="flex items-center gap-2 text-muted-foreground"><span className="text-sm font-medium">{completedItems.length}</span>{isCompletedOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</div>
                 </button>
               </CollapsibleTrigger>
-              <CollapsibleContent className={cn("space-y-2 mt-2", compactMode && "space-y-1 mt-1")}>{completedItems.map(renderTaskItem)}</CollapsibleContent>
+              <CollapsibleContent className={cn("space-y-2 mt-2", compactMode && "space-y-1 mt-1")}>{completedItems.map((item) => <div key={item.id} className="cv-auto">{renderTaskItem(item)}</div>)}</CollapsibleContent>
             </div>
           </Collapsible>
         )}

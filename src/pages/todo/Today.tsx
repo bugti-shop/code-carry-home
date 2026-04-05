@@ -458,7 +458,7 @@ const Today = () => {
         {!isCollapsed && (
           <div className="p-2 space-y-2">
             {completedItems.map((item) => (
-              <div key={item.id} className="bg-card rounded-lg border border-border/50 opacity-70">{renderTaskItem(item)}</div>
+              <div key={item.id} className="bg-card rounded-lg border border-border/50 opacity-70 cv-auto">{renderTaskItem(item)}</div>
             ))}
           </div>
         )}
