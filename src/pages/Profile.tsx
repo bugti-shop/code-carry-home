@@ -453,16 +453,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Sync Info Notice */}
-      {user && (
-        <div className="px-5 mt-4">
-          <div className="rounded-xl border border-border/60 bg-muted/40 px-4 py-3">
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              ⏳ {t('profile.syncNotice', 'Synchronization will remain active for one hour after login. To continue syncing after that period, you will need to log in again using the same account.')}
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Subscription Section */}
       <div className="px-5 mt-6">
