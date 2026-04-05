@@ -212,16 +212,17 @@ export const MasonryNotesGrid: React.FC<MasonryNotesGridProps> = ({
   });
 
   const renderNoteCard = (note: Note) => (
-    <SwipeableNoteCard
-      key={note.id}
-      note={note}
-      onEdit={onEdit}
-      onDelete={onDelete}
-      onArchive={onArchive}
-      isSelectionMode={isSelectionMode}
-      isSelected={selectedNoteIds.includes(note.id)}
-      onToggleSelection={onToggleSelection}
-    />
+    <div key={note.id} className="cv-auto-note">
+      <SwipeableNoteCard
+        note={note}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onArchive={onArchive}
+        isSelectionMode={isSelectionMode}
+        isSelected={selectedNoteIds.includes(note.id)}
+        onToggleSelection={onToggleSelection}
+      />
+    </div>
   );
 
   if (notes.length === 0) {
