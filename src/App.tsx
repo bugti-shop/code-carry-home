@@ -61,6 +61,7 @@ const TodoSettings = lazy(() => import("./pages/todo/TodoSettings"));
 const WebClipper = lazy(() => import("./pages/WebClipper"));
 const Reminders = lazy(() => import("./pages/Reminders"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const AdminOnboarding = lazy(() => import("./pages/AdminOnboarding"));
 
 
 const queryClient = new QueryClient();
@@ -220,6 +221,7 @@ const AppRoutes = () => {
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+            <Route path="/admin/onboarding" element={<AdminOnboarding />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
