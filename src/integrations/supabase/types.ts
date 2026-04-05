@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      onboarding_responses: {
+        Row: {
+          created_at: string
+          device_id: string | null
+          devices: Json | null
+          frustration: string | null
+          goals: Json | null
+          id: string
+          journey_selected: string | null
+          language: string | null
+          note_created: boolean | null
+          notes_folders_count: number | null
+          offline_preference: string | null
+          previous_app: string | null
+          sketch_created: boolean | null
+          slowdown_reason: string | null
+          source: string | null
+          task_view_preference: string | null
+          tasks_created_count: number | null
+          tasks_folders_count: number | null
+          unfinished_reason: string | null
+          user_email: string | null
+          user_name: string | null
+          why_apps_fail: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_id?: string | null
+          devices?: Json | null
+          frustration?: string | null
+          goals?: Json | null
+          id?: string
+          journey_selected?: string | null
+          language?: string | null
+          note_created?: boolean | null
+          notes_folders_count?: number | null
+          offline_preference?: string | null
+          previous_app?: string | null
+          sketch_created?: boolean | null
+          slowdown_reason?: string | null
+          source?: string | null
+          task_view_preference?: string | null
+          tasks_created_count?: number | null
+          tasks_folders_count?: number | null
+          unfinished_reason?: string | null
+          user_email?: string | null
+          user_name?: string | null
+          why_apps_fail?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_id?: string | null
+          devices?: Json | null
+          frustration?: string | null
+          goals?: Json | null
+          id?: string
+          journey_selected?: string | null
+          language?: string | null
+          note_created?: boolean | null
+          notes_folders_count?: number | null
+          offline_preference?: string | null
+          previous_app?: string | null
+          sketch_created?: boolean | null
+          slowdown_reason?: string | null
+          source?: string | null
+          task_view_preference?: string | null
+          tasks_created_count?: number | null
+          tasks_folders_count?: number | null
+          unfinished_reason?: string | null
+          user_email?: string | null
+          user_name?: string | null
+          why_apps_fail?: string | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean
