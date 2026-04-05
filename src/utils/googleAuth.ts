@@ -6,11 +6,11 @@
 import { Capacitor } from '@capacitor/core';
 import { getSetting, setSetting, removeSetting } from './settingsStorage';
 import { supabase } from '@/lib/supabase';
-import { saveRefreshTokenToSupabase, loadRefreshTokenFromSupabase } from './supabaseTokenStorage';
+import { saveRefreshTokenToSupabase } from './supabaseTokenStorage';
 
 const CLIENT_ID = '425291387152-u06impgmsgg286jg7odo4f40fu6pjmb5.apps.googleusercontent.com';
 
-const SUPABASE_FUNCTIONS_BASE = 'https://polputoxbnclumxhvnjd.supabase.co/functions/v1';
+const SUPABASE_FUNCTIONS_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 
 // Include Drive scopes for both native and web
 const DRIVE_SCOPES = [
@@ -166,13 +166,13 @@ const exchangeAuthCodeForTokens = async (
  * NO UI, NO popup, NO redirect — pure HTTP call to our backend.
  */
 const refreshAccessTokenViaRefreshToken = async (
-  refreshToken: string,
+  refreshToken?: string,
 ): Promise<{ accessToken: string; expiresIn: number; newRefreshToken?: string }> => {
   const data = await callEdgeFunction<{
     access_token: string;
     expires_in?: number;
     refresh_token?: string;
-  }>('refresh-google-token', { refresh_token: refreshToken });
+  }>('refresh-google-token', refreshToken ? { refresh_token: refreshToken } : {});
 
   return {
     accessToken: data.access_token,
@@ -356,26 +356,8 @@ const _nativeRefreshImpl = async (): Promise<GoogleUser> => {
 
   if (Date.now() < nativeRefreshCooldownUntil) return stored;
 
-  // ── Strategy 0: Recover refresh_token from Supabase if missing locally ──
-  if (!stored.refreshToken) {
-    try {
-      const supabaseRefresh = await loadRefreshTokenFromSupabase();
-      if (supabaseRefresh) {
-        stored.refreshToken = supabaseRefresh;
-        await setSetting('googleUser', stored);
-        console.log('[Auth] ✅ Recovered refresh_token from Supabase DB — silent refresh will work');
-      } else {
-        console.warn('[Auth] ⚠️ No refresh_token in Supabase DB either — re-login required');
-        emitReauthNeeded();
-      }
-    } catch (e) {
-      console.warn('[Auth] ❌ Failed to recover refresh_token from Supabase:', e);
-    }
-  }
-
-  // ── Strategy 1: Use refresh_token (fully silent, no UI) ──
-  if (stored.refreshToken) {
-    try {
+  // ── Strategy 1: Refresh via backend using local or server-stored refresh token ──
+  try {
       const { accessToken, expiresIn, newRefreshToken } = await refreshAccessTokenViaRefreshToken(stored.refreshToken);
 
       const finalRefreshToken = newRefreshToken || stored.refreshToken;
@@ -389,7 +371,7 @@ const _nativeRefreshImpl = async (): Promise<GoogleUser> => {
       await setSetting('googleUser', refreshedUser);
       console.log(`[Auth] ✅ Silent refresh succeeded — new token valid for ${expiresIn}s, expires at ${new Date(refreshedUser.accessTokenExpiresAt).toLocaleTimeString()}`);
 
-      // Update Supabase if token rotated
+      // Update backend copy if token rotated
       if (newRefreshToken) {
         saveRefreshTokenToSupabase(finalRefreshToken, stored.email).catch(() => {});
       }
@@ -397,10 +379,7 @@ const _nativeRefreshImpl = async (): Promise<GoogleUser> => {
       return refreshedUser;
     } catch (err) {
       console.error('[Auth] ❌ refresh_token → Edge Function FAILED:', err);
-      console.warn('[Auth] Will fall back to SocialLogin re-login');
-    }
-  } else {
-    console.warn('[Auth] ⚠️ No refresh_token available — cannot do silent refresh');
+      console.warn('[Auth] Will fall back to manual re-login');
   }
 
   // ── Strategy 2 REMOVED: No more SocialLogin.login() fallback ──
@@ -568,21 +547,8 @@ const silentWebRefresh = async (): Promise<GoogleUser | null> => {
     const stored = await getStoredGoogleUser();
     if (!stored) return null;
 
-    // Strategy 0: Recover refresh_token from Supabase if missing locally
-    if (!stored.refreshToken) {
-      try {
-        const supabaseRefresh = await loadRefreshTokenFromSupabase();
-        if (supabaseRefresh) {
-          stored.refreshToken = supabaseRefresh;
-          await setSetting('googleUser', stored);
-          console.log('Web: Recovered refresh_token from Supabase ✅');
-        }
-      } catch {}
-    }
-
-    // Strategy 1: Use refresh_token if available
-    if (stored.refreshToken) {
-      try {
+    // Strategy 1: Refresh via backend using local or server-stored refresh token
+    try {
         const { accessToken, expiresIn, newRefreshToken } = await refreshAccessTokenViaRefreshToken(stored.refreshToken);
         const finalRefreshToken = newRefreshToken || stored.refreshToken;
         const user: GoogleUser = {
@@ -595,7 +561,7 @@ const silentWebRefresh = async (): Promise<GoogleUser | null> => {
         await setSetting('googleUser', user);
         console.log('Web: refresh_token refresh succeeded');
 
-        // Update Supabase if token rotated
+        // Update backend copy if token rotated
         if (newRefreshToken) {
           saveRefreshTokenToSupabase(finalRefreshToken, stored.email).catch(() => {});
         }
@@ -603,7 +569,6 @@ const silentWebRefresh = async (): Promise<GoogleUser | null> => {
         return user;
       } catch {
         console.warn('Web: refresh_token failed, trying next strategy');
-      }
     }
 
     // Strategy 2: GIS silent token refresh (desktop only)
@@ -791,27 +756,12 @@ export const forceRefreshDriveToken = async (): Promise<GoogleUser | null> => {
   const stored = await getStoredGoogleUser();
   if (!stored) return null;
 
-  let refreshToken = stored.refreshToken;
-  if (!refreshToken) {
-    try {
-      refreshToken = await loadRefreshTokenFromSupabase() || undefined;
-      if (refreshToken) {
-        await setSetting('googleUser', { ...stored, refreshToken });
-        console.log('Recovered refresh_token during forced Drive refresh ✅');
-      }
-    } catch (err) {
-      console.warn('Failed to recover refresh_token during forced Drive refresh:', err);
-    }
-  }
-
-  if (!refreshToken) return stored;
-
   try {
-    const { accessToken, expiresIn, newRefreshToken } = await refreshAccessTokenViaRefreshToken(refreshToken);
+    const { accessToken, expiresIn, newRefreshToken } = await refreshAccessTokenViaRefreshToken(stored.refreshToken);
     const refreshedUser: GoogleUser = {
       ...stored,
       accessToken,
-      refreshToken: newRefreshToken || refreshToken,
+      refreshToken: newRefreshToken || stored.refreshToken,
       accessTokenExpiresAt: Date.now() + (expiresIn * 1000) - 60000,
       expiresAt: Date.now() + SESSION_TTL,
     };
