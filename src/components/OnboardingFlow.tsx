@@ -956,8 +956,45 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     }
   }, [step, selectedGoal, selectedSource, selectedPreviousApp, selectedFrustration, selectedTaskView, selectedDevices, selectedOffline, selectedUnfinished, selectedSlowdown, selectedWhyFail, userName, avatarPreview, onboardingNoteSaved, sketchSaved, showNotesFolderCreation, showTasksFolderCreation, notesFolders, tasksFolders, selectedJourneyId]);
 
+  const saveOnboardingResponses = useCallback(async () => {
+    try {
+      const deviceId = localStorage.getItem('flowist_device_id') || crypto.randomUUID();
+      localStorage.setItem('flowist_device_id', deviceId);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      await supabase.from('onboarding_responses' as any).insert({
+        device_id: deviceId,
+        user_email: user?.email || null,
+        language: selectedLang,
+        goals: Array.from(selectedGoal),
+        source: selectedSource,
+        previous_app: selectedPreviousApp,
+        frustration: selectedFrustration,
+        task_view_preference: selectedTaskView,
+        journey_selected: selectedJourneyId,
+        devices: Array.from(selectedDevices),
+        offline_preference: selectedOffline,
+        unfinished_reason: selectedUnfinished,
+        slowdown_reason: selectedSlowdown,
+        why_apps_fail: selectedWhyFail,
+        user_name: userName.trim(),
+        note_created: onboardingNoteSaved,
+        sketch_created: sketchSaved,
+        tasks_created_count: createdTasks.length,
+        notes_folders_count: notesFolders.length,
+        tasks_folders_count: tasksFolders.length,
+      });
+      console.log('[Onboarding] Responses saved to database');
+    } catch (e) {
+      console.warn('[Onboarding] Failed to save responses:', e);
+    }
+  }, [selectedLang, selectedGoal, selectedSource, selectedPreviousApp, selectedFrustration, selectedTaskView, selectedJourneyId, selectedDevices, selectedOffline, selectedUnfinished, selectedSlowdown, selectedWhyFail, userName, onboardingNoteSaved, sketchSaved, createdTasks.length, notesFolders.length, tasksFolders.length]);
+
   const handleFinishWelcome = useCallback(async () => {
     triggerHaptic();
+    // Save all onboarding responses to database
+    await saveOnboardingResponses();
     // If user earned the first step badge, show celebration before paywall
     const earned = onboardingNoteSaved && sketchSaved && createdTasks.length > 0;
     if (earned && !firstStepShown) {
@@ -971,7 +1008,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       // No celebration needed, show streak day 1
       setShowStreakDay1(true);
     }
-  }, [onComplete, openPaywall, onboardingNoteSaved, sketchSaved, createdTasks.length, firstStepShown, userName]);
+  }, [onComplete, openPaywall, onboardingNoteSaved, sketchSaved, createdTasks.length, firstStepShown, userName, saveOnboardingResponses]);
 
   const handleBack = useCallback(async () => {
     await triggerHaptic();
