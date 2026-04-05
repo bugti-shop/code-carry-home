@@ -133,6 +133,7 @@ const UnifiedBillingContext = createContext<UnifiedBillingContextType | undefine
 // Free trial duration in days
 const FREE_TRIAL_DAYS = 8;
 const GRACE_PERIOD_DAYS = 3;
+const SIGNOUT_GRACE_MS = 24 * 60 * 60 * 1000; // 1 day after sign-out
 
 export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   // Local state
@@ -145,6 +146,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [isLocalTrial, setIsLocalTrial] = useState(false);
   const [localTrialExpired, setLocalTrialExpired] = useState(false);
   const [graceExpired, setGraceExpired] = useState(false);
+  const [signoutGraceActive, setSignoutGraceActive] = useState(false);
 
   // RevenueCat state
   const [isInitialized, setIsInitialized] = useState(false);
@@ -158,6 +160,38 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [isWebSubscriptionResolved, setIsWebSubscriptionResolved] = useState(Capacitor.isNativePlatform());
   const [isVerifyingCheckout, setIsVerifyingCheckout] = useState(false);
   const [checkoutVerificationFailed, setCheckoutVerificationFailed] = useState(false);
+
+  // Check sign-out grace period on mount
+  useEffect(() => {
+    const checkSignoutGrace = async () => {
+      try {
+        const signoutTs = await getSetting<number>('flowist_signout_grace_ts', 0);
+        if (signoutTs > 0 && Date.now() - signoutTs < SIGNOUT_GRACE_MS) {
+          console.log('[Grace] Sign-out grace period active — user can use app without sign-in');
+          setSignoutGraceActive(true);
+        } else if (signoutTs > 0) {
+          // Grace expired — clear it
+          await setSetting('flowist_signout_grace_ts', 0);
+          setSignoutGraceActive(false);
+        }
+      } catch {}
+    };
+    checkSignoutGrace();
+
+    // Re-check every 60s in case grace expires while app is open
+    const interval = setInterval(async () => {
+      try {
+        const signoutTs = await getSetting<number>('flowist_signout_grace_ts', 0);
+        if (signoutTs > 0 && Date.now() - signoutTs >= SIGNOUT_GRACE_MS) {
+          console.log('[Grace] Sign-out grace period expired');
+          setSignoutGraceActive(false);
+          await setSetting('flowist_signout_grace_ts', 0);
+        }
+      } catch {}
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Check local 8-day free trial (no credit card required)
   const checkLocalTrial = useCallback(async () => {
@@ -775,6 +809,15 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const handleSignOut = async () => {
       console.log('SubscriptionContext: User signed out, resetting subscription state');
+
+      // If user was a subscriber (paid or trial), grant 1-day grace period
+      const wasPro = rcIsPro || localProAccess || isAdminBypass;
+      if (wasPro) {
+        console.log('[Grace] User was subscribed — granting 1-day sign-out grace period');
+        await setSetting('flowist_signout_grace_ts', Date.now());
+        setSignoutGraceActive(true);
+      }
+
       // RevenueCat logout on native (disassociates Google Play subscription from user)
       if (Capacitor.isNativePlatform() && isInitialized) {
         try {
@@ -801,14 +844,20 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem('flowist_stripe_subscribed');
         localStorage.removeItem('flowist_stripe_customer_email');
       } catch {}
-      // Reset onboarding so user goes back to language selection page
-      setShowPaywall(false);
-      setSetting('onboarding_completed', false).catch(() => {});
-      window.dispatchEvent(new CustomEvent('flowistOnboardingReset'));
+
+      // Only reset onboarding if NO grace period (grace = user stays in app)
+      if (!wasPro) {
+        setShowPaywall(false);
+        setSetting('onboarding_completed', false).catch(() => {});
+        window.dispatchEvent(new CustomEvent('flowistOnboardingReset'));
+      } else {
+        // Grace active — keep the app open, don't show paywall or onboarding
+        setShowPaywall(false);
+      }
     };
     window.addEventListener('flowistSignedOut', handleSignOut);
     return () => window.removeEventListener('flowistSignedOut', handleSignOut);
-  }, [isInitialized]);
+  }, [isInitialized, rcIsPro, localProAccess, isAdminBypass]);
 
   // Re-login to RevenueCat when Google auth state changes (sign in / sign out)
   useEffect(() => {
@@ -906,8 +955,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   // On web: only Stripe-verified subscription or admin bypass grants access (no local trial)
   // On native: RevenueCat + local trial still works
   const isPro = Capacitor.isNativePlatform()
-    ? (rcIsPro || localProAccess)
-    : (rcIsPro || localProAccess);
+    ? (rcIsPro || localProAccess || signoutGraceActive)
+    : (rcIsPro || localProAccess || signoutGraceActive);
   const tier: SubscriptionTier = isPro ? 'premium' : 'free';
   const isLoading = localLoading || rcLoading || (Capacitor.isNativePlatform() && !isInitialized) || (!Capacitor.isNativePlatform() && !isWebSubscriptionResolved);
 
@@ -965,11 +1014,11 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const closePaywall = useCallback(() => {
     // Only allow closing paywall if user actually has verified access
     // This prevents bypass via refresh or back-button from Stripe checkout
-    if (rcIsPro || localProAccess || isAdminBypass) {
+    if (rcIsPro || localProAccess || isAdminBypass || signoutGraceActive) {
       setShowPaywall(false);
       setPaywallFeature(null);
     }
-  }, [rcIsPro, localProAccess, isAdminBypass]);
+  }, [rcIsPro, localProAccess, isAdminBypass, signoutGraceActive]);
 
   const unlockPro = useCallback(async () => {
     await setSetting('flowist_admin_bypass', true);
