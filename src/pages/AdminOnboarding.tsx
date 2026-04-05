@@ -155,20 +155,35 @@ export default function AdminOnboarding() {
 
   useEffect(() => { if (authenticated) fetchData(); }, [authenticated]);
 
-  const stats = useMemo(() => ({
-    languages: countField(rows, "language"),
-    goals: countArrayField(rows, "goals"),
-    sources: countField(rows, "source"),
-    previousApps: countField(rows, "previous_app"),
-    frustrations: countField(rows, "frustration"),
-    viewPrefs: countField(rows, "task_view_preference"),
-    journeys: countField(rows, "journey_selected"),
-    devices: countArrayField(rows, "devices"),
-    offlinePrefs: countField(rows, "offline_preference"),
-    unfinishedReasons: countField(rows, "unfinished_reason"),
-    slowdownReasons: countField(rows, "slowdown_reason"),
-    whyAppsFail: countField(rows, "why_apps_fail"),
-  }), [rows]);
+  const stats = useMemo(() => {
+    let notesCreated = 0, sketchesCreated = 0, totalTasks = 0, totalNotesFolders = 0, totalTasksFolders = 0;
+    rows.forEach(r => {
+      if (r.note_created) notesCreated++;
+      if (r.sketch_created) sketchesCreated++;
+      totalTasks += r.tasks_created_count || 0;
+      totalNotesFolders += r.notes_folders_count || 0;
+      totalTasksFolders += r.tasks_folders_count || 0;
+    });
+    return {
+      languages: countField(rows, "language"),
+      goals: countArrayField(rows, "goals"),
+      sources: countField(rows, "source"),
+      previousApps: countField(rows, "previous_app"),
+      frustrations: countField(rows, "frustration"),
+      viewPrefs: countField(rows, "task_view_preference"),
+      journeys: countField(rows, "journey_selected"),
+      devices: countArrayField(rows, "devices"),
+      offlinePrefs: countField(rows, "offline_preference"),
+      unfinishedReasons: countField(rows, "unfinished_reason"),
+      slowdownReasons: countField(rows, "slowdown_reason"),
+      whyAppsFail: countField(rows, "why_apps_fail"),
+      notesCreated,
+      sketchesCreated,
+      totalTasks,
+      totalNotesFolders,
+      totalTasksFolders,
+    };
+  }, [rows]);
 
   if (!authenticated) {
     return (
