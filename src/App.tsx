@@ -263,6 +263,8 @@ const AppContent = () => {
   useEffect(() => {
     if (subLoading || showOnboarding) return;
     if (isPro) return;
+    // Don't reset if onboarding just completed (trial/subscription state still propagating)
+    if (onboardingJustCompleted.current) return;
     // No active subscription — redirect to language selection
     setSetting('onboarding_completed', false).then(() => {
       setShowOnboarding(true);
