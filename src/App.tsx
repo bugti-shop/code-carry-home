@@ -289,6 +289,7 @@ const AppContent = () => {
   const handleOnboardingComplete = useCallback(() => {
     onboardingJustCompleted.current = true;
     awaitingSubscriptionChoice.current = true;
+    sessionStorage.setItem('awaitingSubscriptionChoice', 'true');
     startTransition(() => {
       setShowOnboarding(false);
     });
