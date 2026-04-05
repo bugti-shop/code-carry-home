@@ -97,11 +97,11 @@ const ChartCard = ({ title, icon: Icon, data, type = "bar" }: {
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <ResponsiveContainer width="100%" height={Math.max(180, data.length * 36)}>
-            <BarChart data={data} layout="vertical" margin={{ left: 0, right: 16, top: 4, bottom: 4 }}>
+          <ResponsiveContainer width="100%" height={Math.max(220, data.length * 48)}>
+            <BarChart data={data} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" allowDecimals={false} fontSize={11} />
-              <YAxis type="category" dataKey="name" width={120} fontSize={11} tick={{ fill: "hsl(var(--foreground))" }} />
+              <YAxis type="category" dataKey="name" width={160} fontSize={10} tick={{ fill: "hsl(var(--foreground))" }} interval={0} />
               <Tooltip />
               <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
             </BarChart>
