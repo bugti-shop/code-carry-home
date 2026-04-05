@@ -59,11 +59,13 @@ export function SyncProgressSheet() {
 
   useEffect(() => {
     window.addEventListener('syncProgress', handleProgress as EventListener);
+    window.addEventListener('openSyncProgressSheet', handleOpen as EventListener);
     return () => {
       window.removeEventListener('syncProgress', handleProgress as EventListener);
+      window.removeEventListener('openSyncProgressSheet', handleOpen as EventListener);
       if (autoClose) clearTimeout(autoClose);
     };
-  }, [handleProgress, autoClose]);
+  }, [handleProgress, handleOpen, autoClose]);
 
   if (!progress) return null;
 
