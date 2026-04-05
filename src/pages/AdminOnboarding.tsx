@@ -143,7 +143,7 @@ export default function AdminOnboarding() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { if (authenticated) fetchData(); }, [authenticated]);
 
   const stats = useMemo(() => ({
     languages: countField(rows, "language"),
@@ -159,6 +159,34 @@ export default function AdminOnboarding() {
     slowdownReasons: countField(rows, "slowdown_reason"),
     whyAppsFail: countField(rows, "why_apps_fail"),
   }), [rows]);
+
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-sm">
+          <CardHeader className="text-center">
+            <Lock className="w-10 h-10 mx-auto text-primary mb-2" />
+            <CardTitle className="text-lg">Admin Access</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Input
+              type="password"
+              placeholder="Enter admin password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+              autoFocus
+            />
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button className="w-full" onClick={handleLogin}>Unlock</Button>
+            <Button variant="ghost" className="w-full" onClick={() => navigate(-1)}>
+              <ArrowLeft className="w-4 h-4 mr-2" /> Go Back
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-8">
