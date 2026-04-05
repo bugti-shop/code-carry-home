@@ -269,6 +269,7 @@ const AppContent = () => {
     if (subLoading || showOnboarding || isVerifyingCheckout) return;
     if (isPro) {
       awaitingSubscriptionChoice.current = false;
+      sessionStorage.removeItem('awaitingSubscriptionChoice');
       return;
     }
     // Don't reset if onboarding just completed (trial/subscription state still propagating)
