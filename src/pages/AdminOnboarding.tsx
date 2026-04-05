@@ -188,7 +188,9 @@ export default function AdminOnboarding() {
               autoFocus
             />
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button className="w-full" onClick={handleLogin}>Unlock</Button>
+            <Button className="w-full" onClick={handleLogin} disabled={verifying}>
+              {verifying ? "Verifying..." : "Unlock"}
+            </Button>
             <Button variant="ghost" className="w-full" onClick={() => navigate(-1)}>
               <ArrowLeft className="w-4 h-4 mr-2" /> Go Back
             </Button>
