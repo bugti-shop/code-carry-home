@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Users, Globe, Target, Smartphone, RefreshCw, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
