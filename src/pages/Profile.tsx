@@ -403,6 +403,7 @@ export default function Profile() {
               <Button
                 variant="outline"
                 onClick={async () => {
+                  window.dispatchEvent(new CustomEvent('openSyncProgressSheet'));
                   try {
                     const { restoreFromDrive } = await import('@/utils/googleDriveSync');
                     await restoreFromDrive();
