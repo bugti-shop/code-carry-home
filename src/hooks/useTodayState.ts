@@ -102,6 +102,7 @@ export const useTodayState = () => {
   // Misc
   const [orderVersion, setOrderVersion] = useState(0);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [itemsLoaded, setItemsLoaded] = useState(false);
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<TodoItem | null>(null);
   const [customSmartViews, setCustomSmartViews] = useState<CustomSmartView[]>([]);
   const [activeCustomViewId, setActiveCustomViewId] = useState<string | null>(null);
@@ -164,6 +165,7 @@ export const useTodayState = () => {
       });
       
       setItems(loadedItems);
+      setItemsLoaded(true);
     };
     loadAll();
 
@@ -211,6 +213,7 @@ export const useTodayState = () => {
       isFromSync = true;
       const loadedItems = await loadTodoItems();
       setItems(loadedItems);
+      setItemsLoaded(true);
     };
     const handleSectionsFromSync = async () => {
       const savedSections = await getSetting<TaskSection[]>('todoSections', []);
@@ -250,14 +253,10 @@ export const useTodayState = () => {
   useEffect(() => {
     // Don't save until settings are loaded AND initial data load is complete
     // This prevents pushing empty state to storage (and subsequently to Firebase) on fresh login
-    if (!settingsLoaded) return;
+    if (!settingsLoaded || !itemsLoaded) return;
     if (!initialLoadDoneRef.current) {
-      // Mark as done only when we actually have items (or explicitly confirmed empty)
-      if (items.length > 0) {
-        initialLoadDoneRef.current = true;
-      } else {
-        return; // Don't save empty state before we know it's truly empty
-      }
+      initialLoadDoneRef.current = true;
+      return;
     }
 
     // If this update came from a sync restore, skip dispatching tasksUpdated
@@ -278,7 +277,7 @@ export const useTodayState = () => {
       window.dispatchEvent(new Event('tasksUpdated'));
     }, 300);
     return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
-  }, [items, settingsLoaded]);
+  }, [items, settingsLoaded, itemsLoaded]);
 
   // Settings persistence
   useEffect(() => { if (settingsLoaded) { setSetting('todoFolders', folders); window.dispatchEvent(new Event('foldersUpdated')); } }, [folders, settingsLoaded]);
