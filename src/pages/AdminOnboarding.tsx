@@ -111,10 +111,25 @@ const ChartCard = ({ title, icon: Icon, data, type = "bar" }: {
   );
 };
 
+const ADMIN_PASSWORD = "flowist2024admin";
+
 export default function AdminOnboarding() {
   const navigate = useNavigate();
   const [rows, setRows] = useState<OnboardingRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(() => sessionStorage.getItem("admin_auth") === "true");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleLogin = () => {
+    if (password === ADMIN_PASSWORD) {
+      sessionStorage.setItem("admin_auth", "true");
+      setAuthenticated(true);
+      setError("");
+    } else {
+      setError("Incorrect password");
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
