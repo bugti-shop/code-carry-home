@@ -139,9 +139,16 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   // Local state
   const [localProAccess, setLocalProAccess] = useState(false);
   const [localLoading, setLocalLoading] = useState(true);
-  // On web, default to showing paywall until subscription is verified
-  // This prevents any flash of app access on refresh before server check completes
-  const [showPaywall, setShowPaywall] = useState(!Capacitor.isNativePlatform());
+  // On web: if user was previously verified as subscribed, trust local cache instantly
+  // and verify silently in background — no paywall flash for returning subscribers
+  const [showPaywall, setShowPaywall] = useState(() => {
+    if (Capacitor.isNativePlatform()) return false;
+    try {
+      // If previously verified as subscribed, don't show paywall on mount
+      if (localStorage.getItem('flowist_stripe_subscribed') === 'true') return false;
+    } catch {}
+    return true;
+  });
   const [paywallFeature, setPaywallFeature] = useState<string | null>(null);
   const [isLocalTrial, setIsLocalTrial] = useState(false);
   const [localTrialExpired, setLocalTrialExpired] = useState(false);
