@@ -54,7 +54,7 @@ const Index = () => {
   
   
   // Use global notes context - no more local loading!
-  const { notes, setNotes, notesMeta, isLoading: notesLoading } = useNotes();
+  const { notes, setNotes, notesMeta, notesMap, counts, isLoading: notesLoading } = useNotes();
   
   // Note type visibility
   const { requireFeature, isPro, openPaywall } = useSubscription();

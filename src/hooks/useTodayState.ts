@@ -353,7 +353,7 @@ export const useTodayState = () => {
     };
 
     // Skip if payload hasn't changed
-    const key = JSON.stringify([smartList, selectedFolderId, priorityFilter, statusFilter, dateFilter, tagFilter, sortBy, deferredSearch, items.length]);
+    const key = `${smartList}|${selectedFolderId}|${priorityFilter}|${statusFilter}|${dateFilter}|${tagFilter.join(',')}|${sortBy}|${deferredSearch}|${items.length}|${cacheVersion}`;
     if (key === workerPayloadRef.current && workerResult) return;
     workerPayloadRef.current = key;
 
