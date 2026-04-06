@@ -183,6 +183,26 @@ export const saveTasksToDB = async (items: TodoItem[], skipSyncEvent = false): P
 };
 
 // Internal: actually write to IndexedDB (cache is already updated by caller)
+// Serialize a TodoItem so IndexedDB structured-clone never chokes on it
+const sanitizeForIDB = (item: TodoItem): any => {
+  const obj: any = { ...item };
+  // Convert Date objects to ISO strings (Dates ARE clonable, but some
+  // custom subclasses or invalid dates can fail)
+  if (obj.dueDate instanceof Date) obj.dueDate = obj.dueDate.toISOString();
+  if (obj.reminderTime instanceof Date) obj.reminderTime = obj.reminderTime.toISOString();
+  if (obj.completedAt instanceof Date) obj.completedAt = obj.completedAt.toISOString();
+  if (obj.createdAt instanceof Date) obj.createdAt = obj.createdAt.toISOString();
+  if (obj.modifiedAt instanceof Date) obj.modifiedAt = obj.modifiedAt.toISOString();
+  if (obj.voiceRecording?.timestamp instanceof Date) {
+    obj.voiceRecording = { ...obj.voiceRecording, timestamp: obj.voiceRecording.timestamp.toISOString() };
+  }
+  if (Array.isArray(obj.subtasks)) {
+    obj.subtasks = obj.subtasks.map(sanitizeForIDB);
+  }
+  // Strip any non-clonable properties (functions, symbols, etc.)
+  return JSON.parse(JSON.stringify(obj));
+};
+
 const flushTasksToDB = async (items: TodoItem[], skipSyncEvent = false): Promise<boolean> => {
   lastSaveTime = Date.now();
 
@@ -194,48 +214,65 @@ const flushTasksToDB = async (items: TodoItem[], skipSyncEvent = false): Promise
       return saveLargeDataset(db, items, skipSyncEvent);
     }
     
+    // Sanitize all items upfront so structured-clone never fails inside the transaction
+    const sanitized = items.map(sanitizeForIDB);
+
     return new Promise((resolve) => {
       const transaction = db.transaction(STORE_NAME, 'readwrite');
       const store = transaction.objectStore(STORE_NAME);
       
-      // Clear existing and add all new
-      const clearRequest = store.clear();
-      
-      clearRequest.onsuccess = () => {
-        if (items.length === 0) {
-          tasksCache = items;
-          cacheVersion++;
-          if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
-          resolve(true);
-          return;
-        }
-        
-        // Use put instead of add for better performance
-        items.forEach(item => {
+      // Put all items first (upsert), THEN delete stale keys.
+      // This avoids the dangerous clear-then-put pattern where a mid-transaction
+      // error would leave the store empty.
+      const newIds = new Set(sanitized.map((i: any) => i.id));
+      let putsDone = 0;
+      const totalPuts = sanitized.length;
+
+      if (totalPuts === 0) {
+        // Empty list → clear everything
+        store.clear();
+      } else {
+        // 1) Put all items (upsert)
+        sanitized.forEach((item: any) => {
           try {
-            store.put(item);
+            const req = store.put(item);
+            req.onerror = () => {
+              console.warn('Failed to put task:', item.id, req.error);
+            };
           } catch (e) {
-            console.warn('Failed to put task:', item.id);
+            console.warn('Put threw for task:', item.id, e);
           }
         });
-      };
-      
-      clearRequest.onerror = () => {
-        console.warn('Clear failed, continuing with put operations');
-        items.forEach(item => {
-          try {
-            store.put(item);
-          } catch {}
-        });
-      };
-      
+
+        // 2) After puts are queued, open a cursor to delete stale keys
+        const cursorReq = store.openKeyCursor();
+        cursorReq.onsuccess = () => {
+          const cursor = cursorReq.result;
+          if (!cursor) return;
+          if (!newIds.has(cursor.key as string)) {
+            store.delete(cursor.key);
+          }
+          cursor.continue();
+        };
+      }
+
       transaction.oncomplete = () => {
         if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
         resolve(true);
       };
       
-      transaction.onerror = () => {
-        console.warn('Transaction error, data may be partially saved');
+      transaction.onerror = (e) => {
+        console.warn('Transaction error during task save:', transaction.error);
+        // Data is still in memory cache, so UI stays intact
+        if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
+        resolve(true);
+      };
+      
+      transaction.onabort = () => {
+        console.warn('Transaction aborted during task save:', transaction.error);
+        // Retry with a fresh connection on next save
+        dbConnection = null;
+        dbConnectionPromise = null;
         if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
         resolve(true);
       };
@@ -249,31 +286,26 @@ const flushTasksToDB = async (items: TodoItem[], skipSyncEvent = false): Promise
 // Save large datasets in batches (for 100B+ items)
 const saveLargeDataset = async (db: IDBDatabase, items: TodoItem[], skipSyncEvent = false): Promise<boolean> => {
   try {
-    // Clear all existing data first
-    await new Promise<void>((resolve) => {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.clear();
-      req.onsuccess = () => resolve();
-      req.onerror = () => resolve(); // Continue even if clear fails
-    });
-
-    // Process in batches to avoid blocking UI
+    const newIds = new Set<string>();
+    
+    // Process in batches — put (upsert) items without clearing first
     for (let i = 0; i < items.length; i += BATCH_SIZE) {
       const batch = items.slice(i, i + BATCH_SIZE);
+      const sanitized = batch.map(sanitizeForIDB);
+      sanitized.forEach((item: any) => newIds.add(item.id));
       
       await new Promise<void>((resolve) => {
         const tx = db.transaction(STORE_NAME, 'readwrite');
         const store = tx.objectStore(STORE_NAME);
         
-        batch.forEach(item => {
+        sanitized.forEach((item: any) => {
           try {
             store.put(item);
           } catch {}
         });
         
         tx.oncomplete = () => resolve();
-        tx.onerror = () => resolve(); // Continue even on error
+        tx.onerror = () => resolve();
       });
       
       // Yield to main thread between batches
@@ -282,12 +314,29 @@ const saveLargeDataset = async (db: IDBDatabase, items: TodoItem[], skipSyncEven
       }
     }
 
+    // Delete stale keys that are no longer in the items array
+    await new Promise<void>((resolve) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const cursorReq = store.openKeyCursor();
+      cursorReq.onsuccess = () => {
+        const cursor = cursorReq.result;
+        if (!cursor) return;
+        if (!newIds.has(cursor.key as string)) {
+          store.delete(cursor.key);
+        }
+        cursor.continue();
+      };
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    });
+
     if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
     
     return true;
   } catch (e) {
     console.warn('Large dataset save failed:', e);
-    return true; // Graceful degradation - cache already updated by caller
+    return true;
   }
 };
 

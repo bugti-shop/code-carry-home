@@ -102,7 +102,20 @@ export const offloadTodoItemsMedia = async (
 ): Promise<{ items: TodoItem[]; changed: boolean }> => {
   let changed = false;
 
+  // Quick check: does ANY item need offloading? If not, skip entirely.
+  const needsOffload = (item: TodoItem): boolean => {
+    if (item.imageUrl && looksLikeDataUrl(item.imageUrl) && !isTaskMediaRef(item.imageUrl)) return true;
+    if (item.voiceRecording?.audioUrl && looksLikeDataUrl(item.voiceRecording.audioUrl) && !isTaskMediaRef(item.voiceRecording.audioUrl)) return true;
+    if (item.subtasks?.some(needsOffload)) return true;
+    return false;
+  };
+
+  if (!items.some(needsOffload)) {
+    return { items, changed: false };
+  }
+
   const offloadOne = async (item: TodoItem): Promise<TodoItem> => {
+    if (!needsOffload(item)) return item;
     let next: TodoItem = item;
 
     // Image - compress before saving
@@ -110,7 +123,6 @@ export const offloadTodoItemsMedia = async (
       const id = `task-${item.id}-img`;
       let imageData = item.imageUrl;
       
-      // Compress if it's an image
       if (isCompressibleImage(imageData)) {
         try {
           imageData = await compressImage(imageData, { quality: 0.7, maxWidth: 1920, maxHeight: 1920 });
@@ -140,7 +152,6 @@ export const offloadTodoItemsMedia = async (
 
     if (next.subtasks && next.subtasks.length > 0) {
       const newSubtasks = await Promise.all(next.subtasks.map(offloadOne));
-      // shallow compare
       if (newSubtasks.some((st, idx) => st !== next.subtasks![idx])) {
         next = { ...next, subtasks: newSubtasks };
         changed = true;
