@@ -183,24 +183,41 @@ export const saveTasksToDB = async (items: TodoItem[], skipSyncEvent = false): P
 };
 
 // Internal: actually write to IndexedDB (cache is already updated by caller)
-// Serialize a TodoItem so IndexedDB structured-clone never chokes on it
+// Serialize a TodoItem so IndexedDB structured-clone never chokes on it.
+// MUST never throw — a single bad item should not kill the entire save.
+const dateToISO = (v: unknown): string | undefined => {
+  if (v === null || v === undefined) return undefined;
+  try {
+    const d = v instanceof Date ? v : new Date(v as any);
+    return Number.isFinite(d.getTime()) ? d.toISOString() : undefined;
+  } catch { return undefined; }
+};
+
 const sanitizeForIDB = (item: TodoItem): any => {
-  const obj: any = { ...item };
-  // Convert Date objects to ISO strings (Dates ARE clonable, but some
-  // custom subclasses or invalid dates can fail)
-  if (obj.dueDate instanceof Date) obj.dueDate = obj.dueDate.toISOString();
-  if (obj.reminderTime instanceof Date) obj.reminderTime = obj.reminderTime.toISOString();
-  if (obj.completedAt instanceof Date) obj.completedAt = obj.completedAt.toISOString();
-  if (obj.createdAt instanceof Date) obj.createdAt = obj.createdAt.toISOString();
-  if (obj.modifiedAt instanceof Date) obj.modifiedAt = obj.modifiedAt.toISOString();
-  if (obj.voiceRecording?.timestamp instanceof Date) {
-    obj.voiceRecording = { ...obj.voiceRecording, timestamp: obj.voiceRecording.timestamp.toISOString() };
+  try {
+    const obj: any = { ...item };
+    // Convert Date objects to ISO strings
+    obj.dueDate = dateToISO(obj.dueDate);
+    obj.reminderTime = dateToISO(obj.reminderTime);
+    obj.completedAt = dateToISO(obj.completedAt);
+    obj.createdAt = dateToISO(obj.createdAt);
+    obj.modifiedAt = dateToISO(obj.modifiedAt);
+    if (obj.voiceRecording) {
+      obj.voiceRecording = { ...obj.voiceRecording, timestamp: dateToISO(obj.voiceRecording.timestamp) };
+    }
+    if (Array.isArray(obj.subtasks)) {
+      obj.subtasks = obj.subtasks.map(sanitizeForIDB);
+    }
+    // Remove functions, symbols, undefined (they break structured clone)
+    // Use replacer instead of double-parse to avoid circular reference crash
+    return JSON.parse(JSON.stringify(obj, (_k, v) =>
+      typeof v === 'function' || typeof v === 'symbol' ? undefined : v
+    ));
+  } catch (e) {
+    // Absolute fallback: return minimal clonable object so save continues
+    console.warn('sanitizeForIDB failed for item:', item?.id, e);
+    return { id: item?.id ?? `recovery-${Date.now()}`, text: item?.text ?? '', completed: !!item?.completed };
   }
-  if (Array.isArray(obj.subtasks)) {
-    obj.subtasks = obj.subtasks.map(sanitizeForIDB);
-  }
-  // Strip any non-clonable properties (functions, symbols, etc.)
-  return JSON.parse(JSON.stringify(obj));
 };
 
 const flushTasksToDB = async (items: TodoItem[], skipSyncEvent = false): Promise<boolean> => {
