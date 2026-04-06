@@ -4,8 +4,15 @@ import { getSetting, setSetting } from '@/utils/settingsStorage';
 const DB_NAME = 'nota-notes-db';
 const DB_VERSION = 1;
 const STORE_NAME = 'notes';
+const BATCH_SIZE = 2000;
 
 let db: IDBDatabase | null = null;
+
+// In-memory cache for instant reads (mirrors task storage pattern)
+let notesCache: Note[] | null = null;
+let notesCacheVersion = 0;
+let lastNoteSaveTime = 0;
+const MIN_SAVE_INTERVAL = 50;
 
 const toValidDate = (value: unknown, fallback = new Date()): Date => {
   const date = value instanceof Date ? value : new Date(value as any);
@@ -82,7 +89,6 @@ const openDB = (): Promise<IDBDatabase> => {
 
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    // Timeout: if IndexedDB doesn't open in 5s, reject
     const timeout = setTimeout(() => {
       reject(new Error('Notes IndexedDB open timed out'));
     }, 5000);
@@ -127,6 +133,9 @@ const withRetry = async <T>(operation: (database: IDBDatabase) => Promise<T>): P
 };
 
 export const loadNotesFromDB = async (): Promise<Note[]> => {
+  // Return cached data instantly if available
+  if (notesCache !== null) return notesCache;
+
   try {
     return await withRetry((database) => new Promise((resolve, reject) => {
       const transaction = database.transaction([STORE_NAME], 'readonly');
@@ -135,6 +144,7 @@ export const loadNotesFromDB = async (): Promise<Note[]> => {
 
       request.onsuccess = () => {
         const notes = request.result.map(hydrateNote);
+        notesCache = notes;
         resolve(notes);
       };
 
@@ -149,27 +159,41 @@ export const loadNotesFromDB = async (): Promise<Note[]> => {
   }
 };
 
-export const saveNotesToDB = async (notes: Note[], skipSyncEvent = false): Promise<void> => {
+// Internal flush to IndexedDB
+const flushNotesToDB = async (notes: Note[], skipSyncEvent: boolean): Promise<void> => {
+  lastNoteSaveTime = Date.now();
   try {
     await withRetry((database) => new Promise<void>((resolve, reject) => {
       const transaction = database.transaction([STORE_NAME], 'readwrite');
       const store = transaction.objectStore(STORE_NAME);
-      
-      const noteIds = new Set(notes.map(n => n.id));
-      
-      const getAllRequest = store.getAllKeys();
-      getAllRequest.onsuccess = () => {
-        const existingKeys = getAllRequest.result as string[];
-        existingKeys.forEach(key => {
-          if (!noteIds.has(key)) {
-            store.delete(key);
-          }
-        });
-        
-        notes.forEach(note => {
-          store.put(serializeNote(hydrateNote(note)));
-        });
-      };
+
+      // For large datasets, clear + batch put is faster than diff
+      if (notes.length > 500) {
+        const clearReq = store.clear();
+        clearReq.onsuccess = () => {
+          notes.forEach(note => {
+            try { store.put(serializeNote(hydrateNote(note))); } catch {}
+          });
+        };
+        clearReq.onerror = () => {
+          notes.forEach(note => {
+            try { store.put(serializeNote(hydrateNote(note))); } catch {}
+          });
+        };
+      } else {
+        // Small dataset: diff-based update
+        const noteIds = new Set(notes.map(n => n.id));
+        const getAllRequest = store.getAllKeys();
+        getAllRequest.onsuccess = () => {
+          const existingKeys = getAllRequest.result as string[];
+          existingKeys.forEach(key => {
+            if (!noteIds.has(key)) store.delete(key);
+          });
+          notes.forEach(note => {
+            store.put(serializeNote(hydrateNote(note)));
+          });
+        };
+      }
 
       transaction.oncomplete = () => {
         if (!skipSyncEvent) window.dispatchEvent(new Event('notesUpdated'));
@@ -182,7 +206,34 @@ export const saveNotesToDB = async (notes: Note[], skipSyncEvent = false): Promi
   }
 };
 
+export const saveNotesToDB = async (notes: Note[], skipSyncEvent = false): Promise<void> => {
+  // Update in-memory cache immediately
+  notesCache = notes;
+  notesCacheVersion++;
+
+  // Throttle IndexedDB writes
+  const now = Date.now();
+  if (now - lastNoteSaveTime < MIN_SAVE_INTERVAL) {
+    setTimeout(() => flushNotesToDB(notes, skipSyncEvent), MIN_SAVE_INTERVAL);
+    if (!skipSyncEvent) window.dispatchEvent(new Event('notesUpdated'));
+    return;
+  }
+
+  return flushNotesToDB(notes, skipSyncEvent);
+};
+
 export const saveNoteToDBSingle = async (note: Note): Promise<void> => {
+  // Update cache
+  if (notesCache) {
+    const idx = notesCache.findIndex(n => n.id === note.id);
+    if (idx >= 0) {
+      notesCache[idx] = hydrateNote(note);
+    } else {
+      notesCache.push(hydrateNote(note));
+    }
+    notesCacheVersion++;
+  }
+
   try {
     await withRetry((database) => new Promise<void>((resolve, reject) => {
       const transaction = database.transaction([STORE_NAME], 'readwrite');
@@ -202,6 +253,12 @@ export const saveNoteToDBSingle = async (note: Note): Promise<void> => {
 };
 
 export const deleteNoteFromDB = async (noteId: string): Promise<void> => {
+  // Update cache
+  if (notesCache) {
+    notesCache = notesCache.filter(n => n.id !== noteId);
+    notesCacheVersion++;
+  }
+
   try {
     await withRetry((database) => new Promise<void>((resolve, reject) => {
       const transaction = database.transaction([STORE_NAME], 'readwrite');
@@ -215,7 +272,6 @@ export const deleteNoteFromDB = async (noteId: string): Promise<void> => {
       transaction.onerror = () => reject(transaction.error);
     }));
 
-    // Track deletion for cross-device sync and upload immediately
     import('@/utils/deletionTracker').then(({ trackDeletion, loadDeletions }) => {
       trackDeletion(noteId, 'notes');
       import('@/utils/googleDriveSync').then(({ uploadCategory }) => {
@@ -227,6 +283,13 @@ export const deleteNoteFromDB = async (noteId: string): Promise<void> => {
   }
 };
 
+// Clear notes cache (for fresh data reload)
+export const clearNotesCache = () => {
+  notesCache = null;
+};
+
+export const getNotesCacheVersion = () => notesCacheVersion;
+
 // Migration from localStorage to IndexedDB (one-time)
 export const migrateNotesToIndexedDB = async (): Promise<boolean> => {
   
@@ -234,7 +297,6 @@ export const migrateNotesToIndexedDB = async (): Promise<boolean> => {
     const migrated = await getSetting('notes_migrated_to_indexeddb', false);
     if (migrated) return false;
 
-    // Check if there are notes in old localStorage (for backward compatibility during migration)
     let oldNotes: Note[] = [];
     try {
       const saved = localStorage.getItem('notes');
@@ -255,7 +317,6 @@ export const migrateNotesToIndexedDB = async (): Promise<boolean> => {
     if (oldNotes.length > 0) {
       await saveNotesToDB(oldNotes);
       await setSetting('notes_migrated_to_indexeddb', true);
-      // Clear localStorage
       try { localStorage.removeItem('notes'); } catch {}
       console.log(`Migrated ${oldNotes.length} notes to IndexedDB`);
       return true;
@@ -282,7 +343,6 @@ export const debouncedSaveNotes = (notes: Note[], delay: number = 500): void => 
 
 // Content compression for large notes
 export const compressContent = (content: string): string => {
-  // Simple compression: remove excessive whitespace
   return content
     .replace(/\s+/g, ' ')
     .replace(/>\s+</g, '><')
