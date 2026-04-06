@@ -194,23 +194,23 @@ const Notes = () => {
     toast.success(t('toasts.noteDeleted'));
   };
 
-  // Auto-delete notes older than 30 days in trash
+  // Auto-delete notes older than 30 days in trash — run once on mount only
   useEffect(() => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
-    const updatedNotes = notes.filter((n) => {
-      if (n.isDeleted && n.deletedAt) {
-        return new Date(n.deletedAt) > thirtyDaysAgo;
-      }
-      return true;
-    });
-    
-    if (updatedNotes.length !== notes.length) {
-      setNotes(updatedNotes);
+    setNotes(prev => {
+      const updatedNotes = prev.filter((n) => {
+        if (n.isDeleted && n.deletedAt) {
+          return new Date(n.deletedAt) > thirtyDaysAgo;
+        }
+        return true;
+      });
+      if (updatedNotes.length === prev.length) return prev; // no change — skip re-render
       debouncedSaveNotes(updatedNotes);
-    }
-  }, [notes]);
+      return updatedNotes;
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDragStart = (e: React.DragEvent, noteId: string) => {
     e.dataTransfer.effectAllowed = 'move';
