@@ -605,11 +605,21 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     return Boolean(data?.subscribed || status === 'active' || status === 'trialing' || status === 'past_due');
   }, []);
 
-  // Check Stripe subscription on web
+  // Check Stripe subscription on web — silently in background
+  // Never flashes paywall for returning subscribers; trusts local cache until server says otherwise
   const checkStripeSubscription = useCallback(async () => {
     if (Capacitor.isNativePlatform()) return;
-    try {
+    
+    // Don't reset isWebSubscriptionResolved if we already have a cached result
+    // This prevents the loading/paywall flash on refresh
+    const wasCached = (() => {
+      try { return localStorage.getItem('flowist_stripe_subscribed') === 'true'; } catch { return false; }
+    })();
+    if (!wasCached) {
       setIsWebSubscriptionResolved(false);
+    }
+    
+    try {
       const { data: { session } } = await supabase.auth.getSession();
       const storedEmail = (() => {
         try {
@@ -625,7 +635,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (!session?.access_token && !storedEmail) {
-        if (!isAdminBypass) {
+        if (!isAdminBypass && !wasCached) {
           setRcIsPro(false);
           setShowPaywall(true);
         }
@@ -639,14 +649,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       
       if (error) {
         console.error('Stripe check-subscription error:', error);
+        // On error, don't revoke access for cached subscribers — fail open
         return;
       }
       
       if (hasVerifiedStripeAccess(data)) {
         setRcIsPro(true);
-        // Map plan_type from edge function
         if (data.plan_type) {
-          // Store for planType detection
           (window as any).__stripePlanType = data.plan_type;
           (window as any).__stripeIsTrialing = data.is_trialing || false;
         }
@@ -658,7 +667,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         setShowPaywall(false);
         setPaywallFeature(null);
       } else {
-        // Only clear if not admin bypass
+        // Server confirmed no subscription — only then revoke access
         if (!isAdminBypass) {
           setRcIsPro(false);
           setShowPaywall(true);
@@ -670,6 +679,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (err) {
       console.error('Failed to check Stripe subscription:', err);
+      // Network error — don't revoke access for cached subscribers
     } finally {
       setIsWebSubscriptionResolved(true);
     }
