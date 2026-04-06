@@ -4,6 +4,7 @@
  */
 import { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue, startTransition } from 'react';
 import { useTaskWorker, FilterSortResult } from '@/hooks/useTaskWorker';
+import { getTasksCacheVersion } from '@/utils/taskStorage';
 import { TodoItem, Folder, Priority, TaskSection, TaskStatus } from '@/types/note';
 import { useTranslation } from 'react-i18next';
 import { useGlobalTags } from '@/hooks/useGlobalTags';
