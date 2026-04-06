@@ -354,7 +354,8 @@ export const useTodayState = () => {
     };
 
     // Skip if payload hasn't changed
-    const key = `${smartList}|${selectedFolderId}|${priorityFilter}|${statusFilter}|${dateFilter}|${tagFilter.join(',')}|${sortBy}|${deferredSearch}|${items.length}|${cacheVersion}`;
+    const cacheVer = getTasksCacheVersion();
+    const key = `${smartList}|${selectedFolderId}|${priorityFilter}|${statusFilter}|${dateFilter}|${tagFilter.join(',')}|${sortBy}|${deferredSearch}|${items.length}|${cacheVer}`;
     if (key === workerPayloadRef.current && workerResult) return;
     workerPayloadRef.current = key;
 
