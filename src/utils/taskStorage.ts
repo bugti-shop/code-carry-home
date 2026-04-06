@@ -286,31 +286,26 @@ const flushTasksToDB = async (items: TodoItem[], skipSyncEvent = false): Promise
 // Save large datasets in batches (for 100B+ items)
 const saveLargeDataset = async (db: IDBDatabase, items: TodoItem[], skipSyncEvent = false): Promise<boolean> => {
   try {
-    // Clear all existing data first
-    await new Promise<void>((resolve) => {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.clear();
-      req.onsuccess = () => resolve();
-      req.onerror = () => resolve(); // Continue even if clear fails
-    });
-
-    // Process in batches to avoid blocking UI
+    const newIds = new Set<string>();
+    
+    // Process in batches — put (upsert) items without clearing first
     for (let i = 0; i < items.length; i += BATCH_SIZE) {
       const batch = items.slice(i, i + BATCH_SIZE);
+      const sanitized = batch.map(sanitizeForIDB);
+      sanitized.forEach((item: any) => newIds.add(item.id));
       
       await new Promise<void>((resolve) => {
         const tx = db.transaction(STORE_NAME, 'readwrite');
         const store = tx.objectStore(STORE_NAME);
         
-        batch.forEach(item => {
+        sanitized.forEach((item: any) => {
           try {
             store.put(item);
           } catch {}
         });
         
         tx.oncomplete = () => resolve();
-        tx.onerror = () => resolve(); // Continue even on error
+        tx.onerror = () => resolve();
       });
       
       // Yield to main thread between batches
@@ -319,12 +314,29 @@ const saveLargeDataset = async (db: IDBDatabase, items: TodoItem[], skipSyncEven
       }
     }
 
+    // Delete stale keys that are no longer in the items array
+    await new Promise<void>((resolve) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const cursorReq = store.openKeyCursor();
+      cursorReq.onsuccess = () => {
+        const cursor = cursorReq.result;
+        if (!cursor) return;
+        if (!newIds.has(cursor.key as string)) {
+          store.delete(cursor.key);
+        }
+        cursor.continue();
+      };
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    });
+
     if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
     
     return true;
   } catch (e) {
     console.warn('Large dataset save failed:', e);
-    return true; // Graceful degradation - cache already updated by caller
+    return true;
   }
 };
 
