@@ -154,7 +154,7 @@ export const useTodayState = () => {
             toast.info(t('todayPage.autoUpdatedRecurring', { count: rolledOverCount }), { icon: '🔄' });
           }
           
-          const { activeTasks, archivedCount } = await archiveCompletedTasks(loadedItems, 3);
+          const { activeTasks, archivedCount } = await archiveCompletedTasks(loadedItems, 2);
           if (archivedCount > 0) {
             await saveTodoItems(activeTasks);
             setItems(activeTasks);

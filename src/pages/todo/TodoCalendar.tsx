@@ -109,7 +109,7 @@ const TodoCalendar = () => {
   const loadTasks = useCallback(async () => {
     let tasks = await loadTodoItems();
     
-    const { activeTasks, archivedCount } = await archiveCompletedTasks(tasks, 3);
+    const { activeTasks, archivedCount } = await archiveCompletedTasks(tasks, 2);
     if (archivedCount > 0) {
       await saveTodoItems(activeTasks);
       tasks = activeTasks;
