@@ -20,7 +20,7 @@ const getTaskCompletionDate = (task: TodoItem): Date => {
  */
 export const archiveCompletedTasks = async (
   tasks: TodoItem[],
-  daysThreshold: number = 3
+  daysThreshold: number = 2
 ): Promise<{ activeTasks: TodoItem[]; archivedCount: number }> => {
   const now = new Date();
 
@@ -130,7 +130,7 @@ const hydrate = (raw: any): TodoItem => ({
 // Legacy compat — re-export under old name for any missed references
 export const cleanupCompletedTasks = async (
   tasks: TodoItem[],
-  daysThreshold: number = 3
+  daysThreshold: number = 2
 ) => {
   const { activeTasks, archivedCount } = await archiveCompletedTasks(tasks, daysThreshold);
   return { cleanedTasks: activeTasks, deletedCount: archivedCount };
@@ -138,7 +138,7 @@ export const cleanupCompletedTasks = async (
 
 export const getTasksPendingDeletion = (
   tasks: TodoItem[],
-  daysThreshold: number = 3
+  daysThreshold: number = 2
 ): { count: number; tasks: TodoItem[] } => {
   const now = new Date();
   const pendingTasks = tasks.filter(task => {
