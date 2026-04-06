@@ -20,7 +20,7 @@ const getTaskCompletionDate = (task: TodoItem): Date => {
  */
 export const archiveCompletedTasks = async (
   tasks: TodoItem[],
-  daysThreshold: number = 3
+  daysThreshold: number = 2
 ): Promise<{ activeTasks: TodoItem[]; archivedCount: number }> => {
   const now = new Date();
 
