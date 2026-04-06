@@ -305,8 +305,8 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const getNoteById = useCallback((noteId: string): Note | undefined => {
-    return notes.find(n => n.id === noteId);
-  }, [notes]);
+    return notesMap.get(noteId);
+  }, [notesMap]);
 
   // ── Memoized context values ──
 
