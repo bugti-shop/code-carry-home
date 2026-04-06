@@ -294,9 +294,10 @@ const Notes = () => {
     return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
   }), [filteredNotes]);
 
-  const activeCount = useMemo(() => notes.filter(n => !n.isArchived && !n.isDeleted).length, [notes]);
-  const archivedCount = useMemo(() => notes.filter(n => n.isArchived && !n.isDeleted).length, [notes]);
-  const trashCount = useMemo(() => notes.filter(n => n.isDeleted).length, [notes]);
+  // Use pre-computed counts from context — O(1) instead of 3x full-array scans
+  const activeCount = counts.active;
+  const archivedCount = counts.archived;
+  const trashCount = counts.trash;
 
   const getDaysRemaining = (deletedAt: Date | undefined) => {
     if (!deletedAt) return 30;
