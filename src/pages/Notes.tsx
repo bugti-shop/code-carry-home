@@ -108,8 +108,10 @@ const Notes = () => {
     });
   }, []);
 
-  const handleEditNote = (note: Note) => {
-    setSelectedNote(note);
+  const handleEditNote = async (note: Note) => {
+    // Load full content before opening editor (shells have truncated content)
+    const fullNote = await getFullNote(note.id);
+    setSelectedNote(fullNote ?? note);
     setIsEditorOpen(true);
   };
 

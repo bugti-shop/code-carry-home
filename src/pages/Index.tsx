@@ -416,7 +416,9 @@ const Index = () => {
 
   const handleEditNote = async (note: Note) => {
     if (note.type === 'sketch' && !requireFeature('sketch')) return;
-    setSelectedNote(note);
+    // Load full content before opening editor (shells have truncated content)
+    const fullNote = await getFullNote(note.id);
+    setSelectedNote(fullNote ?? note);
     setIsEditorOpen(true);
   };
 
