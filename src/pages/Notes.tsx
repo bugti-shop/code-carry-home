@@ -71,7 +71,7 @@ const Notes = () => {
   const { requireFeature, openPaywall, isPro } = useSubscription();
   
   // Use global notes context - no more local loading!
-  const { notes, notesMeta, setNotes, isLoading, counts } = useNotes();
+  const { notes, notesMeta, setNotes, isLoading, counts, getFullNote } = useNotes();
   
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
