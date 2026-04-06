@@ -138,7 +138,7 @@ export const cleanupCompletedTasks = async (
 
 export const getTasksPendingDeletion = (
   tasks: TodoItem[],
-  daysThreshold: number = 3
+  daysThreshold: number = 2
 ): { count: number; tasks: TodoItem[] } => {
   const now = new Date();
   const pendingTasks = tasks.filter(task => {
