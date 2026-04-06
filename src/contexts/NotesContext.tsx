@@ -60,6 +60,8 @@ const extractNoteMeta = (note: Note): NoteMeta => ({
 interface NotesDataContextType {
   notes: Note[];
   notesMeta: NoteMeta[];
+  notesMap: Map<string, Note>;
+  counts: { active: number; archived: number; trash: number };
   isLoading: boolean;
   isInitialized: boolean;
   getNoteById: (noteId: string) => Note | undefined;
