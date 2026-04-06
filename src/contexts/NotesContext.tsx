@@ -313,10 +313,12 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const dataValue = useMemo<NotesDataContextType>(() => ({
     notes,
     notesMeta,
+    notesMap,
+    counts,
     isLoading,
     isInitialized,
     getNoteById,
-  }), [notes, notesMeta, isLoading, isInitialized, getNoteById]);
+  }), [notes, notesMeta, notesMap, counts, isLoading, isInitialized, getNoteById]);
 
   const dispatchValue = useMemo<NotesDispatchContextType>(() => ({
     setNotes,
