@@ -13,6 +13,9 @@ let notesCache: Note[] | null = null;
 let notesCacheVersion = 0;
 let lastNoteSaveTime = 0;
 const MIN_SAVE_INTERVAL = 50;
+let pendingNotesFlushTimer: ReturnType<typeof setTimeout> | null = null;
+let pendingNotesFlush: Note[] | null = null;
+let pendingNotesSkipSyncEvent = false;
 
 const toValidDate = (value: unknown, fallback = new Date()): Date => {
   const date = value instanceof Date ? value : new Date(value as any);
@@ -159,10 +162,49 @@ export const loadNotesFromDB = async (): Promise<Note[]> => {
   }
 };
 
+const saveLargeNotesDataset = async (database: IDBDatabase, notes: Note[], skipSyncEvent: boolean): Promise<void> => {
+  await new Promise<void>((resolve) => {
+    const clearTx = database.transaction([STORE_NAME], 'readwrite');
+    const clearStore = clearTx.objectStore(STORE_NAME);
+    const clearReq = clearStore.clear();
+    clearReq.onsuccess = () => resolve();
+    clearReq.onerror = () => resolve();
+  });
+
+  for (let i = 0; i < notes.length; i += BATCH_SIZE) {
+    const batch = notes.slice(i, i + BATCH_SIZE);
+
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction([STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+
+      batch.forEach(note => {
+        try {
+          store.put(serializeNote(hydrateNote(note)));
+        } catch {}
+      });
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+
+    if (i + BATCH_SIZE < notes.length) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
+  }
+
+  if (!skipSyncEvent) window.dispatchEvent(new Event('notesUpdated'));
+};
+
 // Internal flush to IndexedDB
 const flushNotesToDB = async (notes: Note[], skipSyncEvent: boolean): Promise<void> => {
   lastNoteSaveTime = Date.now();
   try {
+    if (notes.length > BATCH_SIZE) {
+      await withRetry((database) => saveLargeNotesDataset(database, notes, skipSyncEvent));
+      return;
+    }
+
     await withRetry((database) => new Promise<void>((resolve, reject) => {
       const transaction = database.transaction([STORE_NAME], 'readwrite');
       const store = transaction.objectStore(STORE_NAME);
@@ -214,9 +256,25 @@ export const saveNotesToDB = async (notes: Note[], skipSyncEvent = false): Promi
   // Throttle IndexedDB writes
   const now = Date.now();
   if (now - lastNoteSaveTime < MIN_SAVE_INTERVAL) {
-    setTimeout(() => flushNotesToDB(notes, skipSyncEvent), MIN_SAVE_INTERVAL);
-    if (!skipSyncEvent) window.dispatchEvent(new Event('notesUpdated'));
+    pendingNotesFlush = notes;
+    pendingNotesSkipSyncEvent = skipSyncEvent;
+    if (pendingNotesFlushTimer) clearTimeout(pendingNotesFlushTimer);
+    pendingNotesFlushTimer = setTimeout(() => {
+      const queuedNotes = pendingNotesFlush ?? notes;
+      const queuedSkipSyncEvent = pendingNotesSkipSyncEvent;
+      pendingNotesFlush = null;
+      pendingNotesSkipSyncEvent = false;
+      pendingNotesFlushTimer = null;
+      void flushNotesToDB(queuedNotes, queuedSkipSyncEvent);
+    }, MIN_SAVE_INTERVAL);
     return;
+  }
+
+  if (pendingNotesFlushTimer) {
+    clearTimeout(pendingNotesFlushTimer);
+    pendingNotesFlushTimer = null;
+    pendingNotesFlush = null;
+    pendingNotesSkipSyncEvent = false;
   }
 
   return flushNotesToDB(notes, skipSyncEvent);

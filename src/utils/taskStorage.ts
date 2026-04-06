@@ -17,6 +17,9 @@ let tasksCache: TodoItem[] | null = null;
 let cacheVersion = 0;
 let lastSaveTime = 0;
 const MIN_SAVE_INTERVAL = 50; // Minimum 50ms between saves
+let pendingFlushTimer: ReturnType<typeof setTimeout> | null = null;
+let pendingFlushItems: TodoItem[] | null = null;
+let pendingSkipSyncEvent = false;
 
 // Connection pooling - reuse database connection (never close)
 let dbConnection: IDBDatabase | null = null;
@@ -144,12 +147,8 @@ export const loadTasksFromDB = async (): Promise<TodoItem[]> => {
   }
 };
 
-// Flag to skip sync event dispatching (used during Firebase restore to prevent loops)
-let _skipSyncEvent = false;
-
 // Save tasks to IndexedDB (optimized batch operation for 100B+ items)
 export const saveTasksToDB = async (items: TodoItem[], skipSyncEvent = false): Promise<boolean> => {
-  _skipSyncEvent = skipSyncEvent;
   // ALWAYS update in-memory cache immediately so any sync reads see latest data
   tasksCache = items;
   cacheVersion++;
@@ -157,18 +156,34 @@ export const saveTasksToDB = async (items: TodoItem[], skipSyncEvent = false): P
   // Throttle actual IndexedDB writes to prevent overwhelming the database
   const now = Date.now();
   if (now - lastSaveTime < MIN_SAVE_INTERVAL) {
-    // Schedule deferred DB write (cache is already updated above)
-    setTimeout(() => flushTasksToDB(items), MIN_SAVE_INTERVAL);
-    if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
+    pendingFlushItems = items;
+    pendingSkipSyncEvent = skipSyncEvent;
+    if (pendingFlushTimer) clearTimeout(pendingFlushTimer);
+    pendingFlushTimer = setTimeout(() => {
+      const queuedItems = pendingFlushItems ?? items;
+      const queuedSkipSyncEvent = pendingSkipSyncEvent;
+      pendingFlushItems = null;
+      pendingSkipSyncEvent = false;
+      pendingFlushTimer = null;
+      void flushTasksToDB(queuedItems, queuedSkipSyncEvent);
+    }, MIN_SAVE_INTERVAL);
     return true;
   }
+
+  if (pendingFlushTimer) {
+    clearTimeout(pendingFlushTimer);
+    pendingFlushTimer = null;
+    pendingFlushItems = null;
+    pendingSkipSyncEvent = false;
+  }
+
   lastSaveTime = now;
 
-  return flushTasksToDB(items);
+  return flushTasksToDB(items, skipSyncEvent);
 };
 
 // Internal: actually write to IndexedDB (cache is already updated by caller)
-const flushTasksToDB = async (items: TodoItem[]): Promise<boolean> => {
+const flushTasksToDB = async (items: TodoItem[], skipSyncEvent = false): Promise<boolean> => {
   lastSaveTime = Date.now();
 
   try {
@@ -176,7 +191,7 @@ const flushTasksToDB = async (items: TodoItem[]): Promise<boolean> => {
     
     // For very large datasets, use batch processing
     if (items.length > BATCH_SIZE) {
-      return saveLargeDataset(db, items);
+      return saveLargeDataset(db, items, skipSyncEvent);
     }
     
     return new Promise((resolve) => {
@@ -190,6 +205,7 @@ const flushTasksToDB = async (items: TodoItem[]): Promise<boolean> => {
         if (items.length === 0) {
           tasksCache = items;
           cacheVersion++;
+          if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
           resolve(true);
           return;
         }
@@ -214,15 +230,13 @@ const flushTasksToDB = async (items: TodoItem[]): Promise<boolean> => {
       };
       
       transaction.oncomplete = () => {
-        if (!_skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
-        _skipSyncEvent = false;
+        if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
         resolve(true);
       };
       
       transaction.onerror = () => {
         console.warn('Transaction error, data may be partially saved');
-        if (!_skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
-        _skipSyncEvent = false;
+        if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
         resolve(true);
       };
     });
@@ -233,7 +247,7 @@ const flushTasksToDB = async (items: TodoItem[]): Promise<boolean> => {
 };
 
 // Save large datasets in batches (for 100B+ items)
-const saveLargeDataset = async (db: IDBDatabase, items: TodoItem[]): Promise<boolean> => {
+const saveLargeDataset = async (db: IDBDatabase, items: TodoItem[], skipSyncEvent = false): Promise<boolean> => {
   try {
     // Clear all existing data first
     await new Promise<void>((resolve) => {
@@ -267,6 +281,8 @@ const saveLargeDataset = async (db: IDBDatabase, items: TodoItem[]): Promise<boo
         await new Promise(r => requestAnimationFrame(r));
       }
     }
+
+    if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
     
     return true;
   } catch (e) {

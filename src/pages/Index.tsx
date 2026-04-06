@@ -778,6 +778,10 @@ const Index = () => {
     }
   });
 
+  const favoriteNotes = useMemo(() => filteredNotes.filter(note => note.isFavorite), [filteredNotes]);
+  const regularNotes = useMemo(() => filteredNotes.filter(note => !note.isFavorite), [filteredNotes]);
+  const hasAnyVisibleNotes = favoriteNotes.length > 0 || regularNotes.length > 0;
+
   return (
     <div className="min-h-screen min-h-screen-dynamic bg-background pb-14">
       <header 
@@ -1140,15 +1144,15 @@ const Index = () => {
             {isGridView ? (
               <>
                 {/* Favorites in Grid */}
-                {filteredNotes.filter(n => n.isFavorite).length > 0 && (
+                {favoriteNotes.length > 0 && (
                   <div className="mb-6">
                     <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
                       <Star className="h-5 w-5 text-warning fill-warning" />
                       {t('notes.favorites')}
                     </h2>
-                    {shouldVirtualizeNotes(filteredNotes.filter(n => n.isFavorite).length) ? (
+                    {shouldVirtualizeNotes(favoriteNotes.length) ? (
                       <VirtualizedNotesGrid
-                        notes={filteredNotes.filter(n => n.isFavorite)}
+                        notes={favoriteNotes}
                         onEdit={handleEditNote}
                         onDelete={handleDeleteNote}
                         onArchive={handleArchiveNote}
@@ -1159,7 +1163,7 @@ const Index = () => {
                       />
                     ) : (
                       <MasonryNotesGrid
-                        notes={filteredNotes.filter(n => n.isFavorite)}
+                        notes={favoriteNotes}
                         onEdit={handleEditNote}
                         onDelete={handleDeleteNote}
                         onArchive={handleArchiveNote}
@@ -1172,21 +1176,21 @@ const Index = () => {
                 )}
                 
                 {/* All Notes in Grid */}
-                {filteredNotes.filter(n => !n.isFavorite).length === 0 && filteredNotes.filter(n => n.isFavorite).length === 0 ? (
+                {!hasAnyVisibleNotes ? (
                   <div className="text-center py-20">
                     <h2 className="text-xl font-semibold mb-2">{t('notes.noNotes')}</h2>
                     <p className="text-muted-foreground text-sm">
                       {searchQuery ? t('common.noResults') : t('notes.tapToCreate')}
                     </p>
                   </div>
-                ) : filteredNotes.filter(n => !n.isFavorite).length > 0 && (
+                ) : regularNotes.length > 0 && (
                   <div>
-                    {filteredNotes.filter(n => n.isFavorite).length > 0 && (
+                    {favoriteNotes.length > 0 && (
                       <h2 className="text-lg font-semibold text-muted-foreground mb-3">{t('notes.allNotes')}</h2>
                     )}
-                    {shouldVirtualizeNotes(filteredNotes.filter(n => !n.isFavorite).length) ? (
+                    {shouldVirtualizeNotes(regularNotes.length) ? (
                       <VirtualizedNotesGrid
-                        notes={filteredNotes.filter(n => !n.isFavorite)}
+                        notes={regularNotes}
                         onEdit={handleEditNote}
                         onDelete={handleDeleteNote}
                         onArchive={handleArchiveNote}
@@ -1197,7 +1201,7 @@ const Index = () => {
                       />
                     ) : (
                       <MasonryNotesGrid
-                        notes={filteredNotes.filter(n => !n.isFavorite)}
+                        notes={regularNotes}
                         onEdit={handleEditNote}
                         onDelete={handleDeleteNote}
                         onArchive={handleArchiveNote}
@@ -1213,14 +1217,14 @@ const Index = () => {
               <>
                 {/* List View (Default) */}
                 {/* Favorites Section */}
-                {filteredNotes.filter(n => n.isFavorite).length > 0 && (
+                {favoriteNotes.length > 0 && (
                   <div className="mb-6">
                     <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
                       <Star className="h-5 w-5 text-warning fill-warning" />
                       {t('notes.favorites')}
                     </h2>
-                    <div className="space-y-3">
-                      {filteredNotes.filter(n => n.isFavorite).map((note) => (
+                      <div className="space-y-3">
+                        {favoriteNotes.map((note) => (
                         <div key={note.id} className="cv-auto-note"><NoteCard
                           note={note}
                           onEdit={handleEditNote}
@@ -1243,21 +1247,21 @@ const Index = () => {
                 )}
 
                 {/* All Notes */}
-                {filteredNotes.filter(n => !n.isFavorite).length === 0 && filteredNotes.filter(n => n.isFavorite).length === 0 ? (
+                {!hasAnyVisibleNotes ? (
                   <div className="text-center py-20">
                     <h2 className="text-xl font-semibold mb-2">{t('notes.noNotes')}</h2>
                     <p className="text-muted-foreground text-sm">
                       {searchQuery ? t('common.noResults') : t('notes.tapToCreate')}
                     </p>
                   </div>
-                ) : filteredNotes.filter(n => !n.isFavorite).length > 0 && (
+                ) : regularNotes.length > 0 && (
                   <>
-                    {filteredNotes.filter(n => n.isFavorite).length > 0 && (
+                    {favoriteNotes.length > 0 && (
                       <h2 className="text-lg font-semibold text-muted-foreground mb-3">{t('notes.allNotes')}</h2>
                     )}
-                    {shouldVirtualizeNotes(filteredNotes.filter(n => !n.isFavorite).length) ? (
+                    {shouldVirtualizeNotes(regularNotes.length) ? (
                       <VirtualizedNotesList
-                        notes={filteredNotes.filter(n => !n.isFavorite)}
+                        notes={regularNotes}
                         onEdit={handleEditNote}
                         onDelete={handleDeleteNote}
                         onArchive={handleArchiveNote}
@@ -1268,7 +1272,7 @@ const Index = () => {
                       />
                     ) : (
                       <div className="space-y-3">
-                        {filteredNotes.filter(n => !n.isFavorite).map((note) => (
+                        {regularNotes.map((note) => (
                           <div key={note.id} className="cv-auto-note"><NoteCard
                             note={note}
                             onEdit={handleEditNote}

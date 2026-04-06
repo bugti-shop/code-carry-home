@@ -38,9 +38,9 @@ export const BottomNavigation = () => {
 
 
   // Use startTransition for non-blocking navigation
-  const handleNavigation = useCallback(async (path: string) => {
+  const handleNavigation = useCallback((path: string) => {
     triggerNavHaptic();
-    await prefetchRoute(path);
+    void prefetchRoute(path);
     startTransition(() => {
       navigate(path);
     });

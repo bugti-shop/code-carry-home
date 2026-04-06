@@ -190,7 +190,6 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         await saveNotesToDB(notes);
         lastSavedRef.current = String(notes.length);
-        window.dispatchEvent(new Event('notesUpdated'));
         // Auto-upload to Google Drive (short debounce for faster backup without flooding)
         driveSyncTimerRef.current && clearTimeout(driveSyncTimerRef.current);
         driveSyncTimerRef.current = setTimeout(async () => {
@@ -231,8 +230,6 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setNotes(prev => prev.filter(n => n.id !== noteId));
     try {
       await deleteNoteFromDB(noteId);
-      // Dispatch notesUpdated so sync picks up the deletion
-      window.dispatchEvent(new Event('notesUpdated'));
     } catch (error) {
       console.error('[NotesContext] Error deleting note:', error);
     }

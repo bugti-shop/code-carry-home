@@ -137,6 +137,10 @@ const scheduleDeferred = (fn: () => void) => {
 // Patch DOM methods on root to prevent "removeChild" crashes from browser
 // extensions or third-party scripts that modify React-managed DOM nodes.
 const patchRootContainer = (container: HTMLElement) => {
+  if ((container as HTMLElement & { __flowistPatched?: boolean }).__flowistPatched) {
+    return;
+  }
+
   const origRemoveChild = container.removeChild.bind(container);
   const origInsertBefore = container.insertBefore.bind(container);
 
@@ -155,12 +159,20 @@ const patchRootContainer = (container: HTMLElement) => {
     }
     return origInsertBefore(newNode, refNode);
   };
+
+  (container as HTMLElement & { __flowistPatched?: boolean }).__flowistPatched = true;
+};
+
+const rootCache = globalThis as typeof globalThis & {
+  __flowistAppRoot?: ReturnType<typeof createRoot>;
 };
 
 const renderApp = () => {
   const rootEl = document.getElementById("root")!;
   patchRootContainer(rootEl);
-  createRoot(rootEl).render(
+  const appRoot = rootCache.__flowistAppRoot ?? createRoot(rootEl);
+  rootCache.__flowistAppRoot = appRoot;
+  appRoot.render(
     <React.StrictMode>
       <Suspense fallback={<EmptyFallback />}>
         <App />
