@@ -231,52 +231,45 @@ const flushTasksToDB = async (items: TodoItem[], skipSyncEvent = false): Promise
       return saveLargeDataset(db, items, skipSyncEvent);
     }
     
-    // Sanitize all items upfront — filter out any that failed sanitization
-    let sanitized: any[];
-    try {
-      sanitized = items.map(sanitizeForIDB).filter((i: any) => i && i.id);
-    } catch (e) {
-      console.warn('Bulk sanitize failed, saving item-by-item:', e);
-      sanitized = [];
-      for (const item of items) {
-        try {
-          const s = sanitizeForIDB(item);
-          if (s && s.id) sanitized.push(s);
-        } catch {}
+    // Sanitize all items — never let a single bad item kill the save
+    const sanitized: any[] = [];
+    for (const item of items) {
+      try {
+        const s = sanitizeForIDB(item);
+        if (s && s.id) sanitized.push(s);
+      } catch {
+        // item-level fallback already handled inside sanitizeForIDB
       }
     }
 
     if (sanitized.length === 0 && items.length > 0) {
-      // Something went very wrong — don't wipe the store
       console.error('All items failed sanitization, aborting save to protect data');
       if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
       return true;
     }
 
-      if (totalPuts === 0) {
-        // Empty list → clear everything
+    return new Promise((resolve) => {
+      const transaction = db.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const newIds = new Set(sanitized.map((i: any) => i.id));
+
+      if (sanitized.length === 0) {
         store.clear();
       } else {
-        // 1) Put all items (upsert)
         sanitized.forEach((item: any) => {
           try {
             const req = store.put(item);
-            req.onerror = () => {
-              console.warn('Failed to put task:', item.id, req.error);
-            };
+            req.onerror = () => console.warn('Failed to put task:', item.id, req.error);
           } catch (e) {
             console.warn('Put threw for task:', item.id, e);
           }
         });
 
-        // 2) After puts are queued, open a cursor to delete stale keys
         const cursorReq = store.openKeyCursor();
         cursorReq.onsuccess = () => {
           const cursor = cursorReq.result;
           if (!cursor) return;
-          if (!newIds.has(cursor.key as string)) {
-            store.delete(cursor.key);
-          }
+          if (!newIds.has(cursor.key as string)) store.delete(cursor.key);
           cursor.continue();
         };
       }
@@ -285,17 +278,13 @@ const flushTasksToDB = async (items: TodoItem[], skipSyncEvent = false): Promise
         if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
         resolve(true);
       };
-      
-      transaction.onerror = (e) => {
+      transaction.onerror = () => {
         console.warn('Transaction error during task save:', transaction.error);
-        // Data is still in memory cache, so UI stays intact
         if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
         resolve(true);
       };
-      
       transaction.onabort = () => {
-        console.warn('Transaction aborted during task save:', transaction.error);
-        // Retry with a fresh connection on next save
+        console.warn('Transaction aborted:', transaction.error);
         dbConnection = null;
         dbConnectionPromise = null;
         if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
@@ -304,7 +293,7 @@ const flushTasksToDB = async (items: TodoItem[], skipSyncEvent = false): Promise
     });
   } catch (e) {
     console.warn('IndexedDB save failed, using memory cache only:', e);
-    return true; // Graceful degradation - cache is already updated
+    return true;
   }
 };
 
