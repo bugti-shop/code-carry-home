@@ -130,7 +130,7 @@ const hydrate = (raw: any): TodoItem => ({
 // Legacy compat — re-export under old name for any missed references
 export const cleanupCompletedTasks = async (
   tasks: TodoItem[],
-  daysThreshold: number = 3
+  daysThreshold: number = 2
 ) => {
   const { activeTasks, archivedCount } = await archiveCompletedTasks(tasks, daysThreshold);
   return { cleanedTasks: activeTasks, deletedCount: archivedCount };
