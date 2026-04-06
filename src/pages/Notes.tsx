@@ -71,7 +71,7 @@ const Notes = () => {
   const { requireFeature, openPaywall, isPro } = useSubscription();
   
   // Use global notes context - no more local loading!
-  const { notes, notesMeta, setNotes, isLoading, counts } = useNotes();
+  const { notes, notesMeta, setNotes, isLoading, counts, getFullNote } = useNotes();
   
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -108,8 +108,10 @@ const Notes = () => {
     });
   }, []);
 
-  const handleEditNote = (note: Note) => {
-    setSelectedNote(note);
+  const handleEditNote = async (note: Note) => {
+    // Load full content before opening editor (shells have truncated content)
+    const fullNote = await getFullNote(note.id);
+    setSelectedNote(fullNote ?? note);
     setIsEditorOpen(true);
   };
 
