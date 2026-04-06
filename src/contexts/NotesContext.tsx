@@ -105,6 +105,21 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return result;
   }, [notes]);
 
+  // O(1) lookup map — avoids array.find on 100k+ notes
+  const notesMap = useMemo(() => new Map(notes.map(n => [n.id, n])), [notes]);
+
+  // Pre-computed counts — avoids 3x full-array scans on every render
+  const counts = useMemo(() => {
+    let active = 0, archived = 0, trash = 0;
+    for (let i = 0; i < notes.length; i++) {
+      const n = notes[i];
+      if (n.isDeleted) trash++;
+      else if (n.isArchived) archived++;
+      else active++;
+    }
+    return { active, archived, trash };
+  }, [notes]);
+
   // Separate ref for debounced-save change detection (not shared with useMemo)
   const prevSaveNotesRef = useRef<Note[]>([]);
   // Flag to suppress re-upload when notes came from a cloud restore
