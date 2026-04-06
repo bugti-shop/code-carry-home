@@ -267,15 +267,19 @@ const TodoCalendar = () => {
       case 'priority':
         setIsPrioritySheetOpen(true);
         return;
-      case 'duplicate':
-        for (const task of selectedTasks) {
-          const duplicatedTask: TodoItem = { ...task, id: Date.now().toString() + Math.random(), completed: false };
-          const updatedItems = [...items, duplicatedTask];
-          setItems(updatedItems);
-          await saveTodoItems(updatedItems);
-        }
+      case 'duplicate': {
+        const duplicated = selectedTasks.map((task, idx) => ({
+          ...task,
+          id: `${Date.now()}-dup-${idx}-${Math.random().toString(36).slice(2, 8)}`,
+          completed: false,
+          text: `${task.text} (Copy)`,
+        }));
+        const updatedItems = [...items, ...duplicated];
+        setItems(updatedItems);
+        await saveTodoItems(updatedItems);
         toast.success(t('todayPage.duplicatedTasks', { count: selectedTasks.length }));
         break;
+      }
       case 'pin':
         const updatedPinItems = items.map(item => 
           selectedTaskIds.has(item.id) ? { ...item, isPinned: !item.isPinned } : item
