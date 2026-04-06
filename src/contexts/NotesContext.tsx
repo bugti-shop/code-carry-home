@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Note } from '@/types/note';
-import { loadNotesFromDB, saveNotesToDB, saveNoteToDBSingle, deleteNoteFromDB, migrateNotesToIndexedDB } from '@/utils/noteStorage';
+import {
+  loadNotesFromDB, saveNotesToDB, saveNoteToDBSingle, deleteNoteFromDB,
+  migrateNotesToIndexedDB, loadFullNoteFromDB,
+  toNoteShell, extractHeavyContent, mergeNoteContent, NoteHeavyContent,
+} from '@/utils/noteStorage';
 import { getTextPreviewFromHtml } from '@/utils/contentPreview';
 
 // Lightweight note metadata for instant navigation
@@ -75,6 +79,8 @@ interface NotesDispatchContextType {
   updateNote: (noteId: string, updates: Partial<Note>) => Promise<void>;
   bulkUpdateNotes: (noteIds: string[], updates: Partial<Note>) => Promise<void>;
   refreshNotes: () => Promise<void>;
+  /** Load full note content (heavy fields) from IndexedDB — use before opening editor */
+  getFullNote: (noteId: string) => Promise<Note | null>;
 }
 
 /** Combined type for backward compatibility */
@@ -84,12 +90,17 @@ const NotesDataContext = createContext<NotesDataContextType | undefined>(undefin
 const NotesDispatchContext = createContext<NotesDispatchContextType | undefined>(undefined);
 
 export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // State holds "shell" notes — heavy content (full HTML, images, etc.) is stripped
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const driveSyncTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedRef = useRef<string>('');
+
+  // Heavy content cache — stores full content, images, floatingImages, codeContent
+  // Keyed by note.id. NOT in React state — doesn't trigger re-renders.
+  const heavyContentRef = useRef<Map<string, NoteHeavyContent>>(new Map());
 
   // Memoized metadata — uses its own ref so it doesn't interfere with save-change detection
   const prevMetaNotesRef = useRef<Note[]>([]);
@@ -125,6 +136,18 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Flag to suppress re-upload when notes came from a cloud restore
   const isFromSyncRef = useRef(false);
 
+  /** Load full notes, cache heavy content, set shells in state */
+  const ingestFullNotes = useCallback((fullNotes: Note[]) => {
+    // Cache heavy content in ref
+    const map = heavyContentRef.current;
+    map.clear();
+    for (let i = 0; i < fullNotes.length; i++) {
+      map.set(fullNotes[i].id, extractHeavyContent(fullNotes[i]));
+    }
+    // Set lightweight shells in React state
+    setNotes(fullNotes.map(toNoteShell));
+  }, []);
+
   // Load notes — defer if user is on Todo dashboard for faster startup
   useEffect(() => {
     let isMounted = true;
@@ -137,11 +160,11 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const loadedNotes = await loadNotesFromDB();
 
         if (isMounted) {
-          setNotes(loadedNotes);
+          ingestFullNotes(loadedNotes);
           setIsInitialized(true);
           setIsLoading(false);
           const duration = (performance.now() - startTime).toFixed(0);
-          console.log(`[NotesContext] Loaded ${loadedNotes.length} notes in ${duration}ms`);
+          console.log(`[NotesContext] Loaded ${loadedNotes.length} notes (shells) in ${duration}ms`);
         }
       } catch (error) {
         console.error('[NotesContext] Error loading notes:', error);
@@ -164,12 +187,11 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     const handleNotesUpdated = () => {
-      loadNotesFromDB().then(setNotes).catch(console.error);
+      loadNotesFromDB().then(fullNotes => ingestFullNotes(fullNotes)).catch(console.error);
     };
     const handleNotesRestored = () => {
-      // Mark that this state change came from sync — don't re-upload
       isFromSyncRef.current = true;
-      loadNotesFromDB().then(setNotes).catch(console.error);
+      loadNotesFromDB().then(fullNotes => ingestFullNotes(fullNotes)).catch(console.error);
     };
 
     window.addEventListener('notesUpdated', handleNotesUpdated);
@@ -186,7 +208,7 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, []);
 
-  // Debounced save
+  // Debounced save — saves full notes (shell + heavy content merged) to IndexedDB
   const notesLengthRef = useRef(0);
   useEffect(() => {
     if (!isInitialized || notes.length === 0) return;
@@ -195,8 +217,6 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     notesLengthRef.current = notes.length;
     if (!changed) return;
 
-    // If this update came from a sync restore, save locally but don't dispatch
-    // notesUpdated (which would trigger re-upload to Firebase → infinite loop)
     if (isFromSyncRef.current) {
       isFromSyncRef.current = false;
       return;
@@ -205,9 +225,14 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(async () => {
       try {
-        await saveNotesToDB(notes);
+        // Reconstruct full notes from shells + heavy content for persistence
+        const fullNotes = notes.map(shell => {
+          const heavy = heavyContentRef.current.get(shell.id);
+          return heavy ? mergeNoteContent(shell, heavy) : shell;
+        });
+        await saveNotesToDB(fullNotes);
         lastSavedRef.current = String(notes.length);
-        // Auto-upload to Google Drive (short debounce for faster backup without flooding)
+        // Auto-upload to Google Drive
         driveSyncTimerRef.current && clearTimeout(driveSyncTimerRef.current);
         driveSyncTimerRef.current = setTimeout(async () => {
           try {
@@ -226,17 +251,23 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // ── Dispatch actions (stable — never change) ──
 
   const saveNote = useCallback(async (note: Note) => {
+    // Update heavy content cache with full content from editor
+    heavyContentRef.current.set(note.id, extractHeavyContent(note));
+
+    // Update shell in React state
+    const shell = toNoteShell(note);
     setNotes(prev => {
       const existingIdx = prev.findIndex(n => n.id === note.id);
       if (existingIdx >= 0) {
         const updated = [...prev];
-        updated[existingIdx] = note;
+        updated[existingIdx] = shell;
         return updated;
       }
-      return [note, ...prev];
+      return [shell, ...prev];
     });
 
     try {
+      // Save full note to IndexedDB
       await saveNoteToDBSingle(note);
     } catch (error) {
       console.error('[NotesContext] Error saving single note:', error);
@@ -244,6 +275,7 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const deleteNote = useCallback(async (noteId: string) => {
+    heavyContentRef.current.delete(noteId);
     setNotes(prev => prev.filter(n => n.id !== noteId));
     try {
       await deleteNoteFromDB(noteId);
@@ -253,43 +285,60 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const updateNote = useCallback(async (noteId: string, updates: Partial<Note>) => {
-    let updatedNote: Note | null = null;
+    let fullUpdatedNote: Note | null = null;
+
     setNotes(prev =>
       prev.map(n => {
         if (n.id !== noteId) return n;
-        updatedNote = {
+        // Merge updates into shell
+        const updatedShell: Note = {
           ...n,
           ...updates,
           updatedAt: new Date(),
         };
-        return updatedNote;
+        // If updates include content, update heavy cache
+        if ('content' in updates || 'images' in updates || 'floatingImages' in updates || 'codeContent' in updates) {
+          const existingHeavy = heavyContentRef.current.get(noteId);
+          const mergedHeavy: NoteHeavyContent = {
+            content: updates.content ?? existingHeavy?.content ?? n.content,
+            images: updates.images ?? existingHeavy?.images ?? n.images,
+            floatingImages: updates.floatingImages ?? existingHeavy?.floatingImages ?? n.floatingImages,
+            codeContent: updates.codeContent ?? existingHeavy?.codeContent ?? n.codeContent,
+          };
+          heavyContentRef.current.set(noteId, mergedHeavy);
+          fullUpdatedNote = mergeNoteContent(updatedShell, mergedHeavy);
+        } else {
+          const heavy = heavyContentRef.current.get(noteId);
+          fullUpdatedNote = heavy ? mergeNoteContent(updatedShell, heavy) : updatedShell;
+        }
+        return toNoteShell(fullUpdatedNote!);
       })
     );
 
     try {
-      if (updatedNote) await saveNoteToDBSingle(updatedNote);
+      if (fullUpdatedNote) await saveNoteToDBSingle(fullUpdatedNote);
     } catch (error) {
       console.error('[NotesContext] Error persisting note update:', error);
     }
   }, []);
 
   const bulkUpdateNotes = useCallback(async (noteIds: string[], updates: Partial<Note>) => {
-    const updatedNotes: Note[] = [];
+    const fullUpdatedNotes: Note[] = [];
+    const idsSet = new Set(noteIds);
+
     setNotes(prev =>
       prev.map(n => {
-        if (!noteIds.includes(n.id)) return n;
-        const next: Note = {
-          ...n,
-          ...updates,
-          updatedAt: new Date(),
-        };
-        updatedNotes.push(next);
-        return next;
+        if (!idsSet.has(n.id)) return n;
+        const updatedShell: Note = { ...n, ...updates, updatedAt: new Date() };
+        const heavy = heavyContentRef.current.get(n.id);
+        const full = heavy ? mergeNoteContent(updatedShell, heavy) : updatedShell;
+        fullUpdatedNotes.push(full);
+        return toNoteShell(full);
       })
     );
 
     try {
-      await Promise.all(updatedNotes.map(n => saveNoteToDBSingle(n)));
+      await Promise.all(fullUpdatedNotes.map(n => saveNoteToDBSingle(n)));
     } catch (error) {
       console.error('[NotesContext] Error persisting bulk note update:', error);
     }
@@ -298,14 +347,31 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const refreshNotes = useCallback(async () => {
     try {
       const loadedNotes = await loadNotesFromDB();
-      setNotes(loadedNotes);
+      ingestFullNotes(loadedNotes);
     } catch (error) {
       console.error('[NotesContext] Error refreshing notes:', error);
     }
-  }, []);
+  }, [ingestFullNotes]);
 
   const getNoteById = useCallback((noteId: string): Note | undefined => {
     return notesMap.get(noteId);
+  }, [notesMap]);
+
+  /** Load full note with all heavy content — call before opening editor */
+  const getFullNote = useCallback(async (noteId: string): Promise<Note | null> => {
+    const shell = notesMap.get(noteId);
+    if (!shell) return null;
+
+    // Check in-memory heavy content cache first (instant)
+    const heavy = heavyContentRef.current.get(noteId);
+    if (heavy) return mergeNoteContent(shell, heavy);
+
+    // Fallback: read from IndexedDB (rare — only if cache was cleared)
+    const full = await loadFullNoteFromDB(noteId);
+    if (full) {
+      heavyContentRef.current.set(noteId, extractHeavyContent(full));
+    }
+    return full;
   }, [notesMap]);
 
   // ── Memoized context values ──
@@ -327,7 +393,8 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateNote,
     bulkUpdateNotes,
     refreshNotes,
-  }), [saveNote, deleteNote, updateNote, bulkUpdateNotes, refreshNotes]);
+    getFullNote,
+  }), [saveNote, deleteNote, updateNote, bulkUpdateNotes, refreshNotes, getFullNote]);
 
   return (
     <NotesDispatchContext.Provider value={dispatchValue}>
