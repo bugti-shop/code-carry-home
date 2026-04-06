@@ -1316,11 +1316,13 @@ const TodoCalendar = () => {
         onUpdate={(updatedTask) => { handleUpdateTask(updatedTask.id, updatedTask); setSelectedTask(updatedTask); }}
         onDelete={handleDeleteTask}
         onDuplicate={async (task) => {
-          const duplicatedTask: TodoItem = { ...task, id: Date.now().toString(), completed: false };
-          const updatedItems = [...items, duplicatedTask];
-          setItems(updatedItems);
-          await saveTodoItems(updatedItems);
-          window.dispatchEvent(new Event('tasksUpdated'));
+          const duplicatedTask: TodoItem = {
+            ...task,
+            id: `${Date.now()}-dup-${Math.random().toString(36).slice(2, 8)}`,
+            completed: false,
+            text: `${task.text} (Copy)`,
+          };
+          setItems(prev => [...prev, duplicatedTask]);
         }}
         onConvertToNote={() => {}}
         onMoveToFolder={(taskId, folderId) => handleUpdateTask(taskId, { folderId: folderId || undefined })}
