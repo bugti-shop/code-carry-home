@@ -274,7 +274,6 @@ export const useTodayState = () => {
       saveTodoItems(itemsRef.current).then(({ persisted }) => {
         if (!persisted) toast.error(t('todayPage.storageFull'), { id: 'storage-full' });
       });
-      window.dispatchEvent(new Event('tasksUpdated'));
     }, 300);
     return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
   }, [items, settingsLoaded, itemsLoaded]);

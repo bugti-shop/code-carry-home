@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useDeferredValue, useTransition } from 'react';
+import { useState, useCallback, useEffect, useDeferredValue, useTransition, useMemo } from 'react';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { Note } from '@/types/note';
 import { useSubscription } from '@/contexts/SubscriptionContext';
@@ -257,49 +257,46 @@ const Notes = () => {
   };
 
   // Filter notes using lightweight metadata for instant performance
-  const filteredNotes = notes.filter(note => {
-    // Get metadata for this note (O(1) lookup)
-    const meta = notesMeta.find(m => m.id === note.id);
-    
-    // View mode filter
+  const notesMetaById = useMemo(() => new Map(notesMeta.map(meta => [meta.id, meta])), [notesMeta]);
+
+  const filteredNotes = useMemo(() => notes.filter(note => {
+    const meta = notesMetaById.get(note.id);
+
     let viewMatch = false;
     if (viewMode === 'trash') viewMatch = note.isDeleted === true;
     else if (viewMode === 'archived') viewMatch = note.isArchived === true && !note.isDeleted;
     else viewMatch = !note.isArchived && !note.isDeleted;
-    
+
     if (!viewMatch) return false;
 
-    // Tag filter (uses deferred value for non-blocking UI)
     if (deferredFilterTagIds.length > 0) {
       if (!note.tagIds || !deferredFilterTagIds.some(id => note.tagIds!.includes(id))) {
         return false;
       }
     }
-    
-    // Search filter using contentPreview (200 chars) instead of full content (200k words!)
+
     if (deferredSearchQuery.trim()) {
       const search = deferredSearchQuery.toLowerCase();
       const titleMatch = note.title.toLowerCase().includes(search);
-      // Use pre-computed contentPreview from metadata - no HTML stripping needed!
       const contentMatch = meta?.contentPreview?.toLowerCase().includes(search) ?? false;
       return titleMatch || contentMatch;
     }
-    
-    return true;
-  });
 
-  const sortedNotes = [...filteredNotes].sort((a, b) => {
+    return true;
+  }), [notes, notesMetaById, viewMode, deferredFilterTagIds, deferredSearchQuery]);
+
+  const sortedNotes = useMemo(() => [...filteredNotes].sort((a, b) => {
     if (a.isPinned && !b.isPinned) return -1;
     if (!a.isPinned && b.isPinned) return 1;
     if (a.isPinned && b.isPinned) {
       return (a.pinnedOrder || 0) - (b.pinnedOrder || 0);
     }
     return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-  });
+  }), [filteredNotes]);
 
-  const activeCount = notes.filter(n => !n.isArchived && !n.isDeleted).length;
-  const archivedCount = notes.filter(n => n.isArchived && !n.isDeleted).length;
-  const trashCount = notes.filter(n => n.isDeleted).length;
+  const activeCount = useMemo(() => notes.filter(n => !n.isArchived && !n.isDeleted).length, [notes]);
+  const archivedCount = useMemo(() => notes.filter(n => n.isArchived && !n.isDeleted).length, [notes]);
+  const trashCount = useMemo(() => notes.filter(n => n.isDeleted).length, [notes]);
 
   const getDaysRemaining = (deletedAt: Date | undefined) => {
     if (!deletedAt) return 30;
