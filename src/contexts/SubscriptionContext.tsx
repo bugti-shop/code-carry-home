@@ -158,7 +158,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   // RevenueCat state
   const [isInitialized, setIsInitialized] = useState(false);
   const [rcLoading, setRcLoading] = useState(false);
-  const [rcIsPro, setRcIsPro] = useState(false);
+  // Initialize rcIsPro from local cache for instant access on web refresh
+  const [rcIsPro, setRcIsPro] = useState(() => {
+    if (!Capacitor.isNativePlatform()) {
+      try { return localStorage.getItem('flowist_stripe_subscribed') === 'true'; } catch {}
+    }
+    return false;
+  });
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const [offerings, setOfferings] = useState<PurchasesOfferings | null>(null);
   const [error, setError] = useState<string | null>(null);
