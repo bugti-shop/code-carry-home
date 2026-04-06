@@ -4,6 +4,7 @@
  */
 import { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue, startTransition } from 'react';
 import { useTaskWorker, FilterSortResult } from '@/hooks/useTaskWorker';
+import { getTasksCacheVersion } from '@/utils/taskStorage';
 import { TodoItem, Folder, Priority, TaskSection, TaskStatus } from '@/types/note';
 import { useTranslation } from 'react-i18next';
 import { useGlobalTags } from '@/hooks/useGlobalTags';
@@ -353,7 +354,8 @@ export const useTodayState = () => {
     };
 
     // Skip if payload hasn't changed
-    const key = JSON.stringify([smartList, selectedFolderId, priorityFilter, statusFilter, dateFilter, tagFilter, sortBy, deferredSearch, items.length]);
+    const cacheVer = getTasksCacheVersion();
+    const key = `${smartList}|${selectedFolderId}|${priorityFilter}|${statusFilter}|${dateFilter}|${tagFilter.join(',')}|${sortBy}|${deferredSearch}|${items.length}|${cacheVer}`;
     if (key === workerPayloadRef.current && workerResult) return;
     workerPayloadRef.current = key;
 

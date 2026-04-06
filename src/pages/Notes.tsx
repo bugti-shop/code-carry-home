@@ -71,7 +71,7 @@ const Notes = () => {
   const { requireFeature, openPaywall, isPro } = useSubscription();
   
   // Use global notes context - no more local loading!
-  const { notes, notesMeta, setNotes, isLoading } = useNotes();
+  const { notes, notesMeta, setNotes, isLoading, counts } = useNotes();
   
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -194,23 +194,23 @@ const Notes = () => {
     toast.success(t('toasts.noteDeleted'));
   };
 
-  // Auto-delete notes older than 30 days in trash
+  // Auto-delete notes older than 30 days in trash — run once on mount only
   useEffect(() => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
-    const updatedNotes = notes.filter((n) => {
-      if (n.isDeleted && n.deletedAt) {
-        return new Date(n.deletedAt) > thirtyDaysAgo;
-      }
-      return true;
-    });
-    
-    if (updatedNotes.length !== notes.length) {
-      setNotes(updatedNotes);
+    setNotes(prev => {
+      const updatedNotes = prev.filter((n) => {
+        if (n.isDeleted && n.deletedAt) {
+          return new Date(n.deletedAt) > thirtyDaysAgo;
+        }
+        return true;
+      });
+      if (updatedNotes.length === prev.length) return prev; // no change — skip re-render
       debouncedSaveNotes(updatedNotes);
-    }
-  }, [notes]);
+      return updatedNotes;
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDragStart = (e: React.DragEvent, noteId: string) => {
     e.dataTransfer.effectAllowed = 'move';
@@ -294,9 +294,10 @@ const Notes = () => {
     return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
   }), [filteredNotes]);
 
-  const activeCount = useMemo(() => notes.filter(n => !n.isArchived && !n.isDeleted).length, [notes]);
-  const archivedCount = useMemo(() => notes.filter(n => n.isArchived && !n.isDeleted).length, [notes]);
-  const trashCount = useMemo(() => notes.filter(n => n.isDeleted).length, [notes]);
+  // Use pre-computed counts from context — O(1) instead of 3x full-array scans
+  const activeCount = counts.active;
+  const archivedCount = counts.archived;
+  const trashCount = counts.trash;
 
   const getDaysRemaining = (deletedAt: Date | undefined) => {
     if (!deletedAt) return 30;

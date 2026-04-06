@@ -60,6 +60,8 @@ const extractNoteMeta = (note: Note): NoteMeta => ({
 interface NotesDataContextType {
   notes: Note[];
   notesMeta: NoteMeta[];
+  notesMap: Map<string, Note>;
+  counts: { active: number; archived: number; trash: number };
   isLoading: boolean;
   isInitialized: boolean;
   getNoteById: (noteId: string) => Note | undefined;
@@ -101,6 +103,21 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const result = notes.map(extractNoteMeta);
     cachedMetaRef.current = result;
     return result;
+  }, [notes]);
+
+  // O(1) lookup map — avoids array.find on 100k+ notes
+  const notesMap = useMemo(() => new Map(notes.map(n => [n.id, n])), [notes]);
+
+  // Pre-computed counts — avoids 3x full-array scans on every render
+  const counts = useMemo(() => {
+    let active = 0, archived = 0, trash = 0;
+    for (let i = 0; i < notes.length; i++) {
+      const n = notes[i];
+      if (n.isDeleted) trash++;
+      else if (n.isArchived) archived++;
+      else active++;
+    }
+    return { active, archived, trash };
   }, [notes]);
 
   // Separate ref for debounced-save change detection (not shared with useMemo)
@@ -288,18 +305,20 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const getNoteById = useCallback((noteId: string): Note | undefined => {
-    return notes.find(n => n.id === noteId);
-  }, [notes]);
+    return notesMap.get(noteId);
+  }, [notesMap]);
 
   // ── Memoized context values ──
 
   const dataValue = useMemo<NotesDataContextType>(() => ({
     notes,
     notesMeta,
+    notesMap,
+    counts,
     isLoading,
     isInitialized,
     getNoteById,
-  }), [notes, notesMeta, isLoading, isInitialized, getNoteById]);
+  }), [notes, notesMeta, notesMap, counts, isLoading, isInitialized, getNoteById]);
 
   const dispatchValue = useMemo<NotesDispatchContextType>(() => ({
     setNotes,
