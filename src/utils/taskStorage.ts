@@ -231,19 +231,27 @@ const flushTasksToDB = async (items: TodoItem[], skipSyncEvent = false): Promise
       return saveLargeDataset(db, items, skipSyncEvent);
     }
     
-    // Sanitize all items upfront so structured-clone never fails inside the transaction
-    const sanitized = items.map(sanitizeForIDB);
+    // Sanitize all items upfront — filter out any that failed sanitization
+    let sanitized: any[];
+    try {
+      sanitized = items.map(sanitizeForIDB).filter((i: any) => i && i.id);
+    } catch (e) {
+      console.warn('Bulk sanitize failed, saving item-by-item:', e);
+      sanitized = [];
+      for (const item of items) {
+        try {
+          const s = sanitizeForIDB(item);
+          if (s && s.id) sanitized.push(s);
+        } catch {}
+      }
+    }
 
-    return new Promise((resolve) => {
-      const transaction = db.transaction(STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      
-      // Put all items first (upsert), THEN delete stale keys.
-      // This avoids the dangerous clear-then-put pattern where a mid-transaction
-      // error would leave the store empty.
-      const newIds = new Set(sanitized.map((i: any) => i.id));
-      let putsDone = 0;
-      const totalPuts = sanitized.length;
+    if (sanitized.length === 0 && items.length > 0) {
+      // Something went very wrong — don't wipe the store
+      console.error('All items failed sanitization, aborting save to protect data');
+      if (!skipSyncEvent) window.dispatchEvent(new Event('tasksUpdated'));
+      return true;
+    }
 
       if (totalPuts === 0) {
         // Empty list → clear everything
