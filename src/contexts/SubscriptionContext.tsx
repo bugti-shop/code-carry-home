@@ -164,7 +164,14 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
   const [listenerHandle, setListenerHandle] = useState<PurchasesCallbackId | null>(null);
   const [isAdminBypass, setIsAdminBypass] = useState(false);
-  const [isWebSubscriptionResolved, setIsWebSubscriptionResolved] = useState(Capacitor.isNativePlatform());
+  // If locally cached as subscribed, mark as resolved immediately to avoid loading state
+  const [isWebSubscriptionResolved, setIsWebSubscriptionResolved] = useState(() => {
+    if (Capacitor.isNativePlatform()) return true;
+    try {
+      if (localStorage.getItem('flowist_stripe_subscribed') === 'true') return true;
+    } catch {}
+    return false;
+  });
   const [isVerifyingCheckout, setIsVerifyingCheckout] = useState(false);
   const [checkoutVerificationFailed, setCheckoutVerificationFailed] = useState(false);
 
