@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 import { applyTaskOrder, updateSectionOrder } from '@/utils/taskOrderStorage';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { VirtualizedTaskList, shouldUseVirtualization } from '@/components/VirtualizedTaskList';
+import { useSectionLoadMore } from '@/hooks/useSectionLoadMore';
+import { LoadMoreButton } from '@/components/todo/LoadMoreButton';
 
 interface FlatViewProps {
   sortedSections: TaskSection[];
@@ -45,6 +47,7 @@ export const FlatView = ({
 }: FlatViewProps) => {
   const { t } = useTranslation();
   const useVirtualizedList = shouldUseVirtualization(uncompletedItems.length);
+  const sectionPagination = useSectionLoadMore();
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -113,14 +116,10 @@ export const FlatView = ({
                   <div className="flex items-center gap-2 text-muted-foreground"><span className="text-sm font-medium">{completedItems.length}</span>{isCompletedOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</div>
                 </button>
               </CollapsibleTrigger>
-              <CollapsibleContent className={cn("space-y-2 mt-2", compactMode && "space-y-1 mt-1")}>
-                {completedItems.slice(0, 100).map(renderTaskItem)}
-                {completedItems.length > 100 && (
-                  <div className="px-2 py-1 text-xs text-muted-foreground text-center">
-                    {t('grouping.completed')} {completedItems.length}
-                  </div>
-                )}
-              </CollapsibleContent>
+              <CollapsibleContent className={cn("space-y-2 mt-2", compactMode && "space-y-1 mt-1")}>{(() => {
+                const { visible, hasMore, remaining } = sectionPagination.sliceItems('flat-completed-v', completedItems);
+                return (<>{visible.map(renderTaskItem)}{hasMore && <LoadMoreButton remaining={remaining} onClick={() => sectionPagination.loadMore('flat-completed-v')} />}</>);
+              })()}</CollapsibleContent>
             </div>
           </Collapsible>
         )}
@@ -142,19 +141,20 @@ export const FlatView = ({
               {!isCollapsed && (
                 <Droppable droppableId={`flat-section-${sectionId}`}>
                   {(provided, snapshot) => (
-                    <div ref={provided.innerRef} {...provided.droppableProps} className={cn("p-2 space-y-1 min-h-[40px]", compactMode && "p-1 space-y-0", snapshot.isDraggingOver && "bg-primary/5")}>
-                      {orderedTasks.length === 0 ? (
+                    <div ref={provided.innerRef} {...provided.droppableProps} className={cn("p-2 space-y-1 min-h-[40px]", compactMode && "p-1 space-y-0", snapshot.isDraggingOver && "bg-primary/5")}>{(() => {
+                      const { visible, hasMore, remaining } = sectionPagination.sliceItems(`flat-${sectionId}`, orderedTasks);
+                      return orderedTasks.length === 0 ? (
                         <div className={cn("text-center text-sm text-muted-foreground", compactMode ? "py-2 px-2" : "py-4 px-4")}>{t('emptyStates.noTasksInSection')}</div>
-                      ) : orderedTasks.map((item, index) => (
+                      ) : (<>{visible.map((item, index) => (
                         <Draggable key={item.id} draggableId={item.id} index={index}>
                           {(provided, snapshot) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={cn("bg-card rounded-lg border border-border/50", snapshot.isDragging && "shadow-lg ring-2 ring-primary")}>
-                              {/* cv-auto applied via parent for non-dragging items */}
                               {renderTaskItem(item)}{renderSubtasksInline(item)}
                             </div>
                           )}
                         </Draggable>
-                      ))}
+                      ))}{hasMore && <LoadMoreButton remaining={remaining} onClick={() => sectionPagination.loadMore(`flat-${sectionId}`)} />}</>);
+                    })()}
                       {provided.placeholder}
                     </div>
                   )}

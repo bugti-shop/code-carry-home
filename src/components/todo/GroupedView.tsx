@@ -8,6 +8,8 @@ import { isToday, isTomorrow, isThisWeek, isBefore, startOfDay, subDays } from '
 import { applyTaskOrder, updateSectionOrder } from '@/utils/taskOrderStorage';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { toast } from 'sonner';
+import { useSectionLoadMore } from '@/hooks/useSectionLoadMore';
+import { LoadMoreButton } from '@/components/todo/LoadMoreButton';
 
 interface GroupedViewProps {
   groupByOption: string;
@@ -47,6 +49,7 @@ export const GroupedView = ({
   setOrderVersion,
 }: GroupedViewProps) => {
   const { t } = useTranslation();
+  const sectionPagination = useSectionLoadMore();
 
   let groups: { id: string; label: string; color: string; icon: React.ReactNode; tasks: TodoItem[] }[] = [];
   if (groupByOption === 'section') {
@@ -121,8 +124,9 @@ export const GroupedView = ({
               {!isCollapsed && (
                 <Droppable droppableId={`grouped-${group.id}`}>
                   {(provided, snapshot) => (
-                    <div ref={provided.innerRef} {...provided.droppableProps} className={cn("p-2 space-y-1 min-h-[40px]", compactMode && "p-1 space-y-0", snapshot.isDraggingOver && "bg-primary/5")}>
-                      {orderedTasks.length === 0 ? <div className="py-4 text-center text-sm text-muted-foreground">{t('todayPage.dropTasksHere')}</div> : orderedTasks.map((item, index) => (
+                    <div ref={provided.innerRef} {...provided.droppableProps} className={cn("p-2 space-y-1 min-h-[40px]", compactMode && "p-1 space-y-0", snapshot.isDraggingOver && "bg-primary/5")}>{(() => {
+                      const { visible, hasMore, remaining } = sectionPagination.sliceItems(`grouped-${group.id}`, orderedTasks);
+                      return orderedTasks.length === 0 ? <div className="py-4 text-center text-sm text-muted-foreground">{t('todayPage.dropTasksHere')}</div> : (<>{visible.map((item, index) => (
                         <Draggable key={item.id} draggableId={item.id} index={index}>
                           {(provided, snapshot) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={cn("bg-card rounded-lg border border-border/50", snapshot.isDragging && "shadow-lg ring-2 ring-primary")}>
@@ -130,7 +134,8 @@ export const GroupedView = ({
                             </div>
                           )}
                         </Draggable>
-                      ))}
+                      ))}{hasMore && <LoadMoreButton remaining={remaining} onClick={() => sectionPagination.loadMore(`grouped-${group.id}`)} />}</>);
+                    })()}
                       {provided.placeholder}
                     </div>
                   )}
