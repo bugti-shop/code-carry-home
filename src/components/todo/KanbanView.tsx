@@ -8,8 +8,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { applyTaskOrder, updateSectionOrder } from '@/utils/taskOrderStorage';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { toast } from 'sonner';
-import { useSectionLoadMore } from '@/hooks/useSectionLoadMore';
-import { LoadMoreButton } from '@/components/todo/LoadMoreButton';
 
 interface KanbanViewProps {
   sortedSections: TaskSection[];
@@ -49,7 +47,6 @@ export const KanbanView = ({
   handleAddSection,
 }: KanbanViewProps) => {
   const { t } = useTranslation();
-  const sectionPagination = useSectionLoadMore();
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -118,11 +115,10 @@ export const KanbanView = ({
                   <>
                     <Droppable droppableId={section.id}>
                       {(provided, snapshot) => (
-                        <div ref={provided.innerRef} {...provided.droppableProps} className={cn("min-h-[300px] max-h-[400px] overflow-y-auto p-2 space-y-2", snapshot.isDraggingOver && "bg-primary/5")}>{(() => {
-                          const { visible, hasMore, remaining } = sectionPagination.sliceItems(`kanban-${section.id}`, sectionTasks);
-                          return sectionTasks.length === 0 ? (
+                        <div ref={provided.innerRef} {...provided.droppableProps} className={cn("min-h-[300px] max-h-[400px] overflow-y-auto p-2 space-y-2", snapshot.isDraggingOver && "bg-primary/5")}>
+                          {sectionTasks.length === 0 ? (
                             <div className="py-8 text-center text-sm text-muted-foreground">{t('sections.dropTasksHere')}</div>
-                          ) : (<>{visible.map((item, index) => (
+                          ) : sectionTasks.map((item, index) => (
                             <Draggable key={item.id} draggableId={item.id} index={index}>
                               {(provided, snapshot) => (
                                 <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={cn("bg-card rounded-lg border border-border/50 shadow-sm", snapshot.isDragging && "shadow-lg ring-2 ring-primary")}>
@@ -131,8 +127,7 @@ export const KanbanView = ({
                                 </div>
                               )}
                             </Draggable>
-                          ))}{hasMore && <LoadMoreButton remaining={remaining} onClick={() => sectionPagination.loadMore(`kanban-${section.id}`)} />}</>);
-                        })()}
+                          ))}
                           {provided.placeholder}
                         </div>
                       )}

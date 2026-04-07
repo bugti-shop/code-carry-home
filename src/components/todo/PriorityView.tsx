@@ -7,8 +7,6 @@ import { applyTaskOrder, updateSectionOrder } from '@/utils/taskOrderStorage';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { toast } from 'sonner';
 import { ViewModeSectionHeader } from './ViewModeSectionHeader';
-import { useSectionLoadMore } from '@/hooks/useSectionLoadMore';
-import { LoadMoreButton } from '@/components/todo/LoadMoreButton';
 
 interface PriorityViewProps {
   uncompletedItems: TodoItem[];
@@ -36,7 +34,6 @@ export const PriorityView = ({
   setOrderVersion,
 }: PriorityViewProps) => {
   const { t } = useTranslation();
-  const sectionPagination = useSectionLoadMore();
 
   const priorityGroups = [
     { id: 'priority-high', label: t('grouping.highPriority', 'High Priority'), tasks: uncompletedItems.filter(i => i.priority === 'high'), color: getPriorityColor('high'), icon: <Flame className="h-4 w-4" style={{ color: getPriorityColor('high') }} /> },
@@ -96,9 +93,8 @@ export const PriorityView = ({
               {!isCollapsed && (
                 <Droppable droppableId={group.id}>
                   {(provided, snapshot) => (
-                    <div ref={provided.innerRef} {...provided.droppableProps} className={cn("p-2 space-y-2 min-h-[50px]", snapshot.isDraggingOver && "bg-primary/5")}>{(() => {
-                      const { visible, hasMore, remaining } = sectionPagination.sliceItems(group.id, orderedTasks);
-                      return (<>{visible.map((item, index) => (
+                    <div ref={provided.innerRef} {...provided.droppableProps} className={cn("p-2 space-y-2 min-h-[50px]", snapshot.isDraggingOver && "bg-primary/5")}>
+                      {orderedTasks.map((item, index) => (
                         <Draggable key={item.id} draggableId={item.id} index={index}>
                           {(provided, snapshot) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={cn("bg-card rounded-lg border border-border/50 overflow-hidden", snapshot.isDragging && "shadow-lg ring-2 ring-primary")}>
@@ -106,8 +102,7 @@ export const PriorityView = ({
                             </div>
                           )}
                         </Draggable>
-                      ))}{hasMore && <LoadMoreButton remaining={remaining} onClick={() => sectionPagination.loadMore(group.id)} />}</>);
-                    })()}
+                      ))}
                       {provided.placeholder}
                     </div>
                   )}

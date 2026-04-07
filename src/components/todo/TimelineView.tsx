@@ -7,8 +7,6 @@ import { cn } from '@/lib/utils';
 import { applyTaskOrder, updateSectionOrder } from '@/utils/taskOrderStorage';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { ViewModeSectionHeader } from './ViewModeSectionHeader';
-import { useSectionLoadMore } from '@/hooks/useSectionLoadMore';
-import { LoadMoreButton } from '@/components/todo/LoadMoreButton';
 
 interface TimelineViewProps {
   uncompletedItems: TodoItem[];
@@ -35,7 +33,6 @@ export const TimelineView = ({
 }: TimelineViewProps) => {
   const { t } = useTranslation();
   const today = startOfDay(new Date());
-  const sectionPagination = useSectionLoadMore();
 
   const timelineGroups = [
     { id: 'timeline-overdue', label: t('grouping.overdue'), tasks: uncompletedItems.filter(item => item.dueDate && isBefore(new Date(item.dueDate), today)), color: '#ef4444', icon: <AlertCircle className="h-4 w-4" /> },
@@ -82,9 +79,8 @@ export const TimelineView = ({
               {!isCollapsed && (
                 <Droppable droppableId={group.id}>
                   {(provided, snapshot) => (
-                    <div ref={provided.innerRef} {...provided.droppableProps} className={cn("p-2 space-y-2 min-h-[50px]", snapshot.isDraggingOver && "bg-primary/5")}>{(() => {
-                      const { visible, hasMore, remaining } = sectionPagination.sliceItems(group.id, orderedTasks);
-                      return (<>{visible.map((item, index) => (
+                    <div ref={provided.innerRef} {...provided.droppableProps} className={cn("p-2 space-y-2 min-h-[50px]", snapshot.isDraggingOver && "bg-primary/5")}>
+                      {orderedTasks.map((item, index) => (
                         <Draggable key={item.id} draggableId={item.id} index={index}>
                           {(provided, snapshot) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={cn("bg-card rounded-lg border border-border/50", snapshot.isDragging && "shadow-lg ring-2 ring-primary")}>
@@ -92,8 +88,7 @@ export const TimelineView = ({
                             </div>
                           )}
                         </Draggable>
-                      ))}{hasMore && <LoadMoreButton remaining={remaining} onClick={() => sectionPagination.loadMore(group.id)} />}</>);
-                    })()}
+                      ))}
                       {provided.placeholder}
                     </div>
                   )}
