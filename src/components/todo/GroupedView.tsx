@@ -5,6 +5,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { applyTaskOrder, updateSectionOrder } from '@/utils/taskOrderStorage';
+import { subDays } from 'date-fns';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { toast } from 'sonner';
 import { useSectionLoadMore } from '@/hooks/useSectionLoadMore';
