@@ -116,14 +116,10 @@ export const FlatView = ({
                   <div className="flex items-center gap-2 text-muted-foreground"><span className="text-sm font-medium">{completedItems.length}</span>{isCompletedOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</div>
                 </button>
               </CollapsibleTrigger>
-              <CollapsibleContent className={cn("space-y-2 mt-2", compactMode && "space-y-1 mt-1")}>
-                {completedItems.slice(0, 100).map(renderTaskItem)}
-                {completedItems.length > 100 && (
-                  <div className="px-2 py-1 text-xs text-muted-foreground text-center">
-                    {t('grouping.completed')} {completedItems.length}
-                  </div>
-                )}
-              </CollapsibleContent>
+              <CollapsibleContent className={cn("space-y-2 mt-2", compactMode && "space-y-1 mt-1")}>{(() => {
+                const { visible, hasMore, remaining } = sectionPagination.sliceItems('flat-completed-v', completedItems);
+                return (<>{visible.map(renderTaskItem)}{hasMore && <LoadMoreButton remaining={remaining} onClick={() => sectionPagination.loadMore('flat-completed-v')} />}</>);
+              })()}</CollapsibleContent>
             </div>
           </Collapsible>
         )}
