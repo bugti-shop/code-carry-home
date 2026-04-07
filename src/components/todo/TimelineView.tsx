@@ -1,7 +1,6 @@
 import { TodoItem } from '@/types/note';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { AlertCircle, Sun, Calendar as CalendarIcon2, Clock, CalendarX, CheckCircle2 } from 'lucide-react';
-import { isToday, isTomorrow, isThisWeek, isBefore, startOfDay } from 'date-fns';
+import { AlertCircle, Sun, Calendar as CalendarIcon2, Clock, CalendarX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { applyTaskOrder, updateSectionOrder } from '@/utils/taskOrderStorage';

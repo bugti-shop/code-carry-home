@@ -4,7 +4,6 @@ import { Columns3, Flag, Flame, ChevronRight, ChevronDown, AlertCircle, Sun, Cal
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import { isToday, isTomorrow, isThisWeek, isBefore, startOfDay, subDays } from 'date-fns';
 import { applyTaskOrder, updateSectionOrder } from '@/utils/taskOrderStorage';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { toast } from 'sonner';
