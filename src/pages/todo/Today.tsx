@@ -134,6 +134,7 @@ const Today = () => {
     smartListData,
     processedItems, searchFilteredItems, uncompletedItems, completedItems,
     sortedSections, toggleViewSectionCollapse, handleClearFilters,
+    sectionTaskMap, priorityTaskMap, statusTaskMap, timelineTaskMap, sectionTaskCounts,
   } = state;
 
   useEffect(() => {
