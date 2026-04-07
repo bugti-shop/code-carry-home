@@ -16,6 +16,7 @@ interface KanbanViewProps {
   sections: TaskSection[];
   uncompletedItems: TodoItem[];
   completedItems: TodoItem[];
+  sectionTaskMap?: Map<string, TodoItem[]>;
   showCompleted: boolean;
   collapsedViewSections: Set<string>;
   toggleViewSectionCollapse: (id: string) => void;
@@ -35,6 +36,7 @@ export const KanbanView = ({
   sections,
   uncompletedItems,
   completedItems,
+  sectionTaskMap,
   showCompleted,
   collapsedViewSections,
   toggleViewSectionCollapse,
@@ -90,7 +92,7 @@ export const KanbanView = ({
       <div className="overflow-x-auto pb-4 -mx-4 px-4">
         <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
           {sortedSections.map((section) => {
-            const rawSectionTasks = uncompletedItems.filter(item => item.sectionId === section.id || (!item.sectionId && section.id === sections[0]?.id));
+            const rawSectionTasks = sectionTaskMap?.get(section.id) || uncompletedItems.filter(item => item.sectionId === section.id || (!item.sectionId && section.id === sections[0]?.id));
             const sectionTasks = applyTaskOrder(rawSectionTasks, `kanban-${section.id}`);
             const kanbanSectionId = `kanban-${section.id}`;
             const isCollapsed = collapsedViewSections.has(kanbanSectionId);

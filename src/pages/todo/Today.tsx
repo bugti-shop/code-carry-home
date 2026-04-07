@@ -634,6 +634,7 @@ const Today = () => {
                   sections={sections}
                   uncompletedItems={uncompletedItems}
                   completedItems={completedItems}
+                  sectionTaskMap={sectionTaskMap}
                   showCompleted={showCompleted}
                   collapsedViewSections={collapsedViewSections}
                   toggleViewSectionCollapse={toggleViewSectionCollapse}
