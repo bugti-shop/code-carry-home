@@ -3,6 +3,8 @@ import { History, CheckCircle2 } from 'lucide-react';
 import { isToday, isYesterday, isThisWeek } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { ViewModeSectionHeader } from './ViewModeSectionHeader';
+import { useSectionLoadMore } from '@/hooks/useSectionLoadMore';
+import { LoadMoreButton } from '@/components/todo/LoadMoreButton';
 
 interface HistoryViewProps {
   completedItems: TodoItem[];
@@ -18,6 +20,7 @@ export const HistoryView = ({
   renderTaskItem,
 }: HistoryViewProps) => {
   const { t } = useTranslation();
+  const sectionPagination = useSectionLoadMore();
 
   const historyGroups = [
     { label: t('grouping.completedToday', 'Completed Today'), tasks: completedItems.filter(item => item.dueDate && isToday(new Date(item.dueDate))), color: '#10b981' },
@@ -54,13 +57,12 @@ export const HistoryView = ({
               onToggle={toggleViewSectionCollapse}
             />
             {!isCollapsed && (
-              <div className="p-2 space-y-2">
-                {group.tasks.map((item) => (
-                  <div key={item.id} className="bg-card rounded-lg border border-border/50 opacity-70">
-                    {renderTaskItem(item)}
-                  </div>
-                ))}
-              </div>
+              <div className="p-2 space-y-2">{(() => {
+                const { visible, hasMore, remaining } = sectionPagination.sliceItems(sectionId, group.tasks);
+                return (<>{visible.map((item) => (
+                  <div key={item.id} className="bg-card rounded-lg border border-border/50 opacity-70">{renderTaskItem(item)}</div>
+                ))}{hasMore && <LoadMoreButton remaining={remaining} onClick={() => sectionPagination.loadMore(sectionId)} />}</>);
+              })()}</div>
             )}
           </div>
         );

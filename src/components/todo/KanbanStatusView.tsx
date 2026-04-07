@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils';
 import { applyTaskOrder, updateSectionOrder } from '@/utils/taskOrderStorage';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { toast } from 'sonner';
+import { useSectionLoadMore } from '@/hooks/useSectionLoadMore';
+import { LoadMoreButton } from '@/components/todo/LoadMoreButton';
 
 interface KanbanStatusViewProps {
   items: TodoItem[];
@@ -31,6 +33,7 @@ export const KanbanStatusView = ({
   setOrderVersion,
 }: KanbanStatusViewProps) => {
   const { t } = useTranslation();
+  const sectionPagination = useSectionLoadMore();
 
   const statusGroups = [
     { id: 'not_started' as TaskStatus, label: t('grouping.notStarted'), color: '#6b7280', icon: <Circle className="h-3.5 w-3.5" />, tasks: uncompletedItems.filter(item => !item.status || item.status === 'not_started') },
@@ -81,8 +84,9 @@ export const KanbanStatusView = ({
                 {!isCollapsed && (
                   <Droppable droppableId={statusSectionId}>
                     {(provided, snapshot) => (
-                      <div ref={provided.innerRef} {...provided.droppableProps} className={cn("min-h-[200px] max-h-[400px] overflow-y-auto p-2 space-y-2", snapshot.isDraggingOver && "bg-primary/5")}>
-                        {orderedTasks.length === 0 ? <div className="py-8 text-center text-sm text-muted-foreground">Drop tasks here</div> : orderedTasks.map((item, index) => (
+                      <div ref={provided.innerRef} {...provided.droppableProps} className={cn("min-h-[200px] max-h-[400px] overflow-y-auto p-2 space-y-2", snapshot.isDraggingOver && "bg-primary/5")}>{(() => {
+                        const { visible, hasMore, remaining } = sectionPagination.sliceItems(statusSectionId, orderedTasks);
+                        return orderedTasks.length === 0 ? <div className="py-8 text-center text-sm text-muted-foreground">Drop tasks here</div> : (<>{visible.map((item, index) => (
                           <Draggable key={item.id} draggableId={item.id} index={index}>
                             {(provided, snapshot) => (
                               <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={cn("bg-card rounded-lg border border-border/50 shadow-sm overflow-hidden", snapshot.isDragging && "shadow-lg ring-2 ring-primary", group.id === 'completed' && "opacity-70")}>
@@ -90,7 +94,8 @@ export const KanbanStatusView = ({
                               </div>
                             )}
                           </Draggable>
-                        ))}
+                        ))}{hasMore && <LoadMoreButton remaining={remaining} onClick={() => sectionPagination.loadMore(statusSectionId)} />}</>);
+                      })()}
                         {provided.placeholder}
                       </div>
                     )}
