@@ -215,8 +215,8 @@ export const VirtualizedTaskList = ({
   return (
     <div
       ref={parentRef}
-      className={cn("overflow-auto min-h-[20rem]", className)}
-      style={{ contain: 'content' }}
+      className={cn("h-full overflow-auto", className)}
+      style={{ contain: 'strict' }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={() => {

@@ -74,8 +74,8 @@ const Upcoming = () => {
   const loadItems = useCallback(async () => {
     let loadedItems = await loadTodoItems();
     
-    // Auto-archive completed tasks older than 2 days
-    const { activeTasks, archivedCount } = await archiveCompletedTasks(loadedItems, 2);
+    // Auto-archive completed tasks older than 3 days
+    const { activeTasks, archivedCount } = await archiveCompletedTasks(loadedItems, 3);
     if (archivedCount > 0) {
       await saveTodoItems(activeTasks);
       loadedItems = activeTasks;
