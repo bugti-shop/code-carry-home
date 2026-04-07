@@ -451,64 +451,6 @@ export const useTodayState = () => {
 
   const sortedSections = useMemo(() => [...sections].sort((a, b) => a.order - b.order), [sections]);
 
-  // ── Pre-computed section→tasks map (avoids O(n) filtering per section in every view) ──
-  const sectionTaskMap = useMemo(() => {
-    const map = new Map<string, TodoItem[]>();
-    const defaultId = sections[0]?.id;
-    // Initialize all sections with empty arrays
-    for (const s of sections) map.set(s.id, []);
-    for (const item of uncompletedItems) {
-      const sid = item.sectionId || defaultId;
-      const arr = map.get(sid);
-      if (arr) arr.push(item);
-      else map.set(sid, [item]);
-    }
-    return map;
-  }, [uncompletedItems, sections]);
-
-  // ── Pre-computed priority→tasks map ──
-  const priorityTaskMap = useMemo(() => {
-    const map: Record<string, TodoItem[]> = { high: [], medium: [], low: [], none: [] };
-    for (const item of uncompletedItems) {
-      const p = item.priority || 'none';
-      (map[p] || (map[p] = [])).push(item);
-    }
-    return map;
-  }, [uncompletedItems]);
-
-  // ── Pre-computed status→tasks map ──
-  const statusTaskMap = useMemo(() => {
-    const map: Record<string, TodoItem[]> = { not_started: [], in_progress: [], almost_done: [] };
-    for (const item of uncompletedItems) {
-      const s = item.status || 'not_started';
-      (map[s] || (map[s] = [])).push(item);
-    }
-    return map;
-  }, [uncompletedItems]);
-
-  // ── Pre-computed timeline (date-range) →tasks map ──
-  const timelineTaskMap = useMemo(() => {
-    const today = startOfDay(new Date());
-    const map: Record<string, TodoItem[]> = { overdue: [], today: [], tomorrow: [], thisWeek: [], later: [], noDate: [] };
-    for (const item of uncompletedItems) {
-      if (!item.dueDate) { map.noDate.push(item); continue; }
-      const d = new Date(item.dueDate);
-      if (isBefore(d, today)) map.overdue.push(item);
-      else if (isToday(d)) map.today.push(item);
-      else if (isTomorrow(d)) map.tomorrow.push(item);
-      else if (isThisWeek(d)) map.thisWeek.push(item);
-      else map.later.push(item);
-    }
-    return map;
-  }, [uncompletedItems]);
-
-  // ── Section task counts (lightweight object for headers) ──
-  const sectionTaskCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    sectionTaskMap.forEach((tasks, id) => { counts[id] = tasks.length; });
-    return counts;
-  }, [sectionTaskMap]);
-
   const toggleSubtasks = useCallback((taskId: string) => {
     setExpandedTasks(prev => {
       const newSet = new Set(prev);
@@ -603,8 +545,6 @@ export const useTodayState = () => {
     // Computed
     processedItems, searchFilteredItems, uncompletedItems, completedItems,
     sortedSections, toggleViewSectionCollapse, handleClearFilters,
-    // Pre-computed maps
-    sectionTaskMap, priorityTaskMap, statusTaskMap, timelineTaskMap, sectionTaskCounts,
     // Settings loaded flag
     settingsLoaded,
   };

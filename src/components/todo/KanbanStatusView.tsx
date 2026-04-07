@@ -13,7 +13,6 @@ interface KanbanStatusViewProps {
   items: TodoItem[];
   uncompletedItems: TodoItem[];
   completedItems: TodoItem[];
-  statusTaskMap: Record<string, TodoItem[]>;
   collapsedViewSections: Set<string>;
   toggleViewSectionCollapse: (id: string) => void;
   renderTaskItem: (item: TodoItem) => React.ReactNode;
@@ -26,7 +25,6 @@ export const KanbanStatusView = ({
   items,
   uncompletedItems,
   completedItems,
-  statusTaskMap,
   collapsedViewSections,
   toggleViewSectionCollapse,
   renderTaskItem,
@@ -38,9 +36,9 @@ export const KanbanStatusView = ({
   const sectionPagination = useSectionLoadMore();
 
   const statusGroups = [
-    { id: 'not_started' as TaskStatus, label: t('grouping.notStarted'), color: '#6b7280', icon: <Circle className="h-3.5 w-3.5" />, tasks: statusTaskMap.not_started || [] },
-    { id: 'in_progress' as TaskStatus, label: t('grouping.inProgress'), color: '#3b82f6', icon: <Loader2 className="h-3.5 w-3.5" />, tasks: statusTaskMap.in_progress || [] },
-    { id: 'almost_done' as TaskStatus, label: t('grouping.almostDone'), color: '#f59e0b', icon: <ClockIcon className="h-3.5 w-3.5" />, tasks: statusTaskMap.almost_done || [] },
+    { id: 'not_started' as TaskStatus, label: t('grouping.notStarted'), color: '#6b7280', icon: <Circle className="h-3.5 w-3.5" />, tasks: uncompletedItems.filter(item => !item.status || item.status === 'not_started') },
+    { id: 'in_progress' as TaskStatus, label: t('grouping.inProgress'), color: '#3b82f6', icon: <Loader2 className="h-3.5 w-3.5" />, tasks: uncompletedItems.filter(item => item.status === 'in_progress') },
+    { id: 'almost_done' as TaskStatus, label: t('grouping.almostDone'), color: '#f59e0b', icon: <ClockIcon className="h-3.5 w-3.5" />, tasks: uncompletedItems.filter(item => item.status === 'almost_done') },
     { id: 'completed' as TaskStatus, label: t('grouping.completed'), color: '#10b981', icon: <CheckCircle2 className="h-3.5 w-3.5" />, tasks: completedItems },
   ];
 

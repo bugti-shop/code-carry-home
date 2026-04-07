@@ -134,7 +134,6 @@ const Today = () => {
     smartListData,
     processedItems, searchFilteredItems, uncompletedItems, completedItems,
     sortedSections, toggleViewSectionCollapse, handleClearFilters,
-    sectionTaskMap, priorityTaskMap, statusTaskMap, timelineTaskMap, sectionTaskCounts,
   } = state;
 
   useEffect(() => {
@@ -634,7 +633,6 @@ const Today = () => {
                   sections={sections}
                   uncompletedItems={uncompletedItems}
                   completedItems={completedItems}
-                  sectionTaskMap={sectionTaskMap}
                   showCompleted={showCompleted}
                   collapsedViewSections={collapsedViewSections}
                   toggleViewSectionCollapse={toggleViewSectionCollapse}
@@ -653,7 +651,6 @@ const Today = () => {
                   items={items}
                   uncompletedItems={uncompletedItems}
                   completedItems={completedItems}
-                  statusTaskMap={statusTaskMap}
                   collapsedViewSections={collapsedViewSections}
                   toggleViewSectionCollapse={toggleViewSectionCollapse}
                   renderTaskItem={renderTaskItem}
@@ -666,7 +663,6 @@ const Today = () => {
                   uncompletedItems={uncompletedItems}
                   completedItems={completedItems}
                   showCompleted={showCompleted}
-                  timelineTaskMap={timelineTaskMap}
                   collapsedViewSections={collapsedViewSections}
                   toggleViewSectionCollapse={toggleViewSectionCollapse}
                   renderTaskItem={renderTaskItem}
@@ -702,7 +698,6 @@ const Today = () => {
               ) : viewMode === 'priority' ? (
                 <PriorityView
                   uncompletedItems={uncompletedItems}
-                  priorityTaskMap={priorityTaskMap}
                   collapsedViewSections={collapsedViewSections}
                   toggleViewSectionCollapse={toggleViewSectionCollapse}
                   renderTaskItem={renderTaskItem}
@@ -727,9 +722,6 @@ const Today = () => {
                   sections={sections}
                   uncompletedItems={uncompletedItems}
                   completedItems={completedItems}
-                  sectionTaskMap={sectionTaskMap}
-                  priorityTaskMap={priorityTaskMap}
-                  timelineTaskMap={timelineTaskMap}
                   showCompleted={showCompleted}
                   isCompletedOpen={isCompletedOpen}
                   setIsCompletedOpen={setIsCompletedOpen}
@@ -748,7 +740,6 @@ const Today = () => {
                   sections={sections}
                   uncompletedItems={uncompletedItems}
                   completedItems={completedItems}
-                  sectionTaskMap={sectionTaskMap}
                   showCompleted={showCompleted}
                   isCompletedOpen={isCompletedOpen}
                   setIsCompletedOpen={setIsCompletedOpen}
