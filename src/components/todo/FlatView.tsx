@@ -15,6 +15,7 @@ interface FlatViewProps {
   sections: TaskSection[];
   uncompletedItems: TodoItem[];
   completedItems: TodoItem[];
+  sectionTaskMap: Map<string, TodoItem[]>;
   showCompleted: boolean;
   isCompletedOpen: boolean;
   setIsCompletedOpen: (v: boolean) => void;
@@ -33,6 +34,7 @@ export const FlatView = ({
   sections,
   uncompletedItems,
   completedItems,
+  sectionTaskMap,
   showCompleted,
   isCompletedOpen,
   setIsCompletedOpen,
@@ -131,7 +133,7 @@ export const FlatView = ({
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="space-y-4">
         {sortedSections.map((section) => {
-          const sectionTasks = uncompletedItems.filter(item => item.sectionId === section.id || (!item.sectionId && section.id === sections[0]?.id));
+          const sectionTasks = sectionTaskMap?.get(section.id) || uncompletedItems.filter(item => item.sectionId === section.id || (!item.sectionId && section.id === sections[0]?.id));
           const sectionId = section.id === sections[0]?.id ? 'default' : section.id;
           const isCollapsed = collapsedViewSections.has(`flat-${section.id}`);
           const orderedTasks = applyTaskOrder(sectionTasks, `flat-section-${sectionId}`);

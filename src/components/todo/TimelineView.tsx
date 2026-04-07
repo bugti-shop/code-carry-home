@@ -1,7 +1,6 @@
 import { TodoItem } from '@/types/note';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { AlertCircle, Sun, Calendar as CalendarIcon2, Clock, CalendarX, CheckCircle2 } from 'lucide-react';
-import { isToday, isTomorrow, isThisWeek, isBefore, startOfDay } from 'date-fns';
+import { AlertCircle, Sun, Calendar as CalendarIcon2, Clock, CalendarX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { applyTaskOrder, updateSectionOrder } from '@/utils/taskOrderStorage';
@@ -14,6 +13,7 @@ interface TimelineViewProps {
   uncompletedItems: TodoItem[];
   completedItems: TodoItem[];
   showCompleted: boolean;
+  timelineTaskMap: Record<string, TodoItem[]>;
   collapsedViewSections: Set<string>;
   toggleViewSectionCollapse: (id: string) => void;
   renderTaskItem: (item: TodoItem) => React.ReactNode;
@@ -25,6 +25,7 @@ interface TimelineViewProps {
 
 export const TimelineView = ({
   uncompletedItems,
+  timelineTaskMap,
   collapsedViewSections,
   toggleViewSectionCollapse,
   renderTaskItem,
@@ -34,16 +35,15 @@ export const TimelineView = ({
   setOrderVersion,
 }: TimelineViewProps) => {
   const { t } = useTranslation();
-  const today = startOfDay(new Date());
   const sectionPagination = useSectionLoadMore();
 
   const timelineGroups = [
-    { id: 'timeline-overdue', label: t('grouping.overdue'), tasks: uncompletedItems.filter(item => item.dueDate && isBefore(new Date(item.dueDate), today)), color: '#ef4444', icon: <AlertCircle className="h-4 w-4" /> },
-    { id: 'timeline-today', label: t('grouping.today'), tasks: uncompletedItems.filter(item => item.dueDate && isToday(new Date(item.dueDate))), color: '#3b82f6', icon: <Sun className="h-4 w-4" /> },
-    { id: 'timeline-tomorrow', label: t('grouping.tomorrow'), tasks: uncompletedItems.filter(item => item.dueDate && isTomorrow(new Date(item.dueDate))), color: '#f59e0b', icon: <CalendarIcon2 className="h-4 w-4" /> },
-    { id: 'timeline-thisweek', label: t('grouping.thisWeek'), tasks: uncompletedItems.filter(item => item.dueDate && isThisWeek(new Date(item.dueDate)) && !isToday(new Date(item.dueDate)) && !isTomorrow(new Date(item.dueDate))), color: '#10b981', icon: <CalendarIcon2 className="h-4 w-4" /> },
-    { id: 'timeline-later', label: t('grouping.later'), tasks: uncompletedItems.filter(item => item.dueDate && !isBefore(new Date(item.dueDate), today) && !isThisWeek(new Date(item.dueDate))), color: '#8b5cf6', icon: <Clock className="h-4 w-4" /> },
-    { id: 'timeline-nodate', label: t('grouping.noDate'), tasks: uncompletedItems.filter(item => !item.dueDate), color: '#6b7280', icon: <CalendarX className="h-4 w-4" /> },
+    { id: 'timeline-overdue', label: t('grouping.overdue'), tasks: timelineTaskMap.overdue || [], color: '#ef4444', icon: <AlertCircle className="h-4 w-4" /> },
+    { id: 'timeline-today', label: t('grouping.today'), tasks: timelineTaskMap.today || [], color: '#3b82f6', icon: <Sun className="h-4 w-4" /> },
+    { id: 'timeline-tomorrow', label: t('grouping.tomorrow'), tasks: timelineTaskMap.tomorrow || [], color: '#f59e0b', icon: <CalendarIcon2 className="h-4 w-4" /> },
+    { id: 'timeline-thisweek', label: t('grouping.thisWeek'), tasks: timelineTaskMap.thisWeek || [], color: '#10b981', icon: <CalendarIcon2 className="h-4 w-4" /> },
+    { id: 'timeline-later', label: t('grouping.later'), tasks: timelineTaskMap.later || [], color: '#8b5cf6', icon: <Clock className="h-4 w-4" /> },
+    { id: 'timeline-nodate', label: t('grouping.noDate'), tasks: timelineTaskMap.noDate || [], color: '#6b7280', icon: <CalendarX className="h-4 w-4" /> },
   ];
 
   const handleDragEnd = (result: DropResult) => {
