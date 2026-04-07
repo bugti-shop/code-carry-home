@@ -12,6 +12,7 @@ import { LoadMoreButton } from '@/components/todo/LoadMoreButton';
 
 interface PriorityViewProps {
   uncompletedItems: TodoItem[];
+  priorityTaskMap: Record<string, TodoItem[]>;
   collapsedViewSections: Set<string>;
   toggleViewSectionCollapse: (id: string) => void;
   renderTaskItem: (item: TodoItem) => React.ReactNode;
@@ -25,6 +26,7 @@ interface PriorityViewProps {
 
 export const PriorityView = ({
   uncompletedItems,
+  priorityTaskMap,
   collapsedViewSections,
   toggleViewSectionCollapse,
   renderTaskItem,
@@ -39,10 +41,10 @@ export const PriorityView = ({
   const sectionPagination = useSectionLoadMore();
 
   const priorityGroups = [
-    { id: 'priority-high', label: t('grouping.highPriority', 'High Priority'), tasks: uncompletedItems.filter(i => i.priority === 'high'), color: getPriorityColor('high'), icon: <Flame className="h-4 w-4" style={{ color: getPriorityColor('high') }} /> },
-    { id: 'priority-medium', label: t('grouping.mediumPriority', 'Medium Priority'), tasks: uncompletedItems.filter(i => i.priority === 'medium'), color: getPriorityColor('medium'), icon: <Flag className="h-4 w-4" style={{ color: getPriorityColor('medium') }} /> },
-    { id: 'priority-low', label: t('grouping.lowPriority', 'Low Priority'), tasks: uncompletedItems.filter(i => i.priority === 'low'), color: getPriorityColor('low'), icon: <Flag className="h-4 w-4" style={{ color: getPriorityColor('low') }} /> },
-    { id: 'priority-none', label: t('grouping.noPriority', 'No Priority'), tasks: uncompletedItems.filter(i => !i.priority || i.priority === 'none'), color: getPriorityColor('none'), icon: <Flag className="h-4 w-4" style={{ color: getPriorityColor('none') }} /> },
+    { id: 'priority-high', label: t('grouping.highPriority', 'High Priority'), tasks: priorityTaskMap.high || [], color: getPriorityColor('high'), icon: <Flame className="h-4 w-4" style={{ color: getPriorityColor('high') }} /> },
+    { id: 'priority-medium', label: t('grouping.mediumPriority', 'Medium Priority'), tasks: priorityTaskMap.medium || [], color: getPriorityColor('medium'), icon: <Flag className="h-4 w-4" style={{ color: getPriorityColor('medium') }} /> },
+    { id: 'priority-low', label: t('grouping.lowPriority', 'Low Priority'), tasks: priorityTaskMap.low || [], color: getPriorityColor('low'), icon: <Flag className="h-4 w-4" style={{ color: getPriorityColor('low') }} /> },
+    { id: 'priority-none', label: t('grouping.noPriority', 'No Priority'), tasks: priorityTaskMap.none || [], color: getPriorityColor('none'), icon: <Flag className="h-4 w-4" style={{ color: getPriorityColor('none') }} /> },
   ];
 
   const handleDragEnd = (result: DropResult) => {

@@ -17,6 +17,9 @@ interface GroupedViewProps {
   sections: TaskSection[];
   uncompletedItems: TodoItem[];
   completedItems: TodoItem[];
+  sectionTaskMap: Map<string, TodoItem[]>;
+  priorityTaskMap: Record<string, TodoItem[]>;
+  timelineTaskMap: Record<string, TodoItem[]>;
   showCompleted: boolean;
   isCompletedOpen: boolean;
   setIsCompletedOpen: (v: boolean) => void;
@@ -36,6 +39,9 @@ export const GroupedView = ({
   sections,
   uncompletedItems,
   completedItems,
+  sectionTaskMap,
+  priorityTaskMap,
+  timelineTaskMap,
   showCompleted,
   isCompletedOpen,
   setIsCompletedOpen,
@@ -51,26 +57,25 @@ export const GroupedView = ({
   const { t } = useTranslation();
   const sectionPagination = useSectionLoadMore();
 
-  let groups: { id: string; label: string; color: string; icon: React.ReactNode; tasks: TodoItem[] }[] = [];
+  const groups: { id: string; label: string; color: string; icon: React.ReactNode; tasks: TodoItem[] }[] = [];
   if (groupByOption === 'section') {
-    groups = sortedSections.map(section => ({ id: section.id, label: section.name, color: section.color, icon: <Columns3 className="h-4 w-4" style={{ color: section.color }} />, tasks: uncompletedItems.filter(item => item.sectionId === section.id || (!item.sectionId && section.id === sections[0]?.id)) }));
+    sortedSections.forEach(section => groups.push({ id: section.id, label: section.name, color: section.color, icon: <Columns3 className="h-4 w-4" style={{ color: section.color }} />, tasks: sectionTaskMap.get(section.id) || [] }));
   } else if (groupByOption === 'priority') {
-    groups = [
-      { id: 'high', label: t('grouping.highPriority'), color: getPriorityColor('high'), icon: <Flame className="h-4 w-4" style={{ color: getPriorityColor('high') }} />, tasks: uncompletedItems.filter(i => i.priority === 'high') },
-      { id: 'medium', label: t('grouping.mediumPriority'), color: getPriorityColor('medium'), icon: <Flag className="h-4 w-4" style={{ color: getPriorityColor('medium') }} />, tasks: uncompletedItems.filter(i => i.priority === 'medium') },
-      { id: 'low', label: t('grouping.lowPriority'), color: getPriorityColor('low'), icon: <Flag className="h-4 w-4" style={{ color: getPriorityColor('low') }} />, tasks: uncompletedItems.filter(i => i.priority === 'low') },
-      { id: 'none', label: t('grouping.noPriority'), color: getPriorityColor('none'), icon: <Flag className="h-4 w-4" style={{ color: getPriorityColor('none') }} />, tasks: uncompletedItems.filter(i => !i.priority || i.priority === 'none') },
-    ];
+    groups.push(
+      { id: 'high', label: t('grouping.highPriority'), color: getPriorityColor('high'), icon: <Flame className="h-4 w-4" style={{ color: getPriorityColor('high') }} />, tasks: priorityTaskMap.high || [] },
+      { id: 'medium', label: t('grouping.mediumPriority'), color: getPriorityColor('medium'), icon: <Flag className="h-4 w-4" style={{ color: getPriorityColor('medium') }} />, tasks: priorityTaskMap.medium || [] },
+      { id: 'low', label: t('grouping.lowPriority'), color: getPriorityColor('low'), icon: <Flag className="h-4 w-4" style={{ color: getPriorityColor('low') }} />, tasks: priorityTaskMap.low || [] },
+      { id: 'none', label: t('grouping.noPriority'), color: getPriorityColor('none'), icon: <Flag className="h-4 w-4" style={{ color: getPriorityColor('none') }} />, tasks: priorityTaskMap.none || [] },
+    );
   } else if (groupByOption === 'date') {
-    const today = startOfDay(new Date());
-    groups = [
-      { id: 'overdue', label: t('grouping.overdue'), color: '#ef4444', icon: <AlertCircle className="h-4 w-4 text-destructive" />, tasks: uncompletedItems.filter(i => i.dueDate && isBefore(new Date(i.dueDate), today)) },
-      { id: 'today', label: t('grouping.today'), color: '#3b82f6', icon: <Sun className="h-4 w-4 text-info" />, tasks: uncompletedItems.filter(i => i.dueDate && isToday(new Date(i.dueDate))) },
-      { id: 'tomorrow', label: t('grouping.tomorrow'), color: '#f59e0b', icon: <CalendarIcon2 className="h-4 w-4 text-warning" />, tasks: uncompletedItems.filter(i => i.dueDate && isTomorrow(new Date(i.dueDate))) },
-      { id: 'this-week', label: t('grouping.thisWeek'), color: '#10b981', icon: <CalendarIcon2 className="h-4 w-4 text-success" />, tasks: uncompletedItems.filter(i => i.dueDate && isThisWeek(new Date(i.dueDate)) && !isToday(new Date(i.dueDate)) && !isTomorrow(new Date(i.dueDate))) },
-      { id: 'later', label: t('grouping.later'), color: '#8b5cf6', icon: <Clock className="h-4 w-4 text-accent-purple" />, tasks: uncompletedItems.filter(i => i.dueDate && !isBefore(new Date(i.dueDate), today) && !isThisWeek(new Date(i.dueDate))) },
-      { id: 'no-date', label: t('grouping.noDate'), color: '#6b7280', icon: <CalendarX className="h-4 w-4 text-muted-foreground" />, tasks: uncompletedItems.filter(i => !i.dueDate) },
-    ];
+    groups.push(
+      { id: 'overdue', label: t('grouping.overdue'), color: '#ef4444', icon: <AlertCircle className="h-4 w-4 text-destructive" />, tasks: timelineTaskMap.overdue || [] },
+      { id: 'today', label: t('grouping.today'), color: '#3b82f6', icon: <Sun className="h-4 w-4 text-info" />, tasks: timelineTaskMap.today || [] },
+      { id: 'tomorrow', label: t('grouping.tomorrow'), color: '#f59e0b', icon: <CalendarIcon2 className="h-4 w-4 text-warning" />, tasks: timelineTaskMap.tomorrow || [] },
+      { id: 'this-week', label: t('grouping.thisWeek'), color: '#10b981', icon: <CalendarIcon2 className="h-4 w-4 text-success" />, tasks: timelineTaskMap.thisWeek || [] },
+      { id: 'later', label: t('grouping.later'), color: '#8b5cf6', icon: <Clock className="h-4 w-4 text-accent-purple" />, tasks: timelineTaskMap.later || [] },
+      { id: 'no-date', label: t('grouping.noDate'), color: '#6b7280', icon: <CalendarX className="h-4 w-4 text-muted-foreground" />, tasks: timelineTaskMap.noDate || [] },
+    );
   }
 
   const handleDragEnd = (result: DropResult) => {
