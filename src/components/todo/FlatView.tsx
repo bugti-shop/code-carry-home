@@ -76,7 +76,7 @@ export const FlatView = ({
   if (useVirtualizedList) {
     return (
       <div className="space-y-4">
-        <div className="rounded-xl border border-border/30 bg-muted/20 overflow-hidden">
+        <div className="rounded-xl border border-border/30 bg-muted/20 overflow-hidden min-h-[20rem]">
           <VirtualizedTaskList
             items={uncompletedItems}
             sections={sortedSections}
