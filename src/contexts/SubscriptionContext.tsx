@@ -158,11 +158,15 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   // RevenueCat state
   const [isInitialized, setIsInitialized] = useState(false);
   const [rcLoading, setRcLoading] = useState(false);
-  // Initialize rcIsPro from local cache for instant access on web refresh
+  // Initialize rcIsPro from local cache for instant access on both web and native
   const [rcIsPro, setRcIsPro] = useState(() => {
-    if (!Capacitor.isNativePlatform()) {
-      try { return localStorage.getItem('flowist_stripe_subscribed') === 'true'; } catch {}
-    }
+    try {
+      if (!Capacitor.isNativePlatform()) {
+        return localStorage.getItem('flowist_stripe_subscribed') === 'true';
+      }
+      // On native, trust cached RC entitlement until RC verifies
+      return localStorage.getItem('flowist_rc_entitled') === 'true';
+    } catch {}
     return false;
   });
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
@@ -345,6 +349,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setCustomerInfo(info);
       const hasEntitlement = info.entitlements.active[ENTITLEMENT_ID] !== undefined;
       setRcIsPro(hasEntitlement);
+      // Cache entitlement on native for instant access on next cold start
+      try { localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false'); } catch {}
 
       const offeringsData = await Purchases.getOfferings();
       setOfferings(offeringsData);
@@ -367,6 +373,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setCustomerInfo(info);
       const hasEntitlement = info.entitlements.active[ENTITLEMENT_ID] !== undefined;
       setRcIsPro(hasEntitlement);
+      try { localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false'); } catch {}
       return hasEntitlement;
     } catch (err) {
       console.error('RevenueCat: Error checking entitlement', err);
@@ -599,7 +606,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       await Purchases.logOut();
       setCustomerInfo(null);
       setRcIsPro(false);
-      // Don't reset isInitialized - SDK stays configured, just anonymous now
+      try { localStorage.removeItem('flowist_rc_entitled'); } catch {}
       console.log('RevenueCat: Logged out, subscription disassociated');
     } catch (err) {
       console.error('RevenueCat: Logout error', err);

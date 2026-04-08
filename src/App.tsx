@@ -283,6 +283,8 @@ const AppContent = () => {
     if (onboardingJustCompleted.current) return;
     // Don't reset while the user is intentionally moving from onboarding to paywall/checkout
     if (awaitingSubscriptionChoice.current) return;
+    // On native: if user was ever pro this session, don't reset — RC may just be slow
+    if (wasEverPro.current) return;
     // No active subscription — redirect to language selection
     setSetting('onboarding_completed', false).then(() => {
       setShowOnboarding(true);
