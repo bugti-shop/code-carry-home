@@ -1027,18 +1027,30 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const tier: SubscriptionTier = isPro ? 'premium' : 'free';
   const isLoading = localLoading || rcLoading || (Capacitor.isNativePlatform() && !isInitialized) || (!Capacitor.isNativePlatform() && !isWebSubscriptionResolved);
 
-  // Detect plan type from RevenueCat entitlement or Stripe
+  // Detect plan type from RevenueCat entitlement, Stripe, or offline cache
   const planType: SubscriptionPlanType = useMemo(() => {
     if (!isPro) return 'none';
     if (localProAccess) return 'monthly';
-    // Web Stripe plan type
-    const stripePlan = (window as any).__stripePlanType;
+    // Web Stripe plan type (live or cached)
+    const stripePlan = (window as any).__stripePlanType || (() => {
+      try { return localStorage.getItem('flowist_stripe_plan'); } catch { return null; }
+    })();
     if (!Capacitor.isNativePlatform() && stripePlan) {
       if (stripePlan === 'weekly') return 'weekly';
       if (stripePlan === 'monthly') return 'monthly';
       if (stripePlan === 'yearly') return 'yearly';
     }
-    if (!customerInfo) return 'none';
+    // Native: check RC customer info or cached product
+    if (!customerInfo) {
+      // Offline fallback: use cached product identifier
+      try {
+        const cachedProduct = localStorage.getItem('flowist_rc_product') || '';
+        if (cachedProduct.includes('_yr') || cachedProduct.includes('yearly')) return 'yearly';
+        if (cachedProduct.includes('weekly') || cachedProduct.includes('_wk')) return 'weekly';
+        if (cachedProduct.includes('month') || cachedProduct.includes('mo')) return 'monthly';
+      } catch {}
+      return 'none';
+    }
     const entitlement = customerInfo.entitlements.active[ENTITLEMENT_ID];
     if (!entitlement) return 'none';
     const productId = entitlement.productIdentifier || '';
