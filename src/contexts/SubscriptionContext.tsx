@@ -606,7 +606,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       await Purchases.logOut();
       setCustomerInfo(null);
       setRcIsPro(false);
-      // Don't reset isInitialized - SDK stays configured, just anonymous now
+      try { localStorage.removeItem('flowist_rc_entitled'); } catch {}
       console.log('RevenueCat: Logged out, subscription disassociated');
     } catch (err) {
       console.error('RevenueCat: Logout error', err);
