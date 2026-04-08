@@ -156,7 +156,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [signoutGraceActive, setSignoutGraceActive] = useState(false);
 
   // RevenueCat state
-  const [isInitialized, setIsInitialized] = useState(false);
+  // If native user was previously entitled, mark as initialized immediately for offline-first access
+  const [isInitialized, setIsInitialized] = useState(() => {
+    if (Capacitor.isNativePlatform()) {
+      try { return localStorage.getItem('flowist_rc_entitled') === 'true'; } catch {}
+    }
+    return false;
+  });
   const [rcLoading, setRcLoading] = useState(false);
   // Initialize rcIsPro from local cache for instant access on both web and native
   const [rcIsPro, setRcIsPro] = useState(() => {
