@@ -355,8 +355,16 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setCustomerInfo(info);
       const hasEntitlement = info.entitlements.active[ENTITLEMENT_ID] !== undefined;
       setRcIsPro(hasEntitlement);
-      // Cache entitlement on native for instant access on next cold start
-      try { localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false'); } catch {}
+      // Cache entitlement + plan details on native for offline-first access
+      try {
+        localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false');
+        if (hasEntitlement) {
+          const entitlement = info.entitlements.active[ENTITLEMENT_ID];
+          if (entitlement?.productIdentifier) {
+            localStorage.setItem('flowist_rc_product', entitlement.productIdentifier);
+          }
+        }
+      } catch {}
 
       const offeringsData = await Purchases.getOfferings();
       setOfferings(offeringsData);
@@ -367,6 +375,14 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       const errorMessage = err instanceof Error ? err.message : 'Failed to initialize RevenueCat';
       console.error('RevenueCat: Initialization error', err);
       setError(errorMessage);
+      // Offline-first: if RC fails (no network) but cache says entitled, keep access
+      try {
+        if (localStorage.getItem('flowist_rc_entitled') === 'true') {
+          console.log('RevenueCat: Init failed but cached entitlement found — granting offline access');
+          setRcIsPro(true);
+        }
+      } catch {}
+      setIsInitialized(true); // Always resolve so isLoading doesn't hang
     } finally {
       setRcLoading(false);
     }
