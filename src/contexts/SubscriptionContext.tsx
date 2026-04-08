@@ -156,7 +156,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [signoutGraceActive, setSignoutGraceActive] = useState(false);
 
   // RevenueCat state
-  const [isInitialized, setIsInitialized] = useState(false);
+  // If native user was previously entitled, mark as initialized immediately for offline-first access
+  const [isInitialized, setIsInitialized] = useState(() => {
+    if (Capacitor.isNativePlatform()) {
+      try { return localStorage.getItem('flowist_rc_entitled') === 'true'; } catch {}
+    }
+    return false;
+  });
   const [rcLoading, setRcLoading] = useState(false);
   // Initialize rcIsPro from local cache for instant access on both web and native
   const [rcIsPro, setRcIsPro] = useState(() => {
@@ -349,8 +355,16 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setCustomerInfo(info);
       const hasEntitlement = info.entitlements.active[ENTITLEMENT_ID] !== undefined;
       setRcIsPro(hasEntitlement);
-      // Cache entitlement on native for instant access on next cold start
-      try { localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false'); } catch {}
+      // Cache entitlement + plan details on native for offline-first access
+      try {
+        localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false');
+        if (hasEntitlement) {
+          const entitlement = info.entitlements.active[ENTITLEMENT_ID];
+          if (entitlement?.productIdentifier) {
+            localStorage.setItem('flowist_rc_product', entitlement.productIdentifier);
+          }
+        }
+      } catch {}
 
       const offeringsData = await Purchases.getOfferings();
       setOfferings(offeringsData);
@@ -361,6 +375,14 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       const errorMessage = err instanceof Error ? err.message : 'Failed to initialize RevenueCat';
       console.error('RevenueCat: Initialization error', err);
       setError(errorMessage);
+      // Offline-first: if RC fails (no network) but cache says entitled, keep access
+      try {
+        if (localStorage.getItem('flowist_rc_entitled') === 'true') {
+          console.log('RevenueCat: Init failed but cached entitlement found — granting offline access');
+          setRcIsPro(true);
+        }
+      } catch {}
+      setIsInitialized(true); // Always resolve so isLoading doesn't hang
     } finally {
       setRcLoading(false);
     }
@@ -677,16 +699,24 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         }
         try { localStorage.setItem('flowist_stripe_subscribed', 'true'); } catch {}
         try { localStorage.setItem('flowist_trial_used', 'true'); } catch {}
+        // Cache plan details for offline-first access
+        try {
+          if (data.plan_type) localStorage.setItem('flowist_stripe_plan', data.plan_type);
+          localStorage.setItem('flowist_stripe_trialing', data.is_trialing ? 'true' : 'false');
+          localStorage.setItem('flowist_sub_verified_at', String(Date.now()));
+        } catch {}
         setShowPaywall(false);
         setPaywallFeature(null);
       } else {
-        // Server confirmed no subscription — only then revoke access
+        // Server confirmed no subscription — only revoke if verification is recent (not stale network error)
         if (!isAdminBypass) {
           setRcIsPro(false);
           setShowPaywall(true);
           try {
             localStorage.removeItem('flowist_stripe_subscribed');
             localStorage.removeItem('flowist_stripe_customer_email');
+            localStorage.removeItem('flowist_stripe_plan');
+            localStorage.removeItem('flowist_sub_verified_at');
           } catch {}
         }
       }
@@ -997,18 +1027,30 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const tier: SubscriptionTier = isPro ? 'premium' : 'free';
   const isLoading = localLoading || rcLoading || (Capacitor.isNativePlatform() && !isInitialized) || (!Capacitor.isNativePlatform() && !isWebSubscriptionResolved);
 
-  // Detect plan type from RevenueCat entitlement or Stripe
+  // Detect plan type from RevenueCat entitlement, Stripe, or offline cache
   const planType: SubscriptionPlanType = useMemo(() => {
     if (!isPro) return 'none';
     if (localProAccess) return 'monthly';
-    // Web Stripe plan type
-    const stripePlan = (window as any).__stripePlanType;
+    // Web Stripe plan type (live or cached)
+    const stripePlan = (window as any).__stripePlanType || (() => {
+      try { return localStorage.getItem('flowist_stripe_plan'); } catch { return null; }
+    })();
     if (!Capacitor.isNativePlatform() && stripePlan) {
       if (stripePlan === 'weekly') return 'weekly';
       if (stripePlan === 'monthly') return 'monthly';
       if (stripePlan === 'yearly') return 'yearly';
     }
-    if (!customerInfo) return 'none';
+    // Native: check RC customer info or cached product
+    if (!customerInfo) {
+      // Offline fallback: use cached product identifier
+      try {
+        const cachedProduct = localStorage.getItem('flowist_rc_product') || '';
+        if (cachedProduct.includes('_yr') || cachedProduct.includes('yearly')) return 'yearly';
+        if (cachedProduct.includes('weekly') || cachedProduct.includes('_wk')) return 'weekly';
+        if (cachedProduct.includes('month') || cachedProduct.includes('mo')) return 'monthly';
+      } catch {}
+      return 'none';
+    }
     const entitlement = customerInfo.entitlements.active[ENTITLEMENT_ID];
     if (!entitlement) return 'none';
     const productId = entitlement.productIdentifier || '';
