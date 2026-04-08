@@ -158,11 +158,15 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   // RevenueCat state
   const [isInitialized, setIsInitialized] = useState(false);
   const [rcLoading, setRcLoading] = useState(false);
-  // Initialize rcIsPro from local cache for instant access on web refresh
+  // Initialize rcIsPro from local cache for instant access on both web and native
   const [rcIsPro, setRcIsPro] = useState(() => {
-    if (!Capacitor.isNativePlatform()) {
-      try { return localStorage.getItem('flowist_stripe_subscribed') === 'true'; } catch {}
-    }
+    try {
+      if (!Capacitor.isNativePlatform()) {
+        return localStorage.getItem('flowist_stripe_subscribed') === 'true';
+      }
+      // On native, trust cached RC entitlement until RC verifies
+      return localStorage.getItem('flowist_rc_entitled') === 'true';
+    } catch {}
     return false;
   });
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
