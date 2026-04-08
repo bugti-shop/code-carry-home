@@ -699,16 +699,24 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         }
         try { localStorage.setItem('flowist_stripe_subscribed', 'true'); } catch {}
         try { localStorage.setItem('flowist_trial_used', 'true'); } catch {}
+        // Cache plan details for offline-first access
+        try {
+          if (data.plan_type) localStorage.setItem('flowist_stripe_plan', data.plan_type);
+          localStorage.setItem('flowist_stripe_trialing', data.is_trialing ? 'true' : 'false');
+          localStorage.setItem('flowist_sub_verified_at', String(Date.now()));
+        } catch {}
         setShowPaywall(false);
         setPaywallFeature(null);
       } else {
-        // Server confirmed no subscription — only then revoke access
+        // Server confirmed no subscription — only revoke if verification is recent (not stale network error)
         if (!isAdminBypass) {
           setRcIsPro(false);
           setShowPaywall(true);
           try {
             localStorage.removeItem('flowist_stripe_subscribed');
             localStorage.removeItem('flowist_stripe_customer_email');
+            localStorage.removeItem('flowist_stripe_plan');
+            localStorage.removeItem('flowist_sub_verified_at');
           } catch {}
         }
       }
