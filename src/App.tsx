@@ -273,12 +273,25 @@ const AppContent = () => {
 
   // Handle subscription state
   useEffect(() => {
-    if (subLoading || showOnboarding || isVerifyingCheckout) return;
+    if (subLoading || isVerifyingCheckout) return;
+    
     if (isPro) {
       awaitingSubscriptionChoice.current = false;
       sessionStorage.removeItem('awaitingSubscriptionChoice');
+      
+      // If user is verified Pro but onboarding is still showing, auto-skip it
+      // This handles: subscribed user on web who refreshes or returns after sign-out grace
+      if (showOnboarding) {
+        console.log('[App] Subscribed user detected — auto-skipping onboarding');
+        setSetting('onboarding_completed', true).then(() => {
+          startTransition(() => setShowOnboarding(false));
+        });
+      }
       return;
     }
+    
+    // Don't process non-pro logic while onboarding is active (user is going through it)
+    if (showOnboarding) return;
     // Don't reset if onboarding just completed (trial/subscription state still propagating)
     if (onboardingJustCompleted.current) return;
     // Don't reset while the user is intentionally moving from onboarding to paywall/checkout
