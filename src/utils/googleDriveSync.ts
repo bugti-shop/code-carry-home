@@ -605,7 +605,15 @@ const setLastSyncTime = async () => {
 // ── Upload (push local → Drive) ──────────────────────────────────────────
 
 export const uploadToDrive = async (): Promise<void> => {
-  const token = await getValidAccessToken();
+  // Pre-validate token ONCE before starting parallel uploads
+  // This prevents all categories from failing individually on token issues
+  let token: string | null;
+  try {
+    token = await getValidAccessToken();
+  } catch (e) {
+    console.error('[DriveSync] ❌ Token acquisition failed:', e);
+    throw new Error('Token refresh failed');
+  }
   if (!token) {
     console.error('[DriveSync] ❌ Upload failed — no valid access token');
     throw new Error('Not signed in');
@@ -615,7 +623,22 @@ export const uploadToDrive = async (): Promise<void> => {
 
   const categories = await getCategories();
 
-  await warmDriveFileCache('upload');
+  try {
+    await warmDriveFileCache('upload');
+  } catch (e) {
+    // If warming cache fails (token issue), try refreshing once more
+    console.warn('[DriveSync] ⚠️ Cache warm failed, retrying token refresh...');
+    const { refreshGoogleToken: refresh } = await import('@/utils/googleAuth');
+    try {
+      const refreshed = await refresh();
+      if (!refreshed?.accessToken) throw new Error('No token after refresh');
+    } catch (refreshErr) {
+      console.error('[DriveSync] ❌ Token refresh failed, aborting upload:', refreshErr);
+      throw new Error('Token refresh failed — please sign in again');
+    }
+    // Retry cache warm with fresh token
+    await warmDriveFileCache('upload');
+  }
 
   // Build progress tracking
   const catProgress: SyncCategoryProgress[] = categories.map((cat) => ({
