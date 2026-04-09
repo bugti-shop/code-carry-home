@@ -1032,7 +1032,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     ? (rcIsPro || localProAccess || signoutGraceActive)
     : (rcIsPro || localProAccess || signoutGraceActive);
   const tier: SubscriptionTier = isPro ? 'premium' : 'free';
-  const isLoading = localLoading || rcLoading || (Capacitor.isNativePlatform() && !isInitialized) || (!Capacitor.isNativePlatform() && !isWebSubscriptionResolved);
+  // Never block loading for cached subscribers — they get instant access
+  const isCachedSubscriber = rcIsPro && !localLoading;
+  const isLoading = isCachedSubscriber ? false : (localLoading || rcLoading || (Capacitor.isNativePlatform() && !isInitialized) || (!Capacitor.isNativePlatform() && !isWebSubscriptionResolved));
 
   // Detect plan type from RevenueCat entitlement, Stripe, or offline cache
   const planType: SubscriptionPlanType = useMemo(() => {
