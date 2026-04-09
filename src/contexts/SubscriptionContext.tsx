@@ -138,7 +138,14 @@ const SIGNOUT_GRACE_MS = 24 * 60 * 60 * 1000; // 1 day after sign-out
 export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   // Local state
   const [localProAccess, setLocalProAccess] = useState(false);
-  const [localLoading, setLocalLoading] = useState(true);
+  // If cached as subscribed, skip local loading entirely — instant access
+  const [localLoading, setLocalLoading] = useState(() => {
+    try {
+      if (!Capacitor.isNativePlatform() && localStorage.getItem('flowist_stripe_subscribed') === 'true') return false;
+      if (Capacitor.isNativePlatform() && localStorage.getItem('flowist_rc_entitled') === 'true') return false;
+    } catch {}
+    return true;
+  });
   // On web: if user was previously verified as subscribed, trust local cache instantly
   // and verify silently in background — no paywall flash for returning subscribers
   const [showPaywall, setShowPaywall] = useState(() => {
