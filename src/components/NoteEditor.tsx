@@ -41,7 +41,7 @@ import { sanitizeForDisplay } from '@/lib/sanitize';
 import { ErrorBoundary } from './ErrorBoundary';
 import { PdfExportSuccessDialog } from './PdfExportSuccessDialog';
 import { PdfExportOptionsSheet, PdfExportSettings } from './PdfExportOptionsSheet';
-import { ArrowLeft, Folder as FolderIcon, Plus, CalendarIcon, History, FileDown, Link2, ChevronDown, FileText, BookOpen, BarChart3, MoreVertical, Mic, Share2, Search, Image, Table, Minus, SeparatorHorizontal, MessageSquare, FileSymlink, FileType, Bell, Clock, Repeat, Trash2, Mail, Phone, LinkIcon, Copy, Replace, Palette, Hash, Crown, ListFilter, CaseLower, Tag as TagIcon } from 'lucide-react';
+import { ArrowLeft, Folder as FolderIcon, Plus, CalendarIcon, History, FileDown, Link2, ChevronDown, FileText, BookOpen, BarChart3, MoreVertical, Mic, Share2, Search, Image, Table, Minus, SeparatorHorizontal, MessageSquare, FileSymlink, FileType, Bell, Clock, Repeat, Trash2, Mail, Phone, LinkIcon, Copy, Replace, Palette, Hash, Crown, ListFilter, CaseLower, Tag as TagIcon, Sparkles } from 'lucide-react';
 import { exportNoteToPdf, getPageBreakCount, PdfExportResult } from '@/utils/exportToPdf';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
