@@ -279,7 +279,7 @@ export const generateDailyPlanner = (): string => {
 
   return JSON.stringify({
     layers: [layer0, layer1], activeLayerId: 1,
-    background: 'dots', width: W, height: H, version: 2,
+    background: 'dotted', width: W, height: H, version: 2,
   } as SketchData);
 };
 
@@ -362,7 +362,7 @@ export const generateMindMap = (): string => {
 
   return JSON.stringify({
     layers: [layer0, layer1], activeLayerId: 1,
-    background: 'dots', width: W, height: H, version: 2,
+    background: 'dotted', width: W, height: H, version: 2,
   } as SketchData);
 };
 
@@ -436,7 +436,7 @@ export const generateCornellNotes = (): string => {
 
   return JSON.stringify({
     layers: [layer0, layer1], activeLayerId: 1,
-    background: 'lined', width: W, height: H, version: 2,
+    background: 'ruled', width: W, height: H, version: 2,
   } as SketchData);
 };
 
