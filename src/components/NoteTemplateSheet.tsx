@@ -15,8 +15,9 @@ import { getSetting, setSetting } from '@/utils/settingsStorage';
 import {
   BookOpen, Briefcase, GraduationCap, Heart, Utensils, FileText,
   Search, Plus, Trash2, ChevronRight, X, Star, LayoutTemplate,
-  Notebook, Receipt, Calendar, Lightbulb, Globe, Dumbbell
+  Notebook, Receipt, Calendar, Lightbulb, Globe, Dumbbell, Pen
 } from 'lucide-react';
+import { SKETCH_TEMPLATES } from '@/utils/sketchTemplates';
 import { Note, NoteType, Folder } from '@/types/note';
 
 // ─── Types ───
