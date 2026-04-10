@@ -42,7 +42,7 @@ export interface NoteTemplate {
 // ─── Icon map ───
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   BookOpen, Briefcase, GraduationCap, Heart, Utensils, FileText,
-  Star, LayoutTemplate, Notebook, Receipt, Calendar, Lightbulb, Globe, Dumbbell,
+  Star, LayoutTemplate, Notebook, Receipt, Calendar, Lightbulb, Globe, Dumbbell, Pen,
 };
 const ICON_OPTIONS = Object.keys(ICON_MAP);
 
