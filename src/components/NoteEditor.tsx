@@ -1021,6 +1021,12 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
                   <BarChart3 className="h-4 w-4 mr-2" />
                   {showStats ? t('editor.hideStats') : t('editor.showStats')}
                 </DropdownMenuItem>
+                {noteType === 'sketch' && (
+                  <DropdownMenuItem onClick={() => setShowSketchTemplates(true)}>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    {t('sketch.templates', 'Sketch Templates')}
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => setIsReadingMode(!isReadingMode)}>
                   <BookOpen className="h-4 w-4 mr-2" />
                   {isReadingMode ? t('editor.exitReadingMode') : t('editor.enterReadingMode')}
