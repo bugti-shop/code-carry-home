@@ -15,9 +15,8 @@ import { getSetting, setSetting } from '@/utils/settingsStorage';
 import {
   BookOpen, Briefcase, GraduationCap, Heart, Utensils, FileText,
   Search, Plus, Trash2, ChevronRight, X, Star, LayoutTemplate,
-  Notebook, Receipt, Calendar, Lightbulb, Globe, Dumbbell, Pen
+  Notebook, Receipt, Calendar, Lightbulb, Globe, Dumbbell
 } from 'lucide-react';
-import { SKETCH_TEMPLATES } from '@/utils/sketchTemplates';
 import { Note, NoteType, Folder } from '@/types/note';
 
 // ─── Types ───
@@ -42,7 +41,7 @@ export interface NoteTemplate {
 // ─── Icon map ───
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   BookOpen, Briefcase, GraduationCap, Heart, Utensils, FileText,
-  Star, LayoutTemplate, Notebook, Receipt, Calendar, Lightbulb, Globe, Dumbbell, Pen,
+  Star, LayoutTemplate, Notebook, Receipt, Calendar, Lightbulb, Globe, Dumbbell,
 };
 const ICON_OPTIONS = Object.keys(ICON_MAP);
 
@@ -1203,20 +1202,6 @@ const useIndexedDBStorage = (key: string, initialValue: any) => {
       },
     ],
   },
-  // ─── Sketch Templates ───
-  ...SKETCH_TEMPLATES.map(st => ({
-    id: st.id,
-    name: st.name,
-    icon: 'Pen',
-    description: st.description,
-    category: 'Sketch',
-    folderColor: '#8b5cf6',
-    notes: [{
-      title: st.name,
-      type: 'sketch' as NoteType,
-      content: st.generator(),
-    }],
-  })),
 ];
 
 const CATEGORIES = [...new Set(DEFAULT_NOTE_TEMPLATES.map(t => t.category))];

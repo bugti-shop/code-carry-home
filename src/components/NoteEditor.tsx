@@ -27,7 +27,6 @@ const SketchEditor = lazy(() =>
 sketchImport().catch(() => {});
 import { SketchNotebookLibrary } from './SketchNotebookLibrary';
 import { TemplateSelector } from './TemplateSelector';
-import { SketchTemplateSheet } from './SketchTemplateSheet';
 import { NoteVersionHistorySheet } from './NoteVersionHistorySheet';
 import { NoteLinkingSheet } from './NoteLinkingSheet';
 import { injectHeadingIds } from './NoteTableOfContents';
@@ -41,7 +40,7 @@ import { sanitizeForDisplay } from '@/lib/sanitize';
 import { ErrorBoundary } from './ErrorBoundary';
 import { PdfExportSuccessDialog } from './PdfExportSuccessDialog';
 import { PdfExportOptionsSheet, PdfExportSettings } from './PdfExportOptionsSheet';
-import { ArrowLeft, Folder as FolderIcon, Plus, CalendarIcon, History, FileDown, Link2, ChevronDown, FileText, BookOpen, BarChart3, MoreVertical, Mic, Share2, Search, Image, Table, Minus, SeparatorHorizontal, MessageSquare, FileSymlink, FileType, Bell, Clock, Repeat, Trash2, Mail, Phone, LinkIcon, Copy, Replace, Palette, Hash, Crown, ListFilter, CaseLower, Tag as TagIcon, Sparkles } from 'lucide-react';
+import { ArrowLeft, Folder as FolderIcon, Plus, CalendarIcon, History, FileDown, Link2, ChevronDown, FileText, BookOpen, BarChart3, MoreVertical, Mic, Share2, Search, Image, Table, Minus, SeparatorHorizontal, MessageSquare, FileSymlink, FileType, Bell, Clock, Repeat, Trash2, Mail, Phone, LinkIcon, Copy, Replace, Palette, Hash, Crown, ListFilter, CaseLower, Tag as TagIcon } from 'lucide-react';
 import { exportNoteToPdf, getPageBreakCount, PdfExportResult } from '@/utils/exportToPdf';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -192,7 +191,6 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
   // Voice recorder state
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [showSketchLibrary, setShowSketchLibrary] = useState(false);
-  const [showSketchTemplates, setShowSketchTemplates] = useState(false);
   
   // Input sheet page states (replaces window.prompt)
   const [isLinkInputOpen, setIsLinkInputOpen] = useState(false);
@@ -1021,12 +1019,6 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
                   <BarChart3 className="h-4 w-4 mr-2" />
                   {showStats ? t('editor.hideStats') : t('editor.showStats')}
                 </DropdownMenuItem>
-                {noteType === 'sketch' && (
-                  <DropdownMenuItem onClick={() => setShowSketchTemplates(true)}>
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    {t('sketch.templates', 'Sketch Templates')}
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuItem onClick={() => setIsReadingMode(!isReadingMode)}>
                   <BookOpen className="h-4 w-4 mr-2" />
                   {isReadingMode ? t('editor.exitReadingMode') : t('editor.enterReadingMode')}
@@ -2111,23 +2103,6 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
           </div>
         </div>
       )}
-
-      {/* Sketch Template Sheet */}
-      <SketchTemplateSheet
-        isOpen={showSketchTemplates}
-        onClose={() => setShowSketchTemplates(false)}
-        onApply={(json) => {
-          setContent(json);
-        }}
-        hasExistingContent={!!content && content !== '{}' && (() => {
-          try {
-            const parsed = JSON.parse(content);
-            const total = (parsed.layers || []).reduce((s: number, l: any) =>
-              s + (l.strokes?.length || 0) + (l.textAnnotations?.length || 0) + (l.stickyNotes?.length || 0) + (l.images?.length || 0), 0);
-            return total > 0;
-          } catch { return false; }
-        })()}
-      />
     </div>
   );
 };
