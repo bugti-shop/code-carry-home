@@ -2111,6 +2111,23 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
           </div>
         </div>
       )}
+
+      {/* Sketch Template Sheet */}
+      <SketchTemplateSheet
+        isOpen={showSketchTemplates}
+        onClose={() => setShowSketchTemplates(false)}
+        onApply={(json) => {
+          setContent(json);
+        }}
+        hasExistingContent={!!content && content !== '{}' && (() => {
+          try {
+            const parsed = JSON.parse(content);
+            const total = (parsed.layers || []).reduce((s: number, l: any) =>
+              s + (l.strokes?.length || 0) + (l.textAnnotations?.length || 0) + (l.stickyNotes?.length || 0) + (l.images?.length || 0), 0);
+            return total > 0;
+          } catch { return false; }
+        })()}
+      />
     </div>
   );
 };
