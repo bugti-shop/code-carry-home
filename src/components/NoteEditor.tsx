@@ -27,6 +27,7 @@ const SketchEditor = lazy(() =>
 sketchImport().catch(() => {});
 import { SketchNotebookLibrary } from './SketchNotebookLibrary';
 import { TemplateSelector } from './TemplateSelector';
+import { SketchTemplateSheet } from './SketchTemplateSheet';
 import { NoteVersionHistorySheet } from './NoteVersionHistorySheet';
 import { NoteLinkingSheet } from './NoteLinkingSheet';
 import { injectHeadingIds } from './NoteTableOfContents';
@@ -191,6 +192,7 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
   // Voice recorder state
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [showSketchLibrary, setShowSketchLibrary] = useState(false);
+  const [showSketchTemplates, setShowSketchTemplates] = useState(false);
   
   // Input sheet page states (replaces window.prompt)
   const [isLinkInputOpen, setIsLinkInputOpen] = useState(false);
