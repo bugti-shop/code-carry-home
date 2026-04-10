@@ -1203,6 +1203,20 @@ const useIndexedDBStorage = (key: string, initialValue: any) => {
       },
     ],
   },
+  // ─── Sketch Templates ───
+  ...SKETCH_TEMPLATES.map(st => ({
+    id: st.id,
+    name: st.name,
+    icon: 'Pen',
+    description: st.description,
+    category: 'Sketch',
+    folderColor: '#8b5cf6',
+    notes: [{
+      title: st.name,
+      type: 'sketch' as NoteType,
+      content: st.generator(),
+    }],
+  })),
 ];
 
 const CATEGORIES = [...new Set(DEFAULT_NOTE_TEMPLATES.map(t => t.category))];
