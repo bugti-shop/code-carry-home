@@ -220,8 +220,8 @@ export const generateAestheticStudyNotes = (): string => {
   const washiTapes: WashiTapeData[] = [
     washi(1, -5, 95, 180, 18, 'hearts-pink', -2),
     washi(2, W - 160, 95, 170, 18, 'clouds-blue', 1),
-    washi(3, W / 2 - 80, 635, 160, 16, 'stars-purple', 0),
-    washi(4, 10, 845, 140, 16, 'flowers-pink', -1),
+    washi(3, W / 2 - 80, 635, 160, 16, 'solid-lavender', 0),
+    washi(4, 10, 845, 140, 16, 'sakura', -1),
   ];
 
   const layer0: Layer = {
