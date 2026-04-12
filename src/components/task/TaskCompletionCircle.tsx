@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { triggerTripleHeavyHaptic } from '@/utils/haptics';
 import { TASK_CIRCLE, TASK_CHECK_ICON } from '@/utils/taskItemStyles';
 import { TaskCompletionBurst } from '@/components/TaskCompletionBurst';
+import { getCurrentCombo } from '@/utils/comboSystem';
 import {
   Tooltip,
   TooltipContent,
@@ -32,6 +33,7 @@ export const TaskCompletionCircle = ({
   const { t } = useTranslation();
   const [pendingComplete, setPendingComplete] = useState(false);
   const [showBurst, setShowBurst] = useState(false);
+  const [burstIntensity, setBurstIntensity] = useState<'normal' | 'combo' | 'milestone'>('normal');
   const pendingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleBurstDone = useCallback(() => setShowBurst(false), []);
@@ -51,6 +53,9 @@ export const TaskCompletionCircle = ({
       return;
     }
 
+    // Determine burst intensity based on combo state
+    const combo = getCurrentCombo();
+    setBurstIntensity(combo.multiplier >= 4 ? 'milestone' : combo.isActive ? 'combo' : 'normal');
     setPendingComplete(true);
     setShowBurst(true);
     triggerTripleHeavyHaptic();
@@ -101,7 +106,7 @@ export const TaskCompletionCircle = ({
                 )}
               </button>
               {isBlocked && <Lock className="absolute -top-1 -right-1 h-3 w-3 text-warning" />}
-              {showBurst && <TaskCompletionBurst onDone={handleBurstDone} />}
+              {showBurst && <TaskCompletionBurst onDone={handleBurstDone} intensity={burstIntensity} />}
             </div>
           </TooltipTrigger>
           {isBlocked && (

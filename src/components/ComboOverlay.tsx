@@ -3,6 +3,7 @@ import { m as motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Zap } from 'lucide-react';
 import { triggerTripleHeavyHaptic } from '@/utils/haptics';
+import { playComboSound } from '@/utils/gamificationSounds';
 
 interface ComboEvent {
   combo: number;
@@ -34,6 +35,7 @@ export const ComboOverlay = () => {
       setComboData(e.detail);
       setVisible(true);
       triggerTripleHeavyHaptic();
+      playComboSound(e.detail.multiplier);
       // Auto-hide after 1.5s
       setTimeout(() => setVisible(false), 1500);
     };

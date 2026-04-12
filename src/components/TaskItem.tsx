@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { triggerTripleHeavyHaptic } from '@/utils/haptics';
 import { playCompletionSound } from '@/utils/taskSounds';
 import { recordNudgeCompletion } from '@/utils/smartNudges';
+import { getEncouragement } from '@/utils/encouragements';
 import { canCompleteTask } from './TaskDependencySheet';
 import { getRepeatLabel } from '@/utils/recurringTasks';
 import { ResolvedTaskImage } from './ResolvedTaskImage';
@@ -87,6 +88,7 @@ export const TaskItem = memo(({
   const handleComplete = () => {
     triggerTripleHeavyHaptic();
     playCompletionSound();
+    getEncouragement(); // fires encouragement + milestone events
     recordNudgeCompletion().catch(() => {});
     onUpdate(item.id, { completed: true });
   };

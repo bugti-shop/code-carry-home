@@ -35,6 +35,7 @@ const StreakTierCelebration = lazy(() => import("@/components/StreakTierCelebrat
 const SmartReviewPrompt = lazy(() => import("@/components/SmartReviewPrompt").then(m => ({ default: m.SmartReviewPrompt })));
 
 const ComboOverlay = lazy(() => import("@/components/ComboOverlay").then(m => ({ default: m.ComboOverlay })));
+const EncouragementOverlay = lazy(() => import("@/components/EncouragementOverlay").then(m => ({ default: m.EncouragementOverlay })));
 const UrgentReminderOverlay = lazy(() => import("@/components/UrgentReminderOverlay").then(m => ({ default: m.UrgentReminderOverlay })));
 const SyncConflictSheet = lazy(() => import("@/components/SyncConflictSheet").then(m => ({ default: m.SyncConflictSheet })));
 const SyncProgressSheet = lazy(() => import("@/components/SyncProgressSheet").then(m => ({ default: m.SyncProgressSheet })));
@@ -436,6 +437,7 @@ const AppContent = () => {
           <SmartReviewPrompt />
           
           <ComboOverlay />
+          <EncouragementOverlay />
           <UrgentReminderOverlay />
           <SyncConflictSheet />
           <SyncProgressSheet />

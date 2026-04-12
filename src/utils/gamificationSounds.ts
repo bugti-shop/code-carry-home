@@ -165,6 +165,93 @@ export const playChallengeCompleteSound = (): void => {
 };
 
 /**
+ * Play combo hit sound — pitch escalates with combo level.
+ * Duolingo-style ascending tones.
+ */
+export const playComboSound = (multiplier: number): void => {
+  if (!gamificationSoundsEnabled) return;
+  
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const t = audioContext.currentTime;
+    
+    // Base frequency rises with combo level
+    const baseFreq = 600 + (multiplier - 2) * 200; // 2x=600, 3x=800, 4x=1000, 5x=1200
+    
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    osc.frequency.setValueAtTime(baseFreq, t);
+    osc.frequency.linearRampToValueAtTime(baseFreq * 1.5, t + 0.15);
+    osc.type = 'sine';
+    
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.25, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+    
+    osc.start(t);
+    osc.stop(t + 0.2);
+    
+    // Add power chord for high combos
+    if (multiplier >= 4) {
+      const osc2 = audioContext.createOscillator();
+      const gain2 = audioContext.createGain();
+      osc2.connect(gain2);
+      gain2.connect(audioContext.destination);
+      osc2.frequency.setValueAtTime(baseFreq * 1.5, t + 0.05);
+      osc2.type = 'triangle';
+      gain2.gain.setValueAtTime(0.12, t + 0.05);
+      gain2.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+      osc2.start(t + 0.05);
+      osc2.stop(t + 0.25);
+    }
+    
+    setTimeout(() => audioContext.close(), 500);
+  } catch (error) {
+    console.error('Error playing combo sound:', error);
+  }
+};
+
+/**
+ * Play milestone celebration sound — triumphant fanfare.
+ */
+export const playMilestoneSound = (): void => {
+  if (!gamificationSoundsEnabled) return;
+  
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const t = audioContext.currentTime;
+    
+    // Triumphant ascending fanfare
+    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C5→E6
+    
+    notes.forEach((freq, i) => {
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      osc.connect(gain);
+      gain.connect(audioContext.destination);
+      
+      const start = t + i * 0.08;
+      osc.frequency.setValueAtTime(freq, start);
+      osc.type = i < 3 ? 'sine' : 'triangle';
+      
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.2, start + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.01, start + 0.4);
+      
+      osc.start(start);
+      osc.stop(start + 0.4);
+    });
+    
+    setTimeout(() => audioContext.close(), 1000);
+  } catch (error) {
+    console.error('Error playing milestone sound:', error);
+  }
+};
+
+/**
  * Play XP gain sound (subtle)
  */
 export const playXpGainSound = (): void => {
