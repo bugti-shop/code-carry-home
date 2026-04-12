@@ -26,51 +26,52 @@ const initSettings = async () => {
 // Call init on module load
 initSettings();
 
-// Alternative: Create a programmatic completion sound using Web Audio API
+// Reusable AudioContext for lower latency
+let sharedAudioCtx: AudioContext | null = null;
+const getAudioCtx = (): AudioContext => {
+  if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+    sharedAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+  }
+  return sharedAudioCtx;
+};
+
+/**
+ * Rich, satisfying completion sound with three harmonics and reverb-like tail.
+ * Designed to feel as addictive as a social media "like" sound.
+ */
 const createCompletionSound = (): void => {
   try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    
-    // Create a pleasant "ding" sound
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    // Pleasant bell-like frequency
-    oscillator.frequency.setValueAtTime(830, audioContext.currentTime); // G#5
-    oscillator.type = 'sine';
-    
-    // Quick fade in and out for a "ding" effect
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.3);
-    
-    // Add a second harmonic for richness
-    const oscillator2 = audioContext.createOscillator();
-    const gainNode2 = audioContext.createGain();
-    
-    oscillator2.connect(gainNode2);
-    gainNode2.connect(audioContext.destination);
-    
-    oscillator2.frequency.setValueAtTime(1245, audioContext.currentTime); // E6
-    oscillator2.type = 'sine';
-    
-    gainNode2.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode2.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.01);
-    gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.25);
-    
-    oscillator2.start(audioContext.currentTime);
-    oscillator2.stop(audioContext.currentTime + 0.25);
-    
-    // Cleanup
-    setTimeout(() => {
-      audioContext.close();
-    }, 500);
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    const t = ctx.currentTime;
+
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0.25, t);
+    master.connect(ctx.destination);
+
+    // Note 1: bell strike (C6 = 1047 Hz)
+    const makeOsc = (freq: number, vol: number, dur: number, delay: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(master);
+      osc.frequency.setValueAtTime(freq, t);
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0, t + delay);
+      gain.gain.linearRampToValueAtTime(vol, t + delay + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + delay + dur);
+      osc.start(t + delay);
+      osc.stop(t + delay + dur);
+    };
+
+    // Three-note ascending chord for satisfying feel
+    makeOsc(1047, 0.35, 0.25, 0);       // C6
+    makeOsc(1319, 0.2, 0.2, 0.04);      // E6
+    makeOsc(1568, 0.15, 0.3, 0.08);     // G6 — lingers longer
+
+    // Subtle shimmer overtone
+    makeOsc(2093, 0.05, 0.15, 0.05);    // C7 very quiet
+
   } catch (error) {
     console.error('Error playing completion sound:', error);
   }
