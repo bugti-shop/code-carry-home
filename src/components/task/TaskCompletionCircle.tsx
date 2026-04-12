@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { triggerTripleHeavyHaptic } from '@/utils/haptics';
 import { TASK_CIRCLE, TASK_CHECK_ICON } from '@/utils/taskItemStyles';
 import { TaskCompletionBurst } from '@/components/TaskCompletionBurst';
+import { getCurrentCombo } from '@/utils/comboSystem';
 import {
   Tooltip,
   TooltipContent,
