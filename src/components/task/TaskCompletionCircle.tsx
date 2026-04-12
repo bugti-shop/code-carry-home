@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Check as CheckIcon, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerTripleHeavyHaptic } from '@/utils/haptics';
 import { TASK_CIRCLE, TASK_CHECK_ICON } from '@/utils/taskItemStyles';
+import { TaskCompletionBurst } from '@/components/TaskCompletionBurst';
 import {
   Tooltip,
   TooltipContent,
@@ -30,7 +31,10 @@ export const TaskCompletionCircle = ({
 }: TaskCompletionCircleProps) => {
   const { t } = useTranslation();
   const [pendingComplete, setPendingComplete] = useState(false);
+  const [showBurst, setShowBurst] = useState(false);
   const pendingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleBurstDone = useCallback(() => setShowBurst(false), []);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -42,11 +46,13 @@ export const TaskCompletionCircle = ({
         pendingTimer.current = null;
       }
       setPendingComplete(false);
+      setShowBurst(false);
       if (completed) onUncomplete();
       return;
     }
 
     setPendingComplete(true);
+    setShowBurst(true);
     triggerTripleHeavyHaptic();
 
     pendingTimer.current = setTimeout(() => {
@@ -95,6 +101,7 @@ export const TaskCompletionCircle = ({
                 )}
               </button>
               {isBlocked && <Lock className="absolute -top-1 -right-1 h-3 w-3 text-warning" />}
+              {showBurst && <TaskCompletionBurst onDone={handleBurstDone} />}
             </div>
           </TooltipTrigger>
           {isBlocked && (
