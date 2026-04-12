@@ -6,6 +6,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ChevronDown, ChevronRight, Repeat, Tag, Link } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerTripleHeavyHaptic } from '@/utils/haptics';
+import { playCompletionSound } from '@/utils/taskSounds';
+import { recordNudgeCompletion } from '@/utils/smartNudges';
 import { canCompleteTask } from './TaskDependencySheet';
 import { getRepeatLabel } from '@/utils/recurringTasks';
 import { ResolvedTaskImage } from './ResolvedTaskImage';
@@ -84,6 +86,8 @@ export const TaskItem = memo(({
 
   const handleComplete = () => {
     triggerTripleHeavyHaptic();
+    playCompletionSound();
+    recordNudgeCompletion().catch(() => {});
     onUpdate(item.id, { completed: true });
   };
 

@@ -195,11 +195,13 @@ scheduleDeferred(async () => {
       { initializeReminders },
       { initializeStreakNotifications },
       { initializeSmartNotifications },
+      { initializeSmartNudges },
     ] = await Promise.all([
       import("./utils/backgroundScheduler"),
       import("./utils/reminderScheduler"),
       import("./utils/streakNotifications"),
       import("./utils/smartNotifications"),
+      import("./utils/smartNudges"),
     ]);
 
     // Run migrations in parallel
@@ -217,6 +219,7 @@ scheduleDeferred(async () => {
     initializeReminders().catch(console.warn);
     initializeStreakNotifications().catch(console.warn);
     initializeSmartNotifications().catch(console.warn);
+    initializeSmartNudges().catch(console.warn);
     
 
     // Configure status bar
