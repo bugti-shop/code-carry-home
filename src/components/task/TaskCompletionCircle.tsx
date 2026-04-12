@@ -106,7 +106,7 @@ export const TaskCompletionCircle = ({
                 )}
               </button>
               {isBlocked && <Lock className="absolute -top-1 -right-1 h-3 w-3 text-warning" />}
-              {showBurst && <TaskCompletionBurst onDone={handleBurstDone} />}
+              {showBurst && <TaskCompletionBurst onDone={handleBurstDone} intensity={burstIntensity} />}
             </div>
           </TooltipTrigger>
           {isBlocked && (
