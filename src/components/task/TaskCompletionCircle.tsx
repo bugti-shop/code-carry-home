@@ -53,6 +53,9 @@ export const TaskCompletionCircle = ({
       return;
     }
 
+    // Determine burst intensity based on combo state
+    const combo = getCurrentCombo();
+    setBurstIntensity(combo.multiplier >= 4 ? 'milestone' : combo.isActive ? 'combo' : 'normal');
     setPendingComplete(true);
     setShowBurst(true);
     triggerTripleHeavyHaptic();
