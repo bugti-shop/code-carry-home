@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { m as motion, AnimatePresence } from 'framer-motion';
 import { triggerNotificationHaptic } from '@/utils/haptics';
+import { playMilestoneSound } from '@/utils/gamificationSounds';
 
 interface EncouragementEvent {
   message: string;
@@ -37,6 +38,7 @@ export const EncouragementOverlay = () => {
       setMilestone(e.detail);
       setShowMs(true);
       triggerNotificationHaptic('success');
+      playMilestoneSound();
       setTimeout(() => setShowMs(false), 3000);
     };
 
