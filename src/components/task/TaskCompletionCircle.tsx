@@ -33,6 +33,7 @@ export const TaskCompletionCircle = ({
   const { t } = useTranslation();
   const [pendingComplete, setPendingComplete] = useState(false);
   const [showBurst, setShowBurst] = useState(false);
+  const [burstIntensity, setBurstIntensity] = useState<'normal' | 'combo' | 'milestone'>('normal');
   const pendingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleBurstDone = useCallback(() => setShowBurst(false), []);
