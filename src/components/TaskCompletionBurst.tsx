@@ -73,10 +73,14 @@ export const TaskCompletionBurst = memo(({ onDone, intensity = 'normal' }: Props
               backgroundColor: p.type === 'ring' ? 'transparent' : p.color,
               border: p.type === 'ring' ? `1.5px solid ${p.color}` : 'none',
               animation: `burst-particle-${intensity} ${duration}ms ease-out ${p.delay}ms forwards`,
-              '--tx': `${tx}px`,
-              '--ty': `${ty}px`,
               opacity: 0,
             } as React.CSSProperties}
+            ref={(el) => {
+              if (el) {
+                el.style.setProperty('--tx', `${tx}px`);
+                el.style.setProperty('--ty', `${ty}px`);
+              }
+            }}
           />
         );
       })}
