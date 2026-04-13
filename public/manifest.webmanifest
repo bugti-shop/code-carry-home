@@ -12,9 +12,19 @@
   "dir": "ltr",
   "icons": [
     {
+      "src": "/icon-44.png",
+      "sizes": "44x44",
+      "type": "image/png"
+    },
+    {
       "src": "/favicon.webp",
       "sizes": "64x64",
       "type": "image/webp"
+    },
+    {
+      "src": "/icon-150.png",
+      "sizes": "150x150",
+      "type": "image/png"
     },
     {
       "src": "/launcher-icon.webp",
@@ -22,9 +32,14 @@
       "type": "image/webp"
     },
     {
-      "src": "/launcher-icon.webp",
+      "src": "/icon-300.png",
+      "sizes": "300x300",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/webp",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
