@@ -16,8 +16,6 @@ import { StreakDetailSheet } from '@/components/StreakDetailSheet';
 import { VirtualJourneyCard } from '@/components/VirtualJourneyCard';
 import { StreakSocietyBadge } from '@/components/StreakSocietyBadge';
 import { StreakConsistencyCertificate } from '@/components/StreakConsistencyCertificate';
-import { ProductivityRecap } from '@/components/ProductivityRecap';
-import { VirtualPetCard } from '@/components/VirtualPetCard';
 
 const Progress = () => {
   const { t } = useTranslation();
@@ -380,16 +378,6 @@ const Progress = () => {
             Certificates
           </motion.button>
         </div>
-
-        {/* Productivity Recap */}
-        <SafeComponent fallback={null}>
-          <ProductivityRecap />
-        </SafeComponent>
-
-        {/* Virtual Pet */}
-        <SafeComponent fallback={null}>
-          <VirtualPetCard />
-        </SafeComponent>
 
         {/* Virtual Journey */}
         <SafeComponent fallback={null}>
