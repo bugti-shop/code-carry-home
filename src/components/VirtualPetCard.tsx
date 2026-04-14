@@ -56,7 +56,7 @@ export const VirtualPetCard = () => {
       updateHappiness(saved);
     } else {
       const newPet: PetState = { name: 'Buddy', stage: 0, xp: 0, totalFed: 0, lastFedDate: '', happiness: 50 };
-      await saveSetting(PET_KEY, newPet);
+      await setSetting(PET_KEY, newPet);
       setPet(newPet);
     }
   };
@@ -96,7 +96,7 @@ export const VirtualPetCard = () => {
       stage: newStage,
     };
 
-    await saveSetting(PET_KEY, updated);
+    await setSetting(PET_KEY, updated);
     setPet(updated);
 
     if (newStage > currentStage) {
