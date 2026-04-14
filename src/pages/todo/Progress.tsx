@@ -16,6 +16,8 @@ import { StreakDetailSheet } from '@/components/StreakDetailSheet';
 import { VirtualJourneyCard } from '@/components/VirtualJourneyCard';
 import { StreakSocietyBadge } from '@/components/StreakSocietyBadge';
 import { StreakConsistencyCertificate } from '@/components/StreakConsistencyCertificate';
+import { ProductivityRecap } from '@/components/ProductivityRecap';
+import { VirtualPetCard } from '@/components/VirtualPetCard';
 
 const Progress = () => {
   const { t } = useTranslation();
