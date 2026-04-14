@@ -4354,12 +4354,12 @@ export const SketchEditor = memo(({ initialData, onChange, onImageExport, classN
           layer.strokes.push(...mirroredStrokes);
         }
 
-        // Auto-select shapes after drawing
+        // Auto-select shapes after drawing (keep shape tool active for continuous drawing)
         if (isShapeTool(strokeToAdd.tool)) {
           const newIdx = layer.strokes.length - 1;
           setSelectedIndices([newIdx]);
           setSelectionRotation(0);
-          setTool('select');
+          // Don't switch to select tool — let user keep drawing more shapes
         }
       }
     }
