@@ -381,6 +381,16 @@ const Progress = () => {
           </motion.button>
         </div>
 
+        {/* Productivity Recap */}
+        <SafeComponent fallback={null}>
+          <ProductivityRecap />
+        </SafeComponent>
+
+        {/* Virtual Pet */}
+        <SafeComponent fallback={null}>
+          <VirtualPetCard />
+        </SafeComponent>
+
         {/* Virtual Journey */}
         <SafeComponent fallback={null}>
           <VirtualJourneyCard />
