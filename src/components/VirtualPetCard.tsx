@@ -4,7 +4,7 @@ import { m as motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Heart, Star, Sparkles, Share2, ChevronRight } from 'lucide-react';
 import { loadTodoItems } from '@/utils/todoItemsStorage';
-import { getSetting, saveSetting } from '@/utils/settingsStorage';
+import { getSetting, setSetting } from '@/utils/settingsStorage';
 
 interface PetState {
   name: string;
