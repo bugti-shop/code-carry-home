@@ -3084,6 +3084,23 @@ export const SketchEditor = memo(({ initialData, onChange, onImageExport, classN
       if (tool !== 'sticky' && tool !== 'select') {
         const now = Date.now();
         if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+          // For shape tools: double-tap on a shape → switch to select tool
+          if (isShapeTool(tool)) {
+            const point = getPos(e);
+            const layer = layersRef.current.find(l => l.id === activeLayerId);
+            if (layer) {
+              for (let i = layer.strokes.length - 1; i >= 0; i--) {
+                if (hitTestStroke(layer.strokes[i], point.x, point.y, HIT_TOLERANCE / zoomRef.current)) {
+                  setSelectedIndices([i]);
+                  setSelectionRotation(0);
+                  setTool('select');
+                  redrawAll();
+                  lastTapRef.current = 0;
+                  return;
+                }
+              }
+            }
+          }
           zoomRef.current = 1; panRef.current = { x: 0, y: 0 }; setZoomDisplay(100); redrawAll();
           lastTapRef.current = 0; return;
         }
@@ -5792,6 +5809,27 @@ export const SketchEditor = memo(({ initialData, onChange, onImageExport, classN
     }
   }, [initialData, loadInitialData]);
 
+  // Double-click on canvas: if shape tool active, switch to select on hit
+  const onDblClick = useCallback((e: MouseEvent) => {
+    if (!isShapeTool(tool)) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const cx = (e.clientX - rect.left - panRef.current.x) / zoomRef.current;
+    const cy = (e.clientY - rect.top - panRef.current.y) / zoomRef.current;
+    const layer = layersRef.current.find(l => l.id === activeLayerId);
+    if (!layer) return;
+    for (let i = layer.strokes.length - 1; i >= 0; i--) {
+      if (hitTestStroke(layer.strokes[i], cx, cy, HIT_TOLERANCE / zoomRef.current)) {
+        setSelectedIndices([i]);
+        setSelectionRotation(0);
+        setTool('select');
+        redrawAll();
+        return;
+      }
+    }
+  }, [tool, activeLayerId, redrawAll]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -5800,14 +5838,16 @@ export const SketchEditor = memo(({ initialData, onChange, onImageExport, classN
     canvas.addEventListener('pointerup', onPointerUp);
     canvas.addEventListener('pointercancel', onPointerUp);
     canvas.addEventListener('wheel', onWheel, { passive: false });
+    canvas.addEventListener('dblclick', onDblClick);
     return () => {
       canvas.removeEventListener('pointerdown', onPointerDown);
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerup', onPointerUp);
       canvas.removeEventListener('pointercancel', onPointerUp);
       canvas.removeEventListener('wheel', onWheel);
+      canvas.removeEventListener('dblclick', onDblClick);
     };
-  }, [onPointerDown, onPointerMove, onPointerUp, onWheel]);
+  }, [onPointerDown, onPointerMove, onPointerUp, onWheel, onDblClick]);
 
   // Clear selection when switching away from select/shape tools
   useEffect(() => {
