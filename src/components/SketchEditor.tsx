@@ -3084,6 +3084,23 @@ export const SketchEditor = memo(({ initialData, onChange, onImageExport, classN
       if (tool !== 'sticky' && tool !== 'select') {
         const now = Date.now();
         if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+          // For shape tools: double-tap on a shape → switch to select tool
+          if (isShapeTool(tool)) {
+            const point = getPos(e);
+            const layer = layersRef.current.find(l => l.id === activeLayerId);
+            if (layer) {
+              for (let i = layer.strokes.length - 1; i >= 0; i--) {
+                if (hitTestStroke(layer.strokes[i], point.x, point.y, HIT_TOLERANCE / zoomRef.current)) {
+                  setSelectedIndices([i]);
+                  setSelectionRotation(0);
+                  setTool('select');
+                  redrawAll();
+                  lastTapRef.current = 0;
+                  return;
+                }
+              }
+            }
+          }
           zoomRef.current = 1; panRef.current = { x: 0, y: 0 }; setZoomDisplay(100); redrawAll();
           lastTapRef.current = 0; return;
         }
