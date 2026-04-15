@@ -5809,9 +5809,9 @@ export const SketchEditor = memo(({ initialData, onChange, onImageExport, classN
     };
   }, [onPointerDown, onPointerMove, onPointerUp, onWheel]);
 
-  // Clear selection when switching away from select tool
+  // Clear selection when switching away from select/shape tools
   useEffect(() => {
-    if (tool !== 'select') clearSelection();
+    if (tool !== 'select' && !isShapeTool(tool)) clearSelection();
     if (tool !== 'sticky') setSelectedStickyId(null);
   }, [tool, clearSelection]);
 
