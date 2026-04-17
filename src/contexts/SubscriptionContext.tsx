@@ -78,13 +78,25 @@ export const RECURRING_ONLY_FEATURES: readonly PremiumFeature[] = [] as const;
 
 export type PremiumFeature = typeof PREMIUM_FEATURES[number];
 
-// No free limits — hard paywall with free trial grants full access
+// Hard limits (legacy — kept Infinity so non-soft paths stay open)
 export const FREE_LIMITS = {
   maxNoteFolders: Infinity,
   maxTaskFolders: Infinity,
   maxTaskSections: Infinity,
   maxNotes: Infinity,
 };
+
+// Soft paywall limits — apply ONLY to brand-new free users after onboarding.
+// Existing/grandfathered users keep full access. New users get 1 of each as a teaser.
+export const SOFT_FREE_LIMITS = {
+  notes: 1,
+  tasks: 1,
+  noteFolders: 1,
+  taskFolders: 1,
+  taskSections: 1,
+} as const;
+
+export type SoftLimitKind = keyof typeof SOFT_FREE_LIMITS;
 
 interface UnifiedBillingContextType {
   // Subscription state
