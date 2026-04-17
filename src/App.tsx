@@ -245,7 +245,7 @@ const AppContent = () => {
   const [isAppLocked, setIsAppLocked] = useState<boolean | null>(null);
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
   
-  const { isPro, isLoading: subLoading, isVerifyingCheckout, localTrialExpired, graceExpired } = useSubscription();
+  const { isPro, isLoading: subLoading, isVerifyingCheckout, localTrialExpired, graceExpired, isNewFreeUser } = useSubscription();
   const awaitingSubscriptionChoice = useRef(
     sessionStorage.getItem('awaitingSubscriptionChoice') === 'true'
   );
@@ -299,11 +299,13 @@ const AppContent = () => {
     if (awaitingSubscriptionChoice.current) return;
     // On native: if user was ever pro this session, don't reset — RC may just be slow
     if (wasEverPro.current) return;
+    // Soft-paywall: brand-new free users get to use the app with limits — don't kick them back to onboarding
+    if (isNewFreeUser) return;
     // No active subscription — redirect to language selection
     setSetting('onboarding_completed', false).then(() => {
       setShowOnboarding(true);
     });
-  }, [isPro, subLoading, showOnboarding, isVerifyingCheckout]);
+  }, [isPro, subLoading, showOnboarding, isVerifyingCheckout, isNewFreeUser]);
 
   // Grace period after onboarding completes — prevents the subscription effect
   // from immediately resetting onboarding before trial/subscription state propagates
@@ -411,10 +413,9 @@ const AppContent = () => {
     );
   }
 
-  // Never render protected app screens until onboarding + subscription state are fully resolved.
-  // This prevents temporary access flashes after returning from Stripe without a valid subscription.
-  // Show app if user is verified pro OR was previously pro this session (prevents white flash during re-checks)
-  const canRenderProtectedApp = showOnboarding === false && !isVerifyingCheckout && (isPro || (wasEverPro.current && subLoading));
+  // Render the app for: verified Pro, previously-Pro this session (avoid flash), OR new free users (soft paywall mode).
+  // Soft-paywall users see the app with limits — paywall is opened on gated actions, dismissable.
+  const canRenderProtectedApp = showOnboarding === false && !isVerifyingCheckout && (isPro || (wasEverPro.current && subLoading) || isNewFreeUser);
 
   return (
     <>
