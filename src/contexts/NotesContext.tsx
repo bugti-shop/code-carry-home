@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { Note } from '@/types/note';
 import { loadNotesFromDB, saveNotesToDB, saveNoteToDBSingle, deleteNoteFromDB, migrateNotesToIndexedDB } from '@/utils/noteStorage';
 import { getTextPreviewFromHtml } from '@/utils/contentPreview';
+import { useSubscription, SOFT_FREE_LIMITS } from '@/contexts/SubscriptionContext';
 
 // Lightweight note metadata for instant navigation
 export interface NoteMeta {
@@ -225,7 +226,35 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // ── Dispatch actions (stable — never change) ──
 
+  // Soft paywall hooks
+  const { isPro, isNewFreeUser, softRequireCreate, softRequireMutate } = useSubscription();
+  // Stable refs so callbacks below don't need to depend on these (avoids re-creating on every render)
+  const isProRef = useRef(isPro);
+  const isNewFreeUserRef = useRef(isNewFreeUser);
+  const softRequireCreateRef = useRef(softRequireCreate);
+  const softRequireMutateRef = useRef(softRequireMutate);
+  isProRef.current = isPro;
+  isNewFreeUserRef.current = isNewFreeUser;
+  softRequireCreateRef.current = softRequireCreate;
+  softRequireMutateRef.current = softRequireMutate;
+  const notesCountRef = useRef(0);
+  notesCountRef.current = notes.length;
+
   const saveNote = useCallback(async (note: Note) => {
+    // Gate: creating a new note vs editing existing
+    const isExisting = notesMap.has(note.id);
+    if (!isProRef.current && isNewFreeUserRef.current) {
+      if (!isExisting) {
+        // Create — check soft create limit (count ALL notes including archived/trashed)
+        if (notesCountRef.current >= SOFT_FREE_LIMITS.notes) {
+          softRequireCreateRef.current('notes', notesCountRef.current);
+          return;
+        }
+      } else {
+        // Edit — block + open paywall
+        if (!softRequireMutateRef.current()) return;
+      }
+    }
     setNotes(prev => {
       const existingIdx = prev.findIndex(n => n.id === note.id);
       if (existingIdx >= 0) {
@@ -241,9 +270,12 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch (error) {
       console.error('[NotesContext] Error saving single note:', error);
     }
-  }, []);
+  }, [notesMap]);
 
   const deleteNote = useCallback(async (noteId: string) => {
+    if (!isProRef.current && isNewFreeUserRef.current) {
+      if (!softRequireMutateRef.current()) return;
+    }
     setNotes(prev => prev.filter(n => n.id !== noteId));
     try {
       await deleteNoteFromDB(noteId);
@@ -253,6 +285,9 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const updateNote = useCallback(async (noteId: string, updates: Partial<Note>) => {
+    if (!isProRef.current && isNewFreeUserRef.current) {
+      if (!softRequireMutateRef.current()) return;
+    }
     let updatedNote: Note | null = null;
     setNotes(prev =>
       prev.map(n => {

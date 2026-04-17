@@ -68,7 +68,7 @@ const Notes = () => {
   const { t } = useTranslation();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   
-  const { requireFeature, openPaywall, isPro } = useSubscription();
+  const { requireFeature, openPaywall, isPro, isNewFreeUser, softRequireCreate, softRequireMutate } = useSubscription();
   
   // Use global notes context - no more local loading!
   const { notes, notesMeta, setNotes, isLoading, counts } = useNotes();
@@ -92,6 +92,15 @@ const Notes = () => {
 
 
   const handleSaveNote = useCallback((note: Note) => {
+    // Soft paywall: gate create vs edit for new free users
+    if (!isPro && isNewFreeUser) {
+      const isExisting = notes.some(n => n.id === note.id);
+      if (isExisting) {
+        if (!softRequireMutate()) return;
+      } else if (!softRequireCreate('notes', notes.length)) {
+        return;
+      }
+    }
     setNotes(prevNotes => {
       const existingIndex = prevNotes.findIndex((n) => n.id === note.id);
       let updatedNotes;
@@ -106,7 +115,7 @@ const Notes = () => {
       saveNoteToDBSingle(note);
       return updatedNotes;
     });
-  }, []);
+  }, [isPro, isNewFreeUser, softRequireCreate, softRequireMutate, notes, setNotes]);
 
   const handleEditNote = (note: Note) => {
     setSelectedNote(note);
@@ -115,6 +124,7 @@ const Notes = () => {
 
   const handleTogglePin = (noteId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isPro && isNewFreeUser && !softRequireMutate()) return;
     if (!requireFeature('pin_feature')) return;
     const updatedNotes = notes.map((n) => {
       if (n.id === noteId) {
@@ -132,6 +142,7 @@ const Notes = () => {
 
   const handleToggleArchive = (noteId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isPro && isNewFreeUser && !softRequireMutate()) return;
     const noteBeforeUpdate = notes.find(n => n.id === noteId);
     const updatedNotes = notes.map((n) => {
       if (n.id === noteId) {
@@ -152,6 +163,7 @@ const Notes = () => {
 
   const handleMoveToTrash = (noteId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isPro && isNewFreeUser && !softRequireMutate()) return;
     const updatedNotes = notes.map((n) => {
       if (n.id === noteId) {
         return {
@@ -171,6 +183,7 @@ const Notes = () => {
 
   const handleRestoreFromTrash = (noteId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isPro && isNewFreeUser && !softRequireMutate()) return;
     const updatedNotes = notes.map((n) => {
       if (n.id === noteId) {
         return {
@@ -188,6 +201,7 @@ const Notes = () => {
 
   const handleDeletePermanently = (noteId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isPro && isNewFreeUser && !softRequireMutate()) return;
     const updatedNotes = notes.filter((n) => n.id !== noteId);
     setNotes(updatedNotes);
     deleteNoteFromDB(noteId);

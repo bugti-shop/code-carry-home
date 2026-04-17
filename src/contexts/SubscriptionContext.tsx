@@ -78,13 +78,25 @@ export const RECURRING_ONLY_FEATURES: readonly PremiumFeature[] = [] as const;
 
 export type PremiumFeature = typeof PREMIUM_FEATURES[number];
 
-// No free limits — hard paywall with free trial grants full access
+// Hard limits (legacy — kept Infinity so non-soft paths stay open)
 export const FREE_LIMITS = {
   maxNoteFolders: Infinity,
   maxTaskFolders: Infinity,
   maxTaskSections: Infinity,
   maxNotes: Infinity,
 };
+
+// Soft paywall limits — apply ONLY to brand-new free users after onboarding.
+// Existing/grandfathered users keep full access. New users get 1 of each as a teaser.
+export const SOFT_FREE_LIMITS = {
+  notes: 1,
+  tasks: 1,
+  noteFolders: 1,
+  taskFolders: 1,
+  taskSections: 1,
+} as const;
+
+export type SoftLimitKind = keyof typeof SOFT_FREE_LIMITS;
 
 interface UnifiedBillingContextType {
   // Subscription state
@@ -108,6 +120,12 @@ interface UnifiedBillingContextType {
   canUseFeature: (feature: PremiumFeature) => boolean;
   requireFeature: (feature: PremiumFeature) => boolean;
   unlockPro: () => Promise<void>;
+
+  // Soft paywall (new-user teaser mode)
+  isNewFreeUser: boolean;
+  markAsNewFreeUser: () => Promise<void>;
+  softRequireCreate: (kind: SoftLimitKind, currentCount: number) => boolean;
+  softRequireMutate: () => boolean;
 
   // RevenueCat state
   isInitialized: boolean;
@@ -197,6 +215,28 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   });
   const [isVerifyingCheckout, setIsVerifyingCheckout] = useState(false);
   const [checkoutVerificationFailed, setCheckoutVerificationFailed] = useState(false);
+
+  // Soft paywall state — true for brand-new free users post-onboarding (no pre-existing data).
+  // Cached from localStorage for instant access on mount; verified async via getSetting.
+  const [isNewFreeUser, setIsNewFreeUser] = useState<boolean>(() => {
+    try { return localStorage.getItem('flowist_new_user') === 'true'; } catch { return false; }
+  });
+
+  useEffect(() => {
+    getSetting<boolean>('flowist_new_user', false).then((v) => {
+      setIsNewFreeUser(!!v);
+      try { localStorage.setItem('flowist_new_user', v ? 'true' : 'false'); } catch {}
+    }).catch(() => {});
+
+    const handleNewFreeUserChanged = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      const next = !!detail?.value;
+      setIsNewFreeUser(next);
+      try { localStorage.setItem('flowist_new_user', next ? 'true' : 'false'); } catch {}
+    };
+    window.addEventListener('flowistNewFreeUserChanged', handleNewFreeUserChanged);
+    return () => window.removeEventListener('flowistNewFreeUserChanged', handleNewFreeUserChanged);
+  }, []);
 
   // Check sign-out grace period on mount
   useEffect(() => {
@@ -1100,13 +1140,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const closePaywall = useCallback(() => {
-    // Only allow closing paywall if user actually has verified access
-    // This prevents bypass via refresh or back-button from Stripe checkout
-    if (rcIsPro || localProAccess || isAdminBypass || signoutGraceActive) {
+    // Allow closing if user has verified access OR is in soft-paywall (new free user) mode.
+    // Soft mode = paywall is dismissable; hard mode = stays until upgrade.
+    if (rcIsPro || localProAccess || isAdminBypass || signoutGraceActive || isNewFreeUser) {
       setShowPaywall(false);
       setPaywallFeature(null);
     }
-  }, [rcIsPro, localProAccess, isAdminBypass, signoutGraceActive]);
+  }, [rcIsPro, localProAccess, isAdminBypass, signoutGraceActive, isNewFreeUser]);
 
   const unlockPro = useCallback(async () => {
     await setSetting('flowist_admin_bypass', true);
@@ -1115,6 +1155,48 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     setShowPaywall(false);
     setPaywallFeature(null);
   }, []);
+
+  // ── Soft Paywall Helpers ──
+  const markAsNewFreeUser = useCallback(async () => {
+    try {
+      await setSetting('flowist_new_user', true);
+      try { localStorage.setItem('flowist_new_user', 'true'); } catch {}
+      setIsNewFreeUser(true);
+    } catch (e) {
+      console.warn('Failed to mark as new free user:', e);
+    }
+  }, []);
+
+  // Auto-clear new-user flag once user becomes Pro
+  useEffect(() => {
+    if (isPro && isNewFreeUser) {
+      setIsNewFreeUser(false);
+      try { localStorage.setItem('flowist_new_user', 'false'); } catch {}
+      setSetting('flowist_new_user', false).catch(() => {});
+    }
+  }, [isPro, isNewFreeUser]);
+
+  // Returns true when allowed to create. Opens paywall + returns false when soft-limit hit.
+  const softRequireCreate = useCallback((kind: SoftLimitKind, currentCount: number): boolean => {
+    if (isPro) return true;
+    if (!isNewFreeUser) return true; // grandfathered/existing users — full access
+    const limit = SOFT_FREE_LIMITS[kind];
+    if (currentCount >= limit) {
+      setPaywallFeature(`soft_limit_${kind}`);
+      setShowPaywall(true);
+      return false;
+    }
+    return true;
+  }, [isPro, isNewFreeUser]);
+
+  // Returns true when allowed to mutate (edit/delete). Opens paywall + returns false otherwise.
+  const softRequireMutate = useCallback((): boolean => {
+    if (isPro) return true;
+    if (!isNewFreeUser) return true;
+    setPaywallFeature('soft_limit_edit');
+    setShowPaywall(true);
+    return false;
+  }, [isPro, isNewFreeUser]);
 
   // Check Stripe subscription by email (used from onboarding Google sign-in)
   const checkStripeByEmail = useCallback(async (email: string): Promise<boolean> => {
@@ -1172,6 +1254,11 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         canUseFeature,
         requireFeature,
         unlockPro,
+        // Soft paywall
+        isNewFreeUser,
+        markAsNewFreeUser,
+        softRequireCreate,
+        softRequireMutate,
         // RevenueCat
         isInitialized,
         customerInfo,
@@ -1214,6 +1301,10 @@ const FALLBACK_CONTEXT: UnifiedBillingContextType = {
   canUseFeature: () => false,
   requireFeature: () => false,
   unlockPro: async () => {},
+  isNewFreeUser: false,
+  markAsNewFreeUser: async () => {},
+  softRequireCreate: () => true,
+  softRequireMutate: () => true,
   isInitialized: false,
   customerInfo: null,
   offerings: null,

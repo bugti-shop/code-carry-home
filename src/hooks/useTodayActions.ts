@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { DuplicateOption } from '@/components/DuplicateOptionsSheet';
 import { SelectAction } from '@/components/SelectActionsSheet';
 import { DropResult } from '@hello-pangea/dnd';
-import { useSubscription, FREE_LIMITS } from '@/contexts/SubscriptionContext';
+import { useSubscription, FREE_LIMITS, SOFT_FREE_LIMITS } from '@/contexts/SubscriptionContext';
 import { updateSectionOrder } from '@/utils/taskOrderStorage';
 import { getAllSettings, setSetting } from '@/utils/settingsStorage';
 import { loadDeletions, trackDeletion } from '@/utils/deletionTracker';
@@ -72,19 +72,24 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     requireFeature, isPro, tasksSettings, setOrderVersion,
   } = props;
 
+  // Soft paywall — new free users get 1 task / 1 folder / 1 section, no edit/delete (completion allowed)
+  const { isNewFreeUser, softRequireCreate, softRequireMutate } = useSubscription();
+
   // Keep a ref to items for reliable access in async callbacks
   const itemsRef = useRef(items);
   itemsRef.current = items;
 
   // ── Folder Actions ──
   const handleCreateFolder = useCallback((name: string, color: string) => {
+    // Soft paywall: new free users get 1 task folder
+    if (!isPro && isNewFreeUser && !softRequireCreate('taskFolders', folders.length)) return;
     if (!isPro && folders.length >= FREE_LIMITS.maxTaskFolders) {
       requireFeature('extra_folders');
       return;
     }
     const newFolder: Folder = { id: Date.now().toString(), name, color, isDefault: false, createdAt: new Date() };
     setFolders(prev => [...prev, newFolder]);
-  }, [folders.length, isPro, requireFeature, setFolders]);
+  }, [folders.length, isPro, isNewFreeUser, softRequireCreate, requireFeature, setFolders]);
 
   const handleEditFolder = useCallback((folderId: string, name: string, color: string) => {
     setFolders(prev => prev.map(f => f.id === folderId ? { ...f, name, color } : f));
@@ -129,6 +134,8 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
 
   // ── Section Actions ──
   const handleAddSection = useCallback((position: 'above' | 'below', referenceId?: string) => {
+    // Soft paywall: new free users get 1 section
+    if (!isPro && isNewFreeUser && !softRequireCreate('taskSections', sections.length)) return;
     if (!isPro && sections.length >= 1) {
       requireFeature('extra_sections');
       return;
@@ -149,7 +156,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     setEditingSection(newSection);
     setIsSectionEditOpen(true);
     toast.success(t('todayPage.sectionAdded'));
-  }, [sections, isPro, requireFeature, setSections, setEditingSection, setIsSectionEditOpen, t]);
+  }, [sections, isPro, isNewFreeUser, softRequireCreate, requireFeature, setSections, setEditingSection, setIsSectionEditOpen, t]);
 
   const handleEditSection = useCallback((section: TaskSection) => {
     setEditingSection(section);
@@ -242,6 +249,8 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
 
   // ── Task CRUD ──
   const handleAddTask = useCallback(async (task: Omit<TodoItem, 'id' | 'completed'>) => {
+    // Soft paywall: new free users get 1 task
+    if (!isPro && isNewFreeUser && !softRequireCreate('tasks', itemsRef.current.length)) return;
     const now = new Date();
     const newItem: TodoItem = {
       id: Date.now().toString(), completed: false, ...task,
@@ -259,9 +268,11 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
         scheduleTaskReminder(newItem.id, newItem.text, new Date(newItem.reminderTime!), newItem.isUrgent).catch(console.warn);
       });
     }
-  }, [inputSectionId, defaultSectionId, sections, taskAddPosition, setItems, setInputSectionId]);
+  }, [inputSectionId, defaultSectionId, sections, taskAddPosition, setItems, setInputSectionId, isPro, isNewFreeUser, softRequireCreate]);
 
   const handleBatchAddTasks = useCallback(async (taskTexts: string[], sectionId?: string, folderId?: string, priority?: Priority, dueDate?: Date) => {
+    // Soft paywall: new free users can't batch-add (already 1 task)
+    if (!isPro && isNewFreeUser && !softRequireCreate('tasks', itemsRef.current.length)) return;
     const now = new Date();
     const newItems: TodoItem[] = taskTexts.map((text, idx) => ({
       id: `${Date.now()}-${idx}`, text, completed: false,
@@ -272,9 +283,14 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     setItems(prev => [...newItems, ...prev]);
     toast.success(t('todayPage.addedTasks', { count: newItems.length }));
     setInputSectionId(null);
-  }, [selectedFolderId, inputSectionId, sections, setItems, setInputSectionId, t]);
+  }, [selectedFolderId, inputSectionId, sections, setItems, setInputSectionId, t, isPro, isNewFreeUser, softRequireCreate]);
 
   const updateItem = useCallback(async (itemId: string, updates: Partial<TodoItem>) => {
+    // Soft paywall: allow completion toggle, block all other edits
+    if (!isPro && isNewFreeUser) {
+      const onlyCompletion = Object.keys(updates).every(k => k === 'completed' || k === 'completedAt' || k === 'modifiedAt');
+      if (!onlyCompletion && !softRequireMutate()) return;
+    }
     const now = new Date();
     const updatesWithTimestamp: Partial<TodoItem> = { ...updates, modifiedAt: now };
 
@@ -333,9 +349,11 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
         duration: 5000,
       });
     }
-  }, [setItems, t]);
+  }, [setItems, t, isPro, isNewFreeUser, softRequireMutate]);
 
   const deleteItem = useCallback(async (itemId: string, _showUndo: boolean = false, skipConfirm: boolean = false) => {
+    // Soft paywall: block delete for new free users
+    if (!isPro && isNewFreeUser && !softRequireMutate()) return;
     let deletedItem: TodoItem | undefined;
     setItems(prev => {
       deletedItem = prev.find(item => item.id === itemId);
@@ -355,7 +373,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
       action: { label: t('todayPage.undo'), onClick: () => { setItems(prev => [itemToRestore!, ...prev]); toast.success(t('todayPage.taskRestored')); } },
       duration: 5000,
     });
-  }, [tasksSettings.confirmBeforeDelete, setItems, setDeleteConfirmItem, t]);
+  }, [tasksSettings.confirmBeforeDelete, setItems, setDeleteConfirmItem, t, isPro, isNewFreeUser, softRequireMutate]);
 
   const confirmDelete = useCallback(async () => {
     if (!deleteConfirmItem) return;
