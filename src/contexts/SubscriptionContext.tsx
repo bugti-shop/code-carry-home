@@ -1156,6 +1156,48 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     setPaywallFeature(null);
   }, []);
 
+  // ── Soft Paywall Helpers ──
+  const markAsNewFreeUser = useCallback(async () => {
+    try {
+      await setSetting('flowist_new_user', true);
+      try { localStorage.setItem('flowist_new_user', 'true'); } catch {}
+      setIsNewFreeUser(true);
+    } catch (e) {
+      console.warn('Failed to mark as new free user:', e);
+    }
+  }, []);
+
+  // Auto-clear new-user flag once user becomes Pro
+  useEffect(() => {
+    if (isPro && isNewFreeUser) {
+      setIsNewFreeUser(false);
+      try { localStorage.setItem('flowist_new_user', 'false'); } catch {}
+      setSetting('flowist_new_user', false).catch(() => {});
+    }
+  }, [isPro, isNewFreeUser]);
+
+  // Returns true when allowed to create. Opens paywall + returns false when soft-limit hit.
+  const softRequireCreate = useCallback((kind: SoftLimitKind, currentCount: number): boolean => {
+    if (isPro) return true;
+    if (!isNewFreeUser) return true; // grandfathered/existing users — full access
+    const limit = SOFT_FREE_LIMITS[kind];
+    if (currentCount >= limit) {
+      setPaywallFeature(`soft_limit_${kind}`);
+      setShowPaywall(true);
+      return false;
+    }
+    return true;
+  }, [isPro, isNewFreeUser]);
+
+  // Returns true when allowed to mutate (edit/delete). Opens paywall + returns false otherwise.
+  const softRequireMutate = useCallback((): boolean => {
+    if (isPro) return true;
+    if (!isNewFreeUser) return true;
+    setPaywallFeature('soft_limit_edit');
+    setShowPaywall(true);
+    return false;
+  }, [isPro, isNewFreeUser]);
+
   // Check Stripe subscription by email (used from onboarding Google sign-in)
   const checkStripeByEmail = useCallback(async (email: string): Promise<boolean> => {
     try {
