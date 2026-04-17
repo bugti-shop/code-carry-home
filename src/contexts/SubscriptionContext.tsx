@@ -216,6 +216,28 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [isVerifyingCheckout, setIsVerifyingCheckout] = useState(false);
   const [checkoutVerificationFailed, setCheckoutVerificationFailed] = useState(false);
 
+  // Soft paywall state — true for brand-new free users post-onboarding (no pre-existing data).
+  // Cached from localStorage for instant access on mount; verified async via getSetting.
+  const [isNewFreeUser, setIsNewFreeUser] = useState<boolean>(() => {
+    try { return localStorage.getItem('flowist_new_user') === 'true'; } catch { return false; }
+  });
+
+  useEffect(() => {
+    getSetting<boolean>('flowist_new_user', false).then((v) => {
+      setIsNewFreeUser(!!v);
+      try { localStorage.setItem('flowist_new_user', v ? 'true' : 'false'); } catch {}
+    }).catch(() => {});
+
+    const handleNewFreeUserChanged = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      const next = !!detail?.value;
+      setIsNewFreeUser(next);
+      try { localStorage.setItem('flowist_new_user', next ? 'true' : 'false'); } catch {}
+    };
+    window.addEventListener('flowistNewFreeUserChanged', handleNewFreeUserChanged);
+    return () => window.removeEventListener('flowistNewFreeUserChanged', handleNewFreeUserChanged);
+  }, []);
+
   // Check sign-out grace period on mount
   useEffect(() => {
     const checkSignoutGrace = async () => {
