@@ -57,7 +57,7 @@ const Index = () => {
   const { notes, setNotes, notesMeta, notesMap, counts, isLoading: notesLoading } = useNotes();
   
   // Note type visibility
-  const { requireFeature, isPro, openPaywall } = useSubscription();
+  const { requireFeature, isPro, openPaywall, isNewFreeUser, softRequireCreate } = useSubscription();
   const { visibleTypes, isTypeVisible, filterNotesByVisibility } = useNoteTypeVisibility();
   const [showNoteTypeVisibilitySheet, setShowNoteTypeVisibilitySheet] = useState(false);
   const [showNoteTemplates, setShowNoteTemplates] = useState(true);
@@ -390,6 +390,10 @@ const Index = () => {
   };
 
   const handleCreateNote = (type: NoteType) => {
+    // Soft paywall: new free users limited to 1 note total
+    if (!isPro && isNewFreeUser && !softRequireCreate('notes', notes.length)) {
+      return;
+    }
     // Free users limited to 10 notes total (including archived and deleted)
     if (!isPro && notes.length >= FREE_LIMITS.maxNotes) {
       openPaywall('extra_notes');
