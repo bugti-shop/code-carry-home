@@ -1140,13 +1140,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const closePaywall = useCallback(() => {
-    // Only allow closing paywall if user actually has verified access
-    // This prevents bypass via refresh or back-button from Stripe checkout
-    if (rcIsPro || localProAccess || isAdminBypass || signoutGraceActive) {
+    // Allow closing if user has verified access OR is in soft-paywall (new free user) mode.
+    // Soft mode = paywall is dismissable; hard mode = stays until upgrade.
+    if (rcIsPro || localProAccess || isAdminBypass || signoutGraceActive || isNewFreeUser) {
       setShowPaywall(false);
       setPaywallFeature(null);
     }
-  }, [rcIsPro, localProAccess, isAdminBypass, signoutGraceActive]);
+  }, [rcIsPro, localProAccess, isAdminBypass, signoutGraceActive, isNewFreeUser]);
 
   const unlockPro = useCallback(async () => {
     await setSetting('flowist_admin_bypass', true);
