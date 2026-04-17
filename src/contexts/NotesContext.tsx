@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { Note } from '@/types/note';
 import { loadNotesFromDB, saveNotesToDB, saveNoteToDBSingle, deleteNoteFromDB, migrateNotesToIndexedDB } from '@/utils/noteStorage';
 import { getTextPreviewFromHtml } from '@/utils/contentPreview';
+import { useSubscription, SOFT_FREE_LIMITS } from '@/contexts/SubscriptionContext';
 
 // Lightweight note metadata for instant navigation
 export interface NoteMeta {
