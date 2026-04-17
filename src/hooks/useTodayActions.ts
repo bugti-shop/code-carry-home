@@ -286,6 +286,11 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
   }, [selectedFolderId, inputSectionId, sections, setItems, setInputSectionId, t, isPro, isNewFreeUser, softRequireCreate]);
 
   const updateItem = useCallback(async (itemId: string, updates: Partial<TodoItem>) => {
+    // Soft paywall: allow completion toggle, block all other edits
+    if (!isPro && isNewFreeUser) {
+      const onlyCompletion = Object.keys(updates).every(k => k === 'completed' || k === 'completedAt' || k === 'modifiedAt');
+      if (!onlyCompletion && !softRequireMutate()) return;
+    }
     const now = new Date();
     const updatesWithTimestamp: Partial<TodoItem> = { ...updates, modifiedAt: now };
 
@@ -344,9 +349,11 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
         duration: 5000,
       });
     }
-  }, [setItems, t]);
+  }, [setItems, t, isPro, isNewFreeUser, softRequireMutate]);
 
   const deleteItem = useCallback(async (itemId: string, _showUndo: boolean = false, skipConfirm: boolean = false) => {
+    // Soft paywall: block delete for new free users
+    if (!isPro && isNewFreeUser && !softRequireMutate()) return;
     let deletedItem: TodoItem | undefined;
     setItems(prev => {
       deletedItem = prev.find(item => item.id === itemId);
