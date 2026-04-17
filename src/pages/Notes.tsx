@@ -68,7 +68,7 @@ const Notes = () => {
   const { t } = useTranslation();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   
-  const { requireFeature, openPaywall, isPro } = useSubscription();
+  const { requireFeature, openPaywall, isPro, isNewFreeUser, softRequireCreate, softRequireMutate } = useSubscription();
   
   // Use global notes context - no more local loading!
   const { notes, notesMeta, setNotes, isLoading, counts } = useNotes();
@@ -92,6 +92,15 @@ const Notes = () => {
 
 
   const handleSaveNote = useCallback((note: Note) => {
+    // Soft paywall: gate create vs edit for new free users
+    if (!isPro && isNewFreeUser) {
+      const isExisting = notes.some(n => n.id === note.id);
+      if (isExisting) {
+        if (!softRequireMutate()) return;
+      } else if (!softRequireCreate('notes', notes.length)) {
+        return;
+      }
+    }
     setNotes(prevNotes => {
       const existingIndex = prevNotes.findIndex((n) => n.id === note.id);
       let updatedNotes;
@@ -106,7 +115,7 @@ const Notes = () => {
       saveNoteToDBSingle(note);
       return updatedNotes;
     });
-  }, []);
+  }, [isPro, isNewFreeUser, softRequireCreate, softRequireMutate, notes, setNotes]);
 
   const handleEditNote = (note: Note) => {
     setSelectedNote(note);
