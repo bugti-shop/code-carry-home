@@ -373,7 +373,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
       action: { label: t('todayPage.undo'), onClick: () => { setItems(prev => [itemToRestore!, ...prev]); toast.success(t('todayPage.taskRestored')); } },
       duration: 5000,
     });
-  }, [tasksSettings.confirmBeforeDelete, setItems, setDeleteConfirmItem, t]);
+  }, [tasksSettings.confirmBeforeDelete, setItems, setDeleteConfirmItem, t, isPro, isNewFreeUser, softRequireMutate]);
 
   const confirmDelete = useCallback(async () => {
     if (!deleteConfirmItem) return;
