@@ -121,6 +121,12 @@ interface UnifiedBillingContextType {
   requireFeature: (feature: PremiumFeature) => boolean;
   unlockPro: () => Promise<void>;
 
+  // Soft paywall (new-user teaser mode)
+  isNewFreeUser: boolean;
+  markAsNewFreeUser: () => Promise<void>;
+  softRequireCreate: (kind: SoftLimitKind, currentCount: number) => boolean;
+  softRequireMutate: () => boolean;
+
   // RevenueCat state
   isInitialized: boolean;
   customerInfo: CustomerInfo | null;
