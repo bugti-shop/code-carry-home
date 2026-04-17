@@ -124,6 +124,7 @@ const Notes = () => {
 
   const handleTogglePin = (noteId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isPro && isNewFreeUser && !softRequireMutate()) return;
     if (!requireFeature('pin_feature')) return;
     const updatedNotes = notes.map((n) => {
       if (n.id === noteId) {
@@ -141,6 +142,7 @@ const Notes = () => {
 
   const handleToggleArchive = (noteId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isPro && isNewFreeUser && !softRequireMutate()) return;
     const noteBeforeUpdate = notes.find(n => n.id === noteId);
     const updatedNotes = notes.map((n) => {
       if (n.id === noteId) {
@@ -161,6 +163,7 @@ const Notes = () => {
 
   const handleMoveToTrash = (noteId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isPro && isNewFreeUser && !softRequireMutate()) return;
     const updatedNotes = notes.map((n) => {
       if (n.id === noteId) {
         return {
@@ -180,6 +183,7 @@ const Notes = () => {
 
   const handleRestoreFromTrash = (noteId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isPro && isNewFreeUser && !softRequireMutate()) return;
     const updatedNotes = notes.map((n) => {
       if (n.id === noteId) {
         return {
@@ -197,6 +201,7 @@ const Notes = () => {
 
   const handleDeletePermanently = (noteId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isPro && isNewFreeUser && !softRequireMutate()) return;
     const updatedNotes = notes.filter((n) => n.id !== noteId);
     setNotes(updatedNotes);
     deleteNoteFromDB(noteId);
