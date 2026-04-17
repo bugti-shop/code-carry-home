@@ -81,13 +81,15 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
 
   // ── Folder Actions ──
   const handleCreateFolder = useCallback((name: string, color: string) => {
+    // Soft paywall: new free users get 1 task folder
+    if (!isPro && isNewFreeUser && !softRequireCreate('taskFolders', folders.length)) return;
     if (!isPro && folders.length >= FREE_LIMITS.maxTaskFolders) {
       requireFeature('extra_folders');
       return;
     }
     const newFolder: Folder = { id: Date.now().toString(), name, color, isDefault: false, createdAt: new Date() };
     setFolders(prev => [...prev, newFolder]);
-  }, [folders.length, isPro, requireFeature, setFolders]);
+  }, [folders.length, isPro, isNewFreeUser, softRequireCreate, requireFeature, setFolders]);
 
   const handleEditFolder = useCallback((folderId: string, name: string, color: string) => {
     setFolders(prev => prev.map(f => f.id === folderId ? { ...f, name, color } : f));
@@ -132,6 +134,8 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
 
   // ── Section Actions ──
   const handleAddSection = useCallback((position: 'above' | 'below', referenceId?: string) => {
+    // Soft paywall: new free users get 1 section
+    if (!isPro && isNewFreeUser && !softRequireCreate('taskSections', sections.length)) return;
     if (!isPro && sections.length >= 1) {
       requireFeature('extra_sections');
       return;
@@ -152,7 +156,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     setEditingSection(newSection);
     setIsSectionEditOpen(true);
     toast.success(t('todayPage.sectionAdded'));
-  }, [sections, isPro, requireFeature, setSections, setEditingSection, setIsSectionEditOpen, t]);
+  }, [sections, isPro, isNewFreeUser, softRequireCreate, requireFeature, setSections, setEditingSection, setIsSectionEditOpen, t]);
 
   const handleEditSection = useCallback((section: TaskSection) => {
     setEditingSection(section);
