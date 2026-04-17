@@ -1254,6 +1254,11 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         canUseFeature,
         requireFeature,
         unlockPro,
+        // Soft paywall
+        isNewFreeUser,
+        markAsNewFreeUser,
+        softRequireCreate,
+        softRequireMutate,
         // RevenueCat
         isInitialized,
         customerInfo,
