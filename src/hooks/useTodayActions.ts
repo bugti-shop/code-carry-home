@@ -249,6 +249,8 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
 
   // ── Task CRUD ──
   const handleAddTask = useCallback(async (task: Omit<TodoItem, 'id' | 'completed'>) => {
+    // Soft paywall: new free users get 1 task
+    if (!isPro && isNewFreeUser && !softRequireCreate('tasks', itemsRef.current.length)) return;
     const now = new Date();
     const newItem: TodoItem = {
       id: Date.now().toString(), completed: false, ...task,
@@ -266,9 +268,11 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
         scheduleTaskReminder(newItem.id, newItem.text, new Date(newItem.reminderTime!), newItem.isUrgent).catch(console.warn);
       });
     }
-  }, [inputSectionId, defaultSectionId, sections, taskAddPosition, setItems, setInputSectionId]);
+  }, [inputSectionId, defaultSectionId, sections, taskAddPosition, setItems, setInputSectionId, isPro, isNewFreeUser, softRequireCreate]);
 
   const handleBatchAddTasks = useCallback(async (taskTexts: string[], sectionId?: string, folderId?: string, priority?: Priority, dueDate?: Date) => {
+    // Soft paywall: new free users can't batch-add (already 1 task)
+    if (!isPro && isNewFreeUser && !softRequireCreate('tasks', itemsRef.current.length)) return;
     const now = new Date();
     const newItems: TodoItem[] = taskTexts.map((text, idx) => ({
       id: `${Date.now()}-${idx}`, text, completed: false,
@@ -279,7 +283,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     setItems(prev => [...newItems, ...prev]);
     toast.success(t('todayPage.addedTasks', { count: newItems.length }));
     setInputSectionId(null);
-  }, [selectedFolderId, inputSectionId, sections, setItems, setInputSectionId, t]);
+  }, [selectedFolderId, inputSectionId, sections, setItems, setInputSectionId, t, isPro, isNewFreeUser, softRequireCreate]);
 
   const updateItem = useCallback(async (itemId: string, updates: Partial<TodoItem>) => {
     const now = new Date();
