@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { DuplicateOption } from '@/components/DuplicateOptionsSheet';
 import { SelectAction } from '@/components/SelectActionsSheet';
 import { DropResult } from '@hello-pangea/dnd';
-import { useSubscription, FREE_LIMITS } from '@/contexts/SubscriptionContext';
+import { useSubscription, FREE_LIMITS, SOFT_FREE_LIMITS } from '@/contexts/SubscriptionContext';
 import { updateSectionOrder } from '@/utils/taskOrderStorage';
 import { getAllSettings, setSetting } from '@/utils/settingsStorage';
 import { loadDeletions, trackDeletion } from '@/utils/deletionTracker';
@@ -71,6 +71,9 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     defaultSectionId, taskAddPosition, uncompletedItems,
     requireFeature, isPro, tasksSettings, setOrderVersion,
   } = props;
+
+  // Soft paywall — new free users get 1 task / 1 folder / 1 section, no edit/delete (completion allowed)
+  const { isNewFreeUser, softRequireCreate, softRequireMutate } = useSubscription();
 
   // Keep a ref to items for reliable access in async callbacks
   const itemsRef = useRef(items);
