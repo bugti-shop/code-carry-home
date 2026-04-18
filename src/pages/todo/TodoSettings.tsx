@@ -420,7 +420,7 @@ const TodoSettings = () => {
           <div className="border border-border rounded-lg overflow-hidden">
             <SectionHeading title={t('settings.security', 'Security')} />
             <SettingsRow 
-              label={<>{t('settings.appLock', 'App Lock')} {!isPro && <Crown className="h-3.5 w-3.5 inline ml-1" style={{ color: '#3c78f0' }} />}</>}
+              label={t('settings.appLock', 'App Lock')}
               onClick={() => { if (requireFeature('app_lock')) setShowAppLockSettingsSheet(true); }} 
             />
           </div>
