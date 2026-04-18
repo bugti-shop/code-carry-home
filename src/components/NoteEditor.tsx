@@ -1921,6 +1921,20 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
         </div>
       )}
 
+      {/* AI dictation → text into note */}
+      <VoiceNoteSheet
+        isOpen={showVoiceNote}
+        onClose={() => setShowVoiceNote(false)}
+        onInsertText={handleAiInsertText}
+      />
+
+      {/* AI page scan → formatted HTML into note */}
+      <ScanNoteSheet
+        isOpen={showScanNote}
+        onClose={() => setShowScanNote(false)}
+        onInsertHtml={handleAiInsertHtml}
+      />
+
 
       {/* New Folder Dialog */}
       <Dialog open={isNewFolderDialogOpen} onOpenChange={setIsNewFolderDialogOpen}>
