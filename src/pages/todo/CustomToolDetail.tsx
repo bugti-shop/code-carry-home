@@ -58,7 +58,7 @@ const CustomToolDetail = () => {
   const { toolId } = useParams<{ toolId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isPro, requireFeature, softRequireCreate } = useSubscription();
+  const { isPro, requireFeature, softRequireCreate, canCreateWithinSoftLimit } = useSubscription();
   const [tool, setTool] = useState<CustomTool | null>(null);
   const [linkedTasks, setLinkedTasks] = useState<TodoItem[]>([]);
   const [allTasks, setAllTasks] = useState<TodoItem[]>([]);
@@ -237,7 +237,8 @@ const CustomToolDetail = () => {
 
   const handleQuickAddTask = async () => {
     if (!quickTaskText.trim() || !tool) return;
-    
+    if (!isPro && !softRequireCreate('tasks', allTasks.length)) return;
+
     const newTask: TodoItem = {
       id: genId(),
       text: quickTaskText.trim(),
@@ -372,7 +373,10 @@ const CustomToolDetail = () => {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setShowTaskInput(true)}
+              onClick={() => {
+                if (!isPro && !canCreateWithinSoftLimit('tasks', allTasks.length)) { softRequireCreate('tasks', allTasks.length); return; }
+                setShowTaskInput(true);
+              }}
             >
               {t('customTool.moreOptions')}
             </Button>

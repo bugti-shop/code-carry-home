@@ -39,7 +39,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 const Upcoming = () => {
   const { t } = useTranslation();
-  const { requireFeature, isPro, softRequireCreate } = useSubscription();
+  const { requireFeature, isPro, softRequireCreate, canCreateWithinSoftLimit } = useSubscription();
   const [items, setItems] = useState<TodoItem[]>([]);
   const [allItems, setAllItems] = useState<TodoItem[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -640,6 +640,7 @@ const Upcoming = () => {
 
       <Button
         onClick={async () => {
+          if (!isPro && !canCreateWithinSoftLimit('tasks', allItems.length)) { softRequireCreate('tasks', allItems.length); return; }
           try { await Haptics.impact({ style: ImpactStyle.Heavy }); } catch {}
           setIsInputOpen(true);
         }}

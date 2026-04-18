@@ -74,7 +74,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
   } = props;
 
   // Soft paywall — free users have hard lifetime create caps; edit/delete stays allowed.
-  const { softRequireCreate, softRequireMutate } = useSubscription();
+  const { softRequireCreate, softRequireMutate, canCreateWithinSoftLimit } = useSubscription();
 
   // Keep a ref to items for reliable access in async callbacks
   const itemsRef = useRef(items);
@@ -229,10 +229,14 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
   }, [setCollapsedViewSections]);
 
   const handleAddTaskToSection = useCallback(async (sectionId: string) => {
+    if (!isPro && !canCreateWithinSoftLimit('tasks', itemsRef.current.length)) {
+      softRequireCreate('tasks', itemsRef.current.length);
+      return;
+    }
     try { await Haptics.impact({ style: ImpactStyle.Heavy }); } catch {}
     setInputSectionId(sectionId);
     setIsInputOpen(true);
-  }, [setInputSectionId, setIsInputOpen]);
+  }, [setInputSectionId, setIsInputOpen, isPro, canCreateWithinSoftLimit, softRequireCreate]);
 
   const handleSectionDragEnd = useCallback(async (result: DropResult) => {
     if (!result.destination) return;

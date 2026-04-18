@@ -58,7 +58,7 @@ const defaultSections: TaskSection[] = [
 const TodoCalendar = () => {
   const { t } = useTranslation();
   const { getPriorityColor } = usePriorities();
-  const { requireFeature, isPro, softRequireCreate } = useSubscription();
+  const { requireFeature, isPro, softRequireCreate, canCreateWithinSoftLimit } = useSubscription();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isInputOpen, setIsInputOpen] = useState(false);
   const [isEventEditorOpen, setIsEventEditorOpen] = useState(false);
@@ -1218,7 +1218,10 @@ const TodoCalendar = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" side="top" className="mb-2 w-48 z-50 bg-card">
-          <DropdownMenuItem onClick={() => setIsInputOpen(true)} className="gap-2">
+          <DropdownMenuItem onClick={() => {
+            if (!isPro && !canCreateWithinSoftLimit('tasks', items.length)) { softRequireCreate('tasks', items.length); return; }
+            setIsInputOpen(true);
+          }} className="gap-2">
             <ListTodo className="h-4 w-4" />
             {t('calendar.addTask')}
           </DropdownMenuItem>

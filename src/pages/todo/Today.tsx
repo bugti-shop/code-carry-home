@@ -19,7 +19,7 @@ import { WaveformProgressBar } from '@/components/WaveformProgressBar';
 import { playCompletionSound } from '@/utils/taskSounds';
 import { TASK_CIRCLE, TASK_CHECK_ICON } from '@/utils/taskItemStyles';
 import { loadCustomSmartViews } from '@/utils/customSmartViews';
-
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 // Extracted hooks and components
 import { useTodayState } from '@/hooks/useTodayState';
@@ -77,6 +77,7 @@ const FlatView = lazy(flatFactory);
 
 const Today = () => {
   const { t } = useTranslation();
+  const { softRequireCreate, canCreateWithinSoftLimit } = useSubscription();
 
   // ── All state from extracted hook ──
   const state = useTodayState();
@@ -758,7 +759,11 @@ const Today = () => {
         </div>
       </main>
 
-      <Button data-tour="todo-add-task" onClick={async () => { try { await Haptics.impact({ style: ImpactStyle.Heavy }); } catch {} setIsInputOpen(true); }} className="fixed left-4 right-4 z-30 h-12 text-base font-semibold" style={{ bottom: 'calc(4.25rem + var(--safe-bottom, 0px))' }} size="lg">
+      <Button data-tour="todo-add-task" onClick={async () => {
+        if (!isPro && !canCreateWithinSoftLimit('tasks', items.length)) { softRequireCreate('tasks', items.length); return; }
+        try { await Haptics.impact({ style: ImpactStyle.Heavy }); } catch {}
+        setIsInputOpen(true);
+      }} className="fixed left-4 right-4 z-30 h-12 text-base font-semibold" style={{ bottom: 'calc(4.25rem + var(--safe-bottom, 0px))' }} size="lg">
         <Plus className="h-5 w-5" />{t('tasks.addTask')}
       </Button>
 
