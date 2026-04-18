@@ -442,6 +442,131 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // ── AI Dictation: Speech → AI parse → auto-fill task fields ──
+  const applyAIParsed = (parsed: any) => {
+    if (!parsed) return;
+    if (parsed.title) setTaskText(String(parsed.title));
+    if (parsed.dueDateIso) {
+      const d = new Date(parsed.dueDateIso);
+      if (!isNaN(d.getTime())) setDueDate(d);
+    }
+    if (parsed.deadlineIso) {
+      const d = new Date(parsed.deadlineIso);
+      if (!isNaN(d.getTime())) setDeadline(d);
+    }
+    if (parsed.priority && parsed.priority !== 'none') {
+      setPriority(parsed.priority as Priority);
+    }
+    if (parsed.folderId && folders.some((f) => f.id === parsed.folderId)) {
+      setFolderId(parsed.folderId);
+    }
+    if (parsed.sectionId && sections.some((s) => s.id === parsed.sectionId)) {
+      setSectionId(parsed.sectionId);
+    }
+    if (parsed.repeatType && parsed.repeatType !== 'none') {
+      setRepeatType(parsed.repeatType as RepeatType);
+    }
+    if (parsed.location) setLocation(String(parsed.location));
+    if (parsed.description) {
+      setDescription(String(parsed.description));
+      setShowDescriptionInput(true);
+    }
+  };
+
+  const processAITranscript = async (transcript: string) => {
+    const text = transcript.trim();
+    if (!text) {
+      setIsAIProcessing(false);
+      return;
+    }
+    setIsAIProcessing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-parse-task', {
+        body: {
+          transcript: text,
+          folders: folders.map((f) => ({ id: f.id, name: f.name })),
+          sections: sections.map((s) => ({ id: s.id, name: s.name })),
+          nowIso: new Date().toISOString(),
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      applyAIParsed((data as any)?.parsed);
+      try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
+      toast.success(t('tasks.aiParsedSuccess', 'AI filled the task'));
+    } catch (e: any) {
+      console.error('[AI parse] error', e);
+      // Fallback: at least set the transcript as the title
+      if (!taskText.trim()) setTaskText(text);
+      const msg = e?.message || '';
+      if (msg.includes('429')) toast.error(t('tasks.aiRateLimit', 'AI is busy, try again shortly'));
+      else if (msg.includes('402')) toast.error(t('tasks.aiCredits', 'AI credits exhausted'));
+      else toast.error(t('tasks.aiFailed', 'AI parsing failed, used transcript as title'));
+    } finally {
+      setIsAIProcessing(false);
+    }
+  };
+
+  const startAIDictation = async () => {
+    if (!requireFeature('voice_recording')) return;
+    const SR: any =
+      (typeof window !== 'undefined' &&
+        ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
+    if (!SR) {
+      toast.error(t('tasks.aiNoSpeech', 'Speech recognition not supported on this device'));
+      return;
+    }
+    try {
+      const recognition = new SR();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = (typeof navigator !== 'undefined' && navigator.language) || 'en-US';
+      aiTranscriptRef.current = '';
+
+      recognition.onresult = (event: any) => {
+        let finalText = '';
+        for (let i = 0; i < event.results.length; i++) {
+          const res = event.results[i];
+          if (res.isFinal || !recognition.interimResults) {
+            finalText += res[0].transcript;
+          }
+        }
+        aiTranscriptRef.current = finalText.trim();
+      };
+      recognition.onerror = (e: any) => {
+        console.warn('[AI dictation] error', e?.error);
+        setIsAIListening(false);
+        if (e?.error === 'not-allowed' || e?.error === 'service-not-allowed') {
+          toast.error(t('errors.microphoneFailed'));
+        } else if (e?.error !== 'no-speech' && e?.error !== 'aborted') {
+          toast.error(t('tasks.aiSpeechFailed', 'Could not capture speech'));
+        }
+      };
+      recognition.onend = () => {
+        setIsAIListening(false);
+        const text = aiTranscriptRef.current;
+        if (text) processAITranscript(text);
+      };
+
+      speechRecognitionRef.current = recognition;
+      recognition.start();
+      setIsAIListening(true);
+      try { await Haptics.impact({ style: ImpactStyle.Medium }); } catch {}
+    } catch (err) {
+      console.error('[AI dictation] start failed', err);
+      toast.error(t('errors.microphoneFailed'));
+      setIsAIListening(false);
+    }
+  };
+
+  const stopAIDictation = () => {
+    try {
+      speechRecognitionRef.current?.stop();
+    } catch {}
+    setIsAIListening(false);
+  };
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
