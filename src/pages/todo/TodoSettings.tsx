@@ -435,7 +435,6 @@ const TodoSettings = () => {
             >
               <span className="text-foreground text-sm flex items-center gap-1">
                 {isBackingUp ? t('settings.backingUp', 'Backing up...') : t('settings.backupData')}
-                {!isPro && <Crown className="h-3.5 w-3.5" style={{ color: '#3c78f0' }} />}
               </span>
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </button>
