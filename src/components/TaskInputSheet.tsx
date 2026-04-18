@@ -45,7 +45,8 @@ import {
   File,
   Trash2,
   Crown,
-  AlertTriangle
+  AlertTriangle,
+  Languages
 } from 'lucide-react';
 import { EditActionsSheet, ActionItem, defaultActions } from './EditActionsSheet';
 import { WaveformVisualizer } from './WaveformVisualizer';
@@ -228,6 +229,15 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const [isAIListening, setIsAIListening] = useState(false);
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const [aiElapsedMs, setAiElapsedMs] = useState(0);
+  // Persisted dictation language (BCP-47). Synced with VoiceNoteSheet via the
+  // same `flowist_dictation_lang` key so user picks language once app-wide.
+  const [dictationLang, setDictationLang] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'en-US';
+    const saved = localStorage.getItem('flowist_dictation_lang');
+    if (saved) return saved;
+    const shortLang = (i18n.language || 'en').split('-')[0];
+    return SPEECH_LANG_MAP[shortLang] || 'en-US';
+  });
   const speechRecognitionRef = useRef<any>(null);
   const aiTranscriptRef = useRef<string>('');
   // True only when user explicitly tapped Stop. Lets us silently restart
@@ -594,9 +604,9 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       const recognition = new SR();
       recognition.continuous = true;
       recognition.interimResults = true;
-      const shortLang = (i18n.language || 'en').split('-')[0];
+      // Use user-picked dictation language (persisted) instead of i18n locale.
       recognition.lang =
-        SPEECH_LANG_MAP[shortLang] ||
+        dictationLang ||
         (typeof navigator !== 'undefined' && navigator.language) ||
         'en-US';
       aiTranscriptRef.current = '';
@@ -1099,6 +1109,41 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
               </div>
             ) : (
               <div className="flex items-center gap-1.5 flex-shrink-0">
+                {/* Dictation language picker — synced app-wide via localStorage */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="h-10 px-2 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center gap-1 text-primary transition-colors"
+                      aria-label={t('voiceNote.language', 'Recognition language')}
+                      title={t('voiceNote.language', 'Recognition language')}
+                    >
+                      <Languages className="h-4 w-4" />
+                      <span className="text-[10px] font-semibold uppercase tracking-wide">
+                        {dictationLang.split('-')[0]}
+                      </span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="top" align="end" className="w-56 p-1 max-h-72 overflow-y-auto">
+                    <div className="space-y-0.5">
+                      {Object.entries(SPEECH_LANG_MAP).map(([short, bcp47]) => (
+                        <button
+                          key={bcp47}
+                          onClick={() => {
+                            setDictationLang(bcp47);
+                            try { localStorage.setItem('flowist_dictation_lang', bcp47); } catch {}
+                          }}
+                          className={cn(
+                            'w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-sm hover:bg-accent transition-colors text-left',
+                            dictationLang === bcp47 && 'bg-primary/10 text-primary font-medium',
+                          )}
+                        >
+                          <span>{LANG_NAMES[short] || short}</span>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{bcp47}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 <Popover open={showScanCoachmark} onOpenChange={(o) => !o && dismissScanCoachmark()}>
                   <PopoverTrigger asChild>
                     <button
