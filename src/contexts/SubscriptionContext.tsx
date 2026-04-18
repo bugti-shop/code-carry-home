@@ -346,10 +346,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           setGraceExpired(false);
           await setSetting('flowist_trial_start', 0);
         }
-        // Check local free trial
+        // Check local free trial — only grant access if trial actively running.
+        // If expired, ensure localProAccess is false (unless admin bypass).
         const trialActive = await checkLocalTrial();
         if (trialActive && !adminBypass) {
           setLocalProAccess(true);
+        } else if (!trialActive && !adminBypass) {
+          setLocalProAccess(false);
         }
       } catch (e) {
         console.error('Failed to load subscription:', e);
