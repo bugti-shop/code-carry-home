@@ -32,7 +32,10 @@ interface Props {
 
 export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
   const { t, i18n } = useTranslation();
-  const { isPro } = useSubscription();
+  const { isPro, isLocalTrial } = useSubscription();
+  const isStripeTrialing = typeof window !== 'undefined' && Boolean((window as any).__stripeIsTrialing);
+  // Only fully-paid Pro (not on free trial) gets unlimited AI use.
+  const isPaidPro = isPro && !isLocalTrial && !isStripeTrialing;
   const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -66,6 +69,10 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
   };
 
   const runExtraction = async (dataUrl: string) => {
+    if (!isPaidPro && !canUseAiFeature('scan')) {
+      toast.error(getLimitReachedMessage('scan'));
+      return;
+    }
     setIsExtracting(true);
     setHasRun(false);
     setHtml('');
@@ -89,6 +96,7 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
       setHtml(rawHtml);
       setSuggestedTitle(title);
       setHasRun(true);
+      if (!isPaidPro) recordAiUsage('scan');
 
       if (!rawHtml) {
         toast.info(t('scanNote.noText', 'No readable text found in this image'));
