@@ -237,7 +237,8 @@ const CustomToolDetail = () => {
 
   const handleQuickAddTask = async () => {
     if (!quickTaskText.trim() || !tool) return;
-    
+    if (!isPro && !softRequireCreate('tasks', allTasks.length)) return;
+
     const newTask: TodoItem = {
       id: genId(),
       text: quickTaskText.trim(),
