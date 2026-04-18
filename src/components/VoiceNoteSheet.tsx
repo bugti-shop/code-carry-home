@@ -29,6 +29,10 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
   const [transcript, setTranscript] = useState('');
   const [interim, setInterim] = useState('');
   const recognitionRef = useRef<any>(null);
+  // True only when the user explicitly tapped Stop. Used so that when the
+  // browser auto-ends the SpeechRecognition session (silence / timeout), we
+  // transparently restart it instead of finalizing the transcript.
+  const userStoppedRef = useRef(false);
   const supportsSpeech =
     typeof window !== 'undefined' &&
     !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
@@ -44,11 +48,13 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
   }, [isOpen]);
 
   const stopListening = () => {
+    userStoppedRef.current = true;
     try {
       recognitionRef.current?.stop?.();
     } catch {}
     recognitionRef.current = null;
     setIsListening(false);
+    setInterim('');
   };
 
   const startListening = () => {
@@ -82,13 +88,27 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
     };
     rec.onerror = (e: any) => {
       console.warn('[voice note] recognition error', e);
-      stopListening();
+      // 'no-speech' / 'aborted' aren't fatal — let onend handle restart.
+      if (e?.error && e.error !== 'no-speech' && e.error !== 'aborted') {
+        stopListening();
+      }
     };
     rec.onend = () => {
+      // If the user didn't tap Stop, the browser auto-ended on silence.
+      // Restart silently so recording continues until they decide to stop.
+      if (!userStoppedRef.current && recognitionRef.current === rec) {
+        try {
+          rec.start();
+          return;
+        } catch {
+          // fallthrough — finalize below
+        }
+      }
       setIsListening(false);
       setInterim('');
     };
 
+    userStoppedRef.current = false;
     recognitionRef.current = rec;
     setIsListening(true);
     try {
