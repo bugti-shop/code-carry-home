@@ -27,7 +27,7 @@ const PERIOD_LABELS: Record<string, string> = {
 // Shared hook for plans and purchase logic
 function usePaywallLogic() {
   const { t } = useTranslation();
-  const { showPaywall, closePaywall, unlockPro, purchase, offerings, restorePurchases, isNewFreeUser, isPro } = useSubscription();
+  const { showPaywall, closePaywall, unlockPro, purchase, offerings, restorePurchases, isNewFreeUser, isPro, paywallFeature } = useSubscription();
   const [selectedPlan, setSelectedPlan] = useState<ProductType>('monthly');
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
@@ -210,11 +210,20 @@ function usePaywallLogic() {
     }
   };
 
+  // Soft-limit info derived from paywallFeature like "soft_limit_notes" / "soft_limit_tasks"
+  const SOFT_LIMIT_COUNTS: Record<string, number> = {
+    notes: 2, tasks: 1, noteFolders: 1, taskFolders: 1, taskSections: 1,
+  };
+  const softLimitKind = paywallFeature?.startsWith('soft_limit_') ? paywallFeature.replace('soft_limit_', '') : null;
+  const softLimitMessage = softLimitKind && SOFT_LIMIT_COUNTS[softLimitKind] != null
+    ? t(`onboarding.paywall.softLimit.${softLimitKind}`, { count: SOFT_LIMIT_COUNTS[softLimitKind] })
+    : null;
+
   return {
     t, showPaywall, closePaywall, isNewFreeUser, isPro, selectedPlan, setSelectedPlan, isPurchasing, isRestoring,
     adminCode, setAdminCode, showAdminInput, setShowAdminInput, adminError,
     PLANS, currentPlan, handlePurchase, handleRestore, handleAccessCode, hasUsedTrial,
-    restoreEmail, setRestoreEmail, showRestoreEmail,
+    restoreEmail, setRestoreEmail, showRestoreEmail, softLimitMessage,
   };
 }
 
@@ -259,7 +268,7 @@ function PaywallFooter({ logic }: { logic: ReturnType<typeof usePaywallLogic> })
    VARIANT A — Timeline Feature List (Original)
    ═══════════════════════════════════════════ */
 function PaywallVariantA({ logic }: { logic: ReturnType<typeof usePaywallLogic> }) {
-  const { t, selectedPlan, setSelectedPlan, isPurchasing, PLANS, currentPlan, handlePurchase, hasUsedTrial, isNewFreeUser, isPro, closePaywall } = logic;
+  const { t, selectedPlan, setSelectedPlan, isPurchasing, PLANS, currentPlan, handlePurchase, hasUsedTrial, isNewFreeUser, isPro, closePaywall, softLimitMessage } = logic;
   const canDismiss = isNewFreeUser || isPro;
 
   return (
@@ -283,9 +292,26 @@ function PaywallVariantA({ logic }: { logic: ReturnType<typeof usePaywallLogic> 
           </h1>
         </motion.div>
 
+        {softLimitMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mx-auto mb-6 max-w-sm rounded-xl px-4 py-3 text-center text-sm font-semibold"
+            style={{
+              background: 'hsl(var(--primary) / 0.08)',
+              color: 'hsl(var(--primary))',
+              border: '1px solid hsl(var(--primary) / 0.2)',
+              fontFamily: "'Nunito Sans', sans-serif",
+            }}
+          >
+            {softLimitMessage}
+          </motion.div>
+        )}
+
         {/* Feature timeline */}
         <div className="flex flex-col items-start mx-auto w-80 relative">
           <div className="absolute left-[10.5px] top-[20px] bottom-[20px] w-[11px] rounded-b-full" style={{ background: 'hsl(var(--primary) / 0.2)' }} />
+
 
           {[
             { icon: <Unlock size={16} strokeWidth={2} />, title: t('onboarding.paywall.unlockAllFeatures'), desc: t('onboarding.paywall.unlockAllFeaturesDesc') },

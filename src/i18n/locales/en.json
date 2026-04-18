@@ -1577,6 +1577,18 @@
     },
     "paywall": {
       "upgradeTitle": "Upgrade to Flowist Pro",
+      "softLimit": {
+        "notes_one": "You've used your {{count}} free note. Upgrade to Pro for unlimited.",
+        "notes_other": "You've used your {{count}} free notes. Upgrade to Pro for unlimited.",
+        "tasks_one": "You've used your {{count}} free task. Upgrade to Pro for unlimited.",
+        "tasks_other": "You've used your {{count}} free tasks. Upgrade to Pro for unlimited.",
+        "noteFolders_one": "You've used your {{count}} free note folder. Upgrade to Pro for unlimited.",
+        "noteFolders_other": "You've used your {{count}} free note folders. Upgrade to Pro for unlimited.",
+        "taskFolders_one": "You've used your {{count}} free task folder. Upgrade to Pro for unlimited.",
+        "taskFolders_other": "You've used your {{count}} free task folders. Upgrade to Pro for unlimited.",
+        "taskSections_one": "You've used your {{count}} free task section. Upgrade to Pro for unlimited.",
+        "taskSections_other": "You've used your {{count}} free task sections. Upgrade to Pro for unlimited."
+      },
       "unlockAllFeatures": "Unlock All Features",
       "unlockAllFeaturesDesc": "Dark mode, templates, sync, and more",
       "unlimitedEverything": "Unlimited Everything",
