@@ -261,11 +261,21 @@ export const ImageTaskExtractorSheet = ({
           {/* Image preview */}
           {imageDataUrl && (
             <div className="relative rounded-2xl overflow-hidden bg-muted">
-              <img
-                src={imageDataUrl}
-                alt={t('imageExtract.previewAlt', 'Captured tasks')}
-                className="w-full max-h-48 object-cover"
-              />
+              <button
+                type="button"
+                onClick={() => setIsZoomed(true)}
+                className="block w-full"
+                aria-label={t('imageExtract.zoom', 'Tap to zoom')}
+              >
+                <img
+                  src={imageDataUrl}
+                  alt={t('imageExtract.previewAlt', 'Captured tasks')}
+                  className="w-full max-h-48 object-cover"
+                />
+              </button>
+              <div className="absolute bottom-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-black/60 text-white pointer-events-none">
+                {t('imageExtract.tapToZoom', 'Tap to zoom')}
+              </div>
               <button
                 onClick={() => {
                   setImageDataUrl(null);
