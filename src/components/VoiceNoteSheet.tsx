@@ -149,14 +149,11 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
       }
     };
     rec.onend = () => {
-      // Commit any uncommitted interim before restart so words on the
-      // boundary aren't dropped when SpeechRecognition cycles.
-      const trailing = interimRef.current.trim();
-      if (trailing) {
-        setTranscript((prev) => (prev ? prev + ' ' + trailing : trailing).trim());
-        interimRef.current = '';
-        setInterim('');
-      }
+      // Do NOT flush interim during auto-restart — Chrome often re-emits the
+      // same words as final on the next session, causing duplication. Interim
+      // is only committed when the user explicitly taps Stop.
+      interimRef.current = '';
+      setInterim('');
       // If the user didn't tap Stop, the browser auto-ended on silence/timeout.
       // Restart with a small delay + backoff to avoid InvalidStateError.
       if (!userStoppedRef.current && recognitionRef.current === rec) {
