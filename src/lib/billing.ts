@@ -52,19 +52,19 @@ export const STRIPE_PRICE_IDS: Record<PlanType, string> = {
 // Pricing display (for UI only - actual pricing comes from RevenueCat/Store)
 export const PRICING_DISPLAY = {
   weekly: {
-    price: '$2.63',
+    price: '$8.99',
     period: 'week',
-    displayPrice: '$2.63/wk',
+    displayPrice: '$8.99/wk',
   },
   monthly: {
-    price: '$7.49',
+    price: '$12.99',
     period: 'month',
-    displayPrice: '$7.49/mo',
+    displayPrice: '$12.99/mo',
   },
   yearly: {
-    price: '$49.99',
+    price: '$96.99',
     period: 'year',
-    displayPrice: '$49.99/yr',
+    displayPrice: '$96.99/yr',
   },
 } as const;
 
