@@ -1072,6 +1072,78 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     return () => window.removeEventListener('googleAuthStateChanged', handleAuthChange);
   }, [isInitialized]);
 
+  // Realtime: subscribe to user_entitlements changes (RevenueCat webhook -> instant revoke/grant)
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
+
+    const subscribe = async () => {
+      try {
+        const storedUser = await getStoredGoogleUser();
+        const appUserID = storedUser?.uid || storedUser?.email;
+        if (!appUserID || cancelled) return;
+
+        // Initial fetch
+        const { data: existing } = await supabase
+          .from('user_entitlements')
+          .select('*')
+          .eq('app_user_id', appUserID)
+          .maybeSingle();
+
+        const applyEntitlement = (row: any) => {
+          if (!row) return;
+          const now = Date.now();
+          const expiresAt = row.expires_at ? new Date(row.expires_at).getTime() : null;
+          const graceAt = row.grace_period_expires_at ? new Date(row.grace_period_expires_at).getTime() : null;
+
+          let active = !!row.is_active;
+          // Respect grace period for billing issues
+          if (row.in_billing_retry && graceAt && graceAt > now) active = true;
+          // If expired, force revoke
+          if (expiresAt && expiresAt < now && !(row.in_billing_retry && graceAt && graceAt > now)) {
+            active = false;
+          }
+
+          console.log('[Realtime Entitlement]', { event: row.last_event_type, active, expiresAt, graceAt });
+          setRcIsPro(active);
+          try {
+            localStorage.setItem('flowist_rc_entitled', active ? 'true' : 'false');
+            localStorage.setItem('flowist_rc_verified_at', String(Date.now()));
+          } catch {}
+        };
+
+        if (existing) applyEntitlement(existing);
+
+        channel = supabase
+          .channel(`entitlement-${appUserID}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'user_entitlements',
+              filter: `app_user_id=eq.${appUserID}`,
+            },
+            (payload) => {
+              console.log('[Realtime] Entitlement change:', payload.eventType);
+              applyEntitlement(payload.new);
+            }
+          )
+          .subscribe();
+      } catch (err) {
+        console.error('[Realtime] Failed to subscribe to entitlements:', err);
+      }
+    };
+
+    subscribe();
+
+    return () => {
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [isInitialized]);
+
   // Listen for customer info updates
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
