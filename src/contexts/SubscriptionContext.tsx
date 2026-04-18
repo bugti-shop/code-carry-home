@@ -245,6 +245,16 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     return () => window.removeEventListener('flowistNewFreeUserChanged', handleNewFreeUserChanged);
   }, []);
 
+  // Pull cloud lifetime counters on mount + whenever auth state changes (sign-in/out).
+  // Merges max(local, cloud) so reinstalls / new devices inherit the user's quota usage.
+  useEffect(() => {
+    void pullAndMergeLifetimeCounters();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      void pullAndMergeLifetimeCounters();
+    });
+    return () => { sub.subscription.unsubscribe(); };
+  }, []);
+
   // Check sign-out grace period on mount
   useEffect(() => {
     const checkSignoutGrace = async () => {
