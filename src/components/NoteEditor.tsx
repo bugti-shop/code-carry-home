@@ -32,6 +32,8 @@ import { NoteLinkingSheet } from './NoteLinkingSheet';
 import { injectHeadingIds } from './NoteTableOfContents';
 import { InputSheetPage } from './InputSheetPage';
 import { VoiceRecordingSheet } from './VoiceRecordingSheet';
+import { ScanNoteSheet } from './ScanNoteSheet';
+import { VoiceNoteSheet } from './VoiceNoteSheet';
 import { NoteVoicePlayer } from './NoteVoicePlayer';
 import { AudioPlayer } from './AudioPlayer';
 import { useHardwareBackButton } from '@/hooks/useHardwareBackButton';
@@ -40,7 +42,7 @@ import { sanitizeForDisplay } from '@/lib/sanitize';
 import { ErrorBoundary } from './ErrorBoundary';
 import { PdfExportSuccessDialog } from './PdfExportSuccessDialog';
 import { PdfExportOptionsSheet, PdfExportSettings } from './PdfExportOptionsSheet';
-import { ArrowLeft, Folder as FolderIcon, Plus, CalendarIcon, History, FileDown, Link2, ChevronDown, FileText, BookOpen, BarChart3, MoreVertical, Mic, Share2, Search, Image, Table, Minus, SeparatorHorizontal, MessageSquare, FileSymlink, FileType, Bell, Clock, Repeat, Trash2, Mail, Phone, LinkIcon, Copy, Replace, Palette, Hash, Crown, ListFilter, CaseLower, Tag as TagIcon } from 'lucide-react';
+import { ArrowLeft, Folder as FolderIcon, Plus, CalendarIcon, History, FileDown, Link2, ChevronDown, FileText, BookOpen, BarChart3, MoreVertical, Mic, Share2, Search, Image, Table, Minus, SeparatorHorizontal, MessageSquare, FileSymlink, FileType, Bell, Clock, Repeat, Trash2, Mail, Phone, LinkIcon, Copy, Replace, Palette, Hash, Crown, ListFilter, CaseLower, Tag as TagIcon, Camera, Sparkles } from 'lucide-react';
 import { exportNoteToPdf, getPageBreakCount, PdfExportResult } from '@/utils/exportToPdf';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -190,6 +192,8 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
   
   // Voice recorder state
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [showScanNote, setShowScanNote] = useState(false);
+  const [showVoiceNote, setShowVoiceNote] = useState(false);
   const [showSketchLibrary, setShowSketchLibrary] = useState(false);
   
   // Input sheet page states (replaces window.prompt)
@@ -854,6 +858,37 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
   const handleRecordingDelete = (id: string) => {
     setVoiceRecordings(voiceRecordings.filter(r => r.id !== id));
   };
+
+  // Insert AI-generated HTML (from page scan) at cursor or append to end.
+  const handleAiInsertHtml = (html: string, suggestedTitle?: string) => {
+    if (!html) return;
+    if (suggestedTitle && !title.trim()) {
+      setTitle(suggestedTitle);
+    }
+    if (['sticky', 'lined', 'regular', 'textformat'].includes(noteType) && editorRef.current) {
+      editorRef.current.focus();
+      try {
+        document.execCommand('insertHTML', false, html + '<p><br></p>');
+      } catch {
+        setContent(prev => (prev || '') + html);
+      }
+      if (editorRef.current) {
+        setContent(editorRef.current.innerHTML);
+      }
+    } else {
+      setContent(prev => (prev || '') + html);
+    }
+  };
+
+  // Insert dictated transcript (plain text) wrapped in a paragraph.
+  const handleAiInsertText = (text: string) => {
+    const safe = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    handleAiInsertHtml(`<p>${safe}</p>`);
+  };
+
 
   const getEditorBackgroundColor = () => {
     if (noteType === 'sticky') {
@@ -1817,6 +1852,36 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
                   onChange={setFloatingImages}
                 />
               )}
+
+              {/* AI mini-toolbar (Pro): dictate to text, scan page → formatted note */}
+              {(noteType === 'regular' || noteType === 'sticky' || noteType === 'lined' || noteType === 'textformat') && (
+                <div className="absolute bottom-3 right-3 z-20 flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!requireFeature('ai_dictation')) return;
+                      setShowVoiceNote(true);
+                    }}
+                    className="w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+                    aria-label={t('voiceNote.title', 'Dictate to note')}
+                    title={t('voiceNote.title', 'Dictate to note')}
+                  >
+                    <Mic className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!requireFeature('ai_dictation')) return;
+                      setShowScanNote(true);
+                    }}
+                    className="w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+                    aria-label={t('scanNote.title', 'Scan page to note')}
+                    title={t('scanNote.title', 'Scan page to note')}
+                  >
+                    <Camera className="h-5 w-5" />
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </ErrorBoundary>
@@ -1855,6 +1920,20 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
           </Collapsible>
         </div>
       )}
+
+      {/* AI dictation → text into note */}
+      <VoiceNoteSheet
+        isOpen={showVoiceNote}
+        onClose={() => setShowVoiceNote(false)}
+        onInsertText={handleAiInsertText}
+      />
+
+      {/* AI page scan → formatted HTML into note */}
+      <ScanNoteSheet
+        isOpen={showScanNote}
+        onClose={() => setShowScanNote(false)}
+        onInsertHtml={handleAiInsertHtml}
+      />
 
 
       {/* New Folder Dialog */}
