@@ -66,13 +66,15 @@ export const ImageTaskExtractorSheet = ({
   currentSectionId,
 }: Props) => {
   const { t, i18n } = useTranslation();
-  const { isPro, isLocalTrial, isAdminBypass, requireFeature } = useSubscription();
+  const { isPro, isLocalTrial, isAdminBypass, isRevenueCatTrial, requireFeature } = useSubscription();
   const isStripeTrialing = typeof window !== 'undefined' && Boolean((window as any).__stripeIsTrialing);
-  const isOnTrial = isLocalTrial || isStripeTrialing;
+  // Any trial that has a payment method attached (Stripe web trial, RevenueCat native trial).
+  const isPaidTrial = isStripeTrialing || isRevenueCatTrial;
+  const isOnTrial = isLocalTrial || isPaidTrial;
   const isPaidPro = isPro && !isOnTrial;
-  // Unlimited AI for: paid Pro, admin (BUGTI code), and Stripe trial users (card on file).
-  // Only the local no-card trial gets the daily cap.
-  const hasUnlimitedAi = isPaidPro || isAdminBypass || isStripeTrialing;
+  // Unlimited AI for: paid Pro, admin (BUGTI code), and any trial with a card on file
+  // (Stripe trial OR Android/iOS native RevenueCat trial). Only the local no-card trial gets the daily cap.
+  const hasUnlimitedAi = isPaidPro || isAdminBypass || isPaidTrial;
   const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);

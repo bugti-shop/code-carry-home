@@ -32,13 +32,15 @@ interface Props {
 
 export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
   const { t, i18n } = useTranslation();
-  const { isPro, isLocalTrial, isAdminBypass, requireFeature } = useSubscription();
+  const { isPro, isLocalTrial, isAdminBypass, isRevenueCatTrial, requireFeature } = useSubscription();
   const isStripeTrialing = typeof window !== 'undefined' && Boolean((window as any).__stripeIsTrialing);
-  const isOnTrial = isLocalTrial || isStripeTrialing;
-  // Only fully-paid Pro (not on free trial) gets unlimited AI use.
+  const isPaidTrial = isStripeTrialing || isRevenueCatTrial;
+  const isOnTrial = isLocalTrial || isPaidTrial;
+  // Only fully-paid Pro (not on free trial) gets unlimited AI use by default.
   const isPaidPro = isPro && !isOnTrial;
-  // Unlimited AI for: paid Pro, admin (BUGTI), and Stripe trial users (card on file).
-  const hasUnlimitedAi = isPaidPro || isAdminBypass || isStripeTrialing;
+  // Unlimited AI for: paid Pro, admin (BUGTI), and any trial with a card on file
+  // (Stripe web trial or Android/iOS native RevenueCat trial).
+  const hasUnlimitedAi = isPaidPro || isAdminBypass || isPaidTrial;
   const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
