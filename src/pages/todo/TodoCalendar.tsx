@@ -58,7 +58,7 @@ const defaultSections: TaskSection[] = [
 const TodoCalendar = () => {
   const { t } = useTranslation();
   const { getPriorityColor } = usePriorities();
-  const { requireFeature, isPro, softRequireCreate } = useSubscription();
+  const { requireFeature, isPro, softRequireCreate, canCreateWithinSoftLimit } = useSubscription();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isInputOpen, setIsInputOpen] = useState(false);
   const [isEventEditorOpen, setIsEventEditorOpen] = useState(false);
