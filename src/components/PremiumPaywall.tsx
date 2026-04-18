@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import appLogo from '@/assets/app-logo.webp';
 import { useTranslation } from 'react-i18next';
-import { Crown, Unlock, Bell, Gift, Check } from 'lucide-react';
+import { Crown, Unlock, Bell, Gift, Check, X } from 'lucide-react';
 import { useSubscription, ProductType } from '@/contexts/SubscriptionContext';
 import { Capacitor } from '@capacitor/core';
 import { PurchasesPackage, PACKAGE_TYPE } from '@revenuecat/purchases-capacitor';
