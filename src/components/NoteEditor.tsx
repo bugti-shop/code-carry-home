@@ -1908,6 +1908,39 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
             </div>
           )}
         </ErrorBoundary>
+
+        {/* Floating AI mini-toolbar for voice/code/sketch notes (Pro). The
+            rich-editor branch above renders its own toolbar inside the editor
+            container; this one overlays the alternate editors so every note
+            type can dictate (Mic) and scan images to text (Camera). */}
+        {(noteType === 'voice' || noteType === 'code' || noteType === 'sketch') && (
+          <div className="absolute bottom-3 right-3 z-30 flex flex-col gap-2 pointer-events-auto">
+            <button
+              type="button"
+              onClick={() => {
+                if (!requireFeature('ai_dictation')) return;
+                setShowVoiceNote(true);
+              }}
+              className="w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+              aria-label={t('voiceNote.title', 'Dictate to note')}
+              title={t('voiceNote.title', 'Dictate to note')}
+            >
+              <Mic className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (!requireFeature('ai_dictation')) return;
+                setShowScanNote(true);
+              }}
+              className="w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+              aria-label={t('scanNote.title', 'Scan page to note')}
+              title={t('scanNote.title', 'Scan page to note')}
+            >
+              <Camera className="h-5 w-5" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Backlinks Section */}
