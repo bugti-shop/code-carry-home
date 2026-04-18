@@ -572,6 +572,10 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   };
   const startAIDictation = async () => {
     if (!requireFeature('ai_dictation')) return;
+    if (!isPro && !canUseAiFeature('voice')) {
+      toast.error(getLimitReachedMessage('voice'));
+      return;
+    }
     const seen = typeof window !== 'undefined' && localStorage.getItem(MIC_COACHMARK_KEY) === '1';
     if (!seen) {
       setShowMicCoachmark(true);
