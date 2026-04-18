@@ -205,12 +205,16 @@ const Index = () => {
   }, []);
 
   const handleSaveNote = (note: Note) => {
+    const isExisting = notes.some((n) => n.id === note.id);
+    if (!isExisting && !isPro && !softRequireCreate('notes', notes.length)) {
+      return;
+    }
+
     setNotes((prev) => {
       const existing = prev.find((n) => n.id === note.id);
       if (existing) {
         return prev.map((n) => (n.id === note.id ? note : n));
       }
-      // Auto-assign to default folder based on note type
       const noteWithFolder = { ...note, folderId: note.folderId || note.type };
       return [noteWithFolder, ...prev];
     });
@@ -391,11 +395,6 @@ const Index = () => {
   };
 
   const handleCreateNote = (type: NoteType) => {
-    // Soft paywall: new free users limited to 1 note total
-    if (!isPro && isNewFreeUser && !softRequireCreate('notes', notes.length)) {
-      return;
-    }
-    // Free users limited to 10 notes total (including archived and deleted)
     if (!isPro && notes.length >= FREE_LIMITS.maxNotes) {
       openPaywall('extra_notes');
       return;
