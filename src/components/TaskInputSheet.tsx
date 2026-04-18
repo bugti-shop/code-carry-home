@@ -540,6 +540,14 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       setIsAIProcessing(false);
       return;
     }
+    // Free users → block & open paywall.
+    if (!isPaidPro && !isOnTrial) {
+      setIsAIProcessing(false);
+      if (!taskText.trim()) setTaskText(text);
+      requireFeature('ai_dictation' as any);
+      return;
+    }
+    // Trial users → soft daily cap.
     if (!isPaidPro && !canUseAiFeature('voice')) {
       setIsAIProcessing(false);
       if (!taskText.trim()) setTaskText(text);
