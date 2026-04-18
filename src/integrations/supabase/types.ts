@@ -134,6 +134,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_lifetime_counters: {
+        Row: {
+          created_at: string
+          id: string
+          identifier: string
+          identifier_type: string
+          note_folders_created: number
+          notes_created: number
+          task_folders_created: number
+          task_sections_created: number
+          tasks_created: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          identifier: string
+          identifier_type: string
+          note_folders_created?: number
+          notes_created?: number
+          task_folders_created?: number
+          task_sections_created?: number
+          tasks_created?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          identifier?: string
+          identifier_type?: string
+          note_folders_created?: number
+          notes_created?: number
+          task_folders_created?: number
+          task_sections_created?: number
+          tasks_created?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_refresh_tokens: {
         Row: {
           created_at: string
