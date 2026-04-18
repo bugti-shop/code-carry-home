@@ -45,7 +45,8 @@ import {
   File,
   Trash2,
   Crown,
-  AlertTriangle
+  AlertTriangle,
+  Languages
 } from 'lucide-react';
 import { EditActionsSheet, ActionItem, defaultActions } from './EditActionsSheet';
 import { WaveformVisualizer } from './WaveformVisualizer';
