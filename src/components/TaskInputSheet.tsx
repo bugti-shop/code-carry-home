@@ -229,6 +229,20 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const speechRecognitionRef = useRef<any>(null);
   const aiTranscriptRef = useRef<string>('');
 
+  // AI vision: scan tasks from a paper / sticky-note image (Pro-gated)
+  const [showImageExtractor, setShowImageExtractor] = useState(false);
+  const openImageExtractor = () => {
+    if (!requireFeature('ai_dictation')) return;
+    setShowImageExtractor(true);
+  };
+  const handleExtractedTasksAdd = (
+    tasks: Array<Omit<TodoItem, 'id' | 'completed'>>,
+  ) => {
+    tasks.forEach((tk) => onAddTask(tk));
+    setShowImageExtractor(false);
+    onClose();
+  };
+
   const folderColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
   // Natural language parsing - real-time preview
