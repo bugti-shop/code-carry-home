@@ -229,6 +229,9 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const speechRecognitionRef = useRef<any>(null);
   const aiTranscriptRef = useRef<string>('');
+  // True only when user explicitly tapped Stop. Lets us silently restart
+  // SpeechRecognition when the browser auto-ends on silence/timeout.
+  const userStoppedDictationRef = useRef(false);
 
   // AI vision: scan tasks from a paper / sticky-note image (Pro-gated)
   const [showImageExtractor, setShowImageExtractor] = useState(false);
@@ -586,35 +589,53 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const actuallyStartDictation = async (SR: any) => {
     try {
       const recognition = new SR();
-      recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.continuous = true;
+      recognition.interimResults = true;
       const shortLang = (i18n.language || 'en').split('-')[0];
       recognition.lang =
         SPEECH_LANG_MAP[shortLang] ||
         (typeof navigator !== 'undefined' && navigator.language) ||
         'en-US';
       aiTranscriptRef.current = '';
+      userStoppedDictationRef.current = false;
 
       recognition.onresult = (event: any) => {
+        // Build the full transcript by concatenating ALL final results
+        // accumulated in this session (interim chunks are ignored to avoid
+        // duplication when partials get re-emitted).
         let finalText = '';
         for (let i = 0; i < event.results.length; i++) {
           const res = event.results[i];
-          if (res.isFinal || !recognition.interimResults) {
-            finalText += res[0].transcript;
+          if (res.isFinal) {
+            finalText += (finalText ? ' ' : '') + res[0].transcript.trim();
           }
         }
-        aiTranscriptRef.current = finalText.trim();
+        if (finalText) aiTranscriptRef.current = finalText;
       };
       recognition.onerror = (e: any) => {
         console.warn('[AI dictation] error', e?.error);
-        setIsAIListening(false);
         if (e?.error === 'not-allowed' || e?.error === 'service-not-allowed') {
+          userStoppedDictationRef.current = true;
+          setIsAIListening(false);
           toast.error(t('errors.microphoneFailed'));
         } else if (e?.error !== 'no-speech' && e?.error !== 'aborted') {
+          // Non-recoverable: stop and surface error.
+          userStoppedDictationRef.current = true;
+          setIsAIListening(false);
           toast.error(t('tasks.aiSpeechFailed', 'Could not capture speech'));
         }
+        // 'no-speech' / 'aborted' → let onend restart silently.
       };
       recognition.onend = () => {
+        // If user hasn't tapped Stop, browser auto-ended on silence — restart.
+        if (!userStoppedDictationRef.current && speechRecognitionRef.current === recognition) {
+          try {
+            recognition.start();
+            return;
+          } catch {
+            // fallthrough → finalize
+          }
+        }
         setIsAIListening(false);
         const text = aiTranscriptRef.current;
         if (text) processAITranscript(text);
@@ -632,6 +653,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   };
 
   const stopAIDictation = () => {
+    userStoppedDictationRef.current = true;
     try {
       speechRecognitionRef.current?.stop();
     } catch {}
