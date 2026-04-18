@@ -73,8 +73,8 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     requireFeature, isPro, tasksSettings, setOrderVersion,
   } = props;
 
-  // Soft paywall — new free users get 1 task / 1 folder / 1 section, no edit/delete (completion allowed)
-  const { isNewFreeUser, softRequireCreate, softRequireMutate } = useSubscription();
+  // Soft paywall — free users have hard lifetime create caps; edit/delete stays allowed.
+  const { softRequireCreate, softRequireMutate } = useSubscription();
 
   // Keep a ref to items for reliable access in async callbacks
   const itemsRef = useRef(items);
@@ -82,15 +82,14 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
 
   // ── Folder Actions ──
   const handleCreateFolder = useCallback((name: string, color: string) => {
-    // Soft paywall: new free users get 1 task folder
-    if (!isPro && isNewFreeUser && !softRequireCreate('taskFolders', folders.length)) return;
+    if (!isPro && !softRequireCreate('taskFolders', folders.length)) return;
     if (!isPro && folders.length >= FREE_LIMITS.maxTaskFolders) {
       requireFeature('extra_folders');
       return;
     }
     const newFolder: Folder = { id: genId(), name, color, isDefault: false, createdAt: new Date() };
     setFolders(prev => [...prev, newFolder]);
-  }, [folders.length, isPro, isNewFreeUser, softRequireCreate, requireFeature, setFolders]);
+  }, [folders.length, isPro, softRequireCreate, requireFeature, setFolders]);
 
   const handleEditFolder = useCallback((folderId: string, name: string, color: string) => {
     setFolders(prev => prev.map(f => f.id === folderId ? { ...f, name, color } : f));
@@ -135,8 +134,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
 
   // ── Section Actions ──
   const handleAddSection = useCallback((position: 'above' | 'below', referenceId?: string) => {
-    // Soft paywall: new free users get 1 section
-    if (!isPro && isNewFreeUser && !softRequireCreate('taskSections', sections.length)) return;
+    if (!isPro && !softRequireCreate('taskSections', sections.length)) return;
     if (!isPro && sections.length >= 1) {
       requireFeature('extra_sections');
       return;
@@ -250,12 +248,8 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
 
   // ── Task CRUD ──
   const handleAddTask = useCallback(async (task: Omit<TodoItem, 'id' | 'completed'>) => {
-    // Soft paywall: new free users get 1 task
-    if (!isPro && isNewFreeUser && !softRequireCreate('tasks', itemsRef.current.length)) return;
+    if (!isPro && !softRequireCreate('tasks', itemsRef.current.length)) return;
     const now = new Date();
-    // Unique id: timestamp + random suffix. Plain Date.now() collides when
-    // multiple tasks are added in the same tick (e.g. AI image extraction
-    // forEach loop), causing all of them to share one id and toggle together.
     const newItem: TodoItem = {
       id: genId(), completed: false, ...task,
       sectionId: task.sectionId || inputSectionId || defaultSectionId || sections[0]?.id,
@@ -272,7 +266,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
         scheduleTaskReminder(newItem.id, newItem.text, new Date(newItem.reminderTime!), newItem.isUrgent).catch(console.warn);
       });
     }
-  }, [inputSectionId, defaultSectionId, sections, taskAddPosition, setItems, setInputSectionId, isPro, isNewFreeUser, softRequireCreate]);
+  }, [inputSectionId, defaultSectionId, sections, taskAddPosition, setItems, setInputSectionId, isPro, softRequireCreate]);
 
   const handleBatchAddTasks = useCallback(async (taskTexts: string[], sectionId?: string, folderId?: string, priority?: Priority, dueDate?: Date) => {
     // Soft paywall: new free users can't batch-add (already 1 task)
