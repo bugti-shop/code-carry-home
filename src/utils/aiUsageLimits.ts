@@ -56,10 +56,13 @@ export const getRemainingToday = (f: AiFeature) =>
 export const canUseAiFeature = (f: AiFeature): boolean =>
   read(f).count < LIMITS[f];
 
-/** Increment usage. Call AFTER a successful action. */
+/** Increment usage. Call AFTER a successful action. Pushes to cloud (fire-and-forget). */
 export const recordAiUsage = (f: AiFeature) => {
   const cur = read(f);
-  write(f, { date: cur.date, count: cur.count + 1 });
+  const next = { date: cur.date, count: cur.count + 1 };
+  write(f, next);
+  // Lazy import to avoid circular deps and keep this util sync.
+  void import('./aiUsageCloud').then(({ pushAiUsage }) => pushAiUsage(f, next.count)).catch(() => {});
 };
 
 /** Friendly message for a toast when the cap is hit. */

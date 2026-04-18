@@ -246,12 +246,14 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     return () => window.removeEventListener('flowistNewFreeUserChanged', handleNewFreeUserChanged);
   }, []);
 
-  // Pull cloud lifetime counters on mount + whenever auth state changes (sign-in/out).
-  // Merges max(local, cloud) so reinstalls / new devices inherit the user's quota usage.
+  // Pull cloud lifetime counters AND today's daily AI usage on mount + auth changes.
+  // Merges max(local, cloud) so reinstalls / new devices inherit the user's usage.
   useEffect(() => {
     void pullAndMergeLifetimeCounters();
+    void import('@/utils/aiUsageCloud').then(({ pullAndMergeAiUsage }) => pullAndMergeAiUsage());
     const { data: sub } = supabase.auth.onAuthStateChange(() => {
       void pullAndMergeLifetimeCounters();
+      void import('@/utils/aiUsageCloud').then(({ pullAndMergeAiUsage }) => pullAndMergeAiUsage());
     });
     return () => { sub.subscription.unsubscribe(); };
   }, []);

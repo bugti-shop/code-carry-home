@@ -134,6 +134,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_daily_ai_usage: {
+        Row: {
+          count: number
+          created_at: string
+          feature: string
+          id: string
+          identifier: string
+          identifier_type: string
+          updated_at: string
+          usage_date: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          feature: string
+          id?: string
+          identifier: string
+          identifier_type: string
+          updated_at?: string
+          usage_date: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          feature?: string
+          id?: string
+          identifier?: string
+          identifier_type?: string
+          updated_at?: string
+          usage_date?: string
+        }
+        Relationships: []
+      }
       user_lifetime_counters: {
         Row: {
           created_at: string
