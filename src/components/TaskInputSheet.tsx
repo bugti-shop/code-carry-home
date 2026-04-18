@@ -210,6 +210,12 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // AI dictation (replaces voice recording UI in the mic button)
+  const [isAIListening, setIsAIListening] = useState(false);
+  const [isAIProcessing, setIsAIProcessing] = useState(false);
+  const speechRecognitionRef = useRef<any>(null);
+  const aiTranscriptRef = useRef<string>('');
+
   const folderColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
   // Natural language parsing - real-time preview
