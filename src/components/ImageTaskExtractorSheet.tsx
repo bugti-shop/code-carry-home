@@ -102,6 +102,10 @@ export const ImageTaskExtractorSheet = ({
   };
 
   const runExtraction = async (dataUrl: string) => {
+    if (!isPaidPro && !canUseAiFeature('scan')) {
+      toast.error(getLimitReachedMessage('scan'));
+      return;
+    }
     setIsExtracting(true);
     setHasRun(false);
     setItems([]);
@@ -143,6 +147,7 @@ export const ImageTaskExtractorSheet = ({
 
       setItems(reviewItems);
       setHasRun(true);
+      if (!isPaidPro) recordAiUsage('scan');
 
       if (reviewItems.length === 0) {
         toast.info(t('imageExtract.noTasks', 'No tasks detected in this image'));
