@@ -229,11 +229,12 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
   const [listenerHandle, setListenerHandle] = useState<PurchasesCallbackId | null>(null);
   const [isAdminBypass, setIsAdminBypass] = useState(false);
-  // If locally cached as subscribed, mark as resolved immediately to avoid loading state
+  // If locally cached as subscribed AND cache is fresh, mark as resolved to avoid loading state
   const [isWebSubscriptionResolved, setIsWebSubscriptionResolved] = useState(() => {
     if (Capacitor.isNativePlatform()) return true;
     try {
-      if (localStorage.getItem('flowist_stripe_subscribed') === 'true') return true;
+      if (localStorage.getItem('flowist_stripe_subscribed') === 'true'
+        && isCacheFresh('flowist_sub_verified_at', STRIPE_CACHE_MAX_AGE_MS)) return true;
     } catch {}
     return false;
   });
