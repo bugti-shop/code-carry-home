@@ -1046,6 +1046,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           setCustomerInfo(info);
           const hasEntitlement = info.entitlements.active[ENTITLEMENT_ID] !== undefined;
           setRcIsPro(hasEntitlement);
+          try { localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false'); localStorage.setItem('flowist_rc_verified_at', String(Date.now())); } catch {}
           console.log('RevenueCat: Logged in with Firebase UID, isPro:', hasEntitlement);
           
           // Also check Stripe subscription for this Gmail (cross-platform sync)
