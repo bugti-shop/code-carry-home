@@ -3,6 +3,7 @@
  * Extracted from Today.tsx to reduce file size.
  */
 import { useCallback, useRef } from 'react';
+import { genId } from '@/utils/genId';
 import { TodoItem, Folder, Priority, Note, TaskSection } from '@/types/note';
 import { loadNotesFromDB, saveNotesToDB } from '@/utils/noteStorage';
 import { useTranslation } from 'react-i18next';
