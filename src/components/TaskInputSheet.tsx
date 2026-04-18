@@ -151,7 +151,8 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
   const { requireFeature, isRecurringSubscriber, isPro, isLocalTrial } = useSubscription();
   const isStripeTrialing = typeof window !== 'undefined' && Boolean((window as any).__stripeIsTrialing);
-  const isPaidPro = isPro && !isLocalTrial && !isStripeTrialing;
+  const isOnTrial = isLocalTrial || isStripeTrialing;
+  const isPaidPro = isPro && !isOnTrial;
   const [taskText, setTaskText] = useState('');
   const [priority, setPriority] = useState<Priority>('none');
   const [dueDate, setDueDate] = useState<Date | undefined>();
