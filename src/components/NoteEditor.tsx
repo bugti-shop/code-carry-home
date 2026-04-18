@@ -860,6 +860,9 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
   };
 
   // Insert AI-generated HTML (from page scan) at cursor or append to end.
+  // For code/voice/sketch notes (which don't render rich HTML), strips tags
+  // and appends plain text to the appropriate field, plus copies to clipboard
+  // so the user can paste anywhere they want.
   const handleAiInsertHtml = (html: string, suggestedTitle?: string) => {
     if (!html) return;
     if (suggestedTitle && !title.trim()) {
@@ -874,6 +877,26 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
       }
       if (editorRef.current) {
         setContent(editorRef.current.innerHTML);
+      }
+    } else if (noteType === 'code') {
+      // Strip HTML → plain text, append to code buffer.
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const plain = (tmp.textContent || '').trim();
+      if (plain) {
+        setCodeContent(prev => (prev ? prev + '\n\n' : '') + plain);
+        toast.success(t('scanNote.appendedToCode', 'Extracted text added to code'));
+      }
+    } else if (noteType === 'voice' || noteType === 'sketch') {
+      // Voice/sketch don't render HTML body — extract plain text, store in
+      // content (persists with the note) and copy to clipboard for easy paste.
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const plain = (tmp.textContent || '').trim();
+      if (plain) {
+        setContent(prev => (prev ? prev + '\n\n' : '') + plain);
+        try { void navigator.clipboard?.writeText(plain); } catch {}
+        toast.success(t('scanNote.copiedToClipboard', 'Extracted text copied to clipboard'));
       }
     } else {
       setContent(prev => (prev || '') + html);
@@ -1675,7 +1698,7 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
       )}
 
       {/* Full Page Content Editor */}
-      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col relative">
         <ErrorBoundary>
           {noteType === 'voice' ? (
             <div className="h-full flex flex-col overflow-y-auto">
@@ -1885,6 +1908,39 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
             </div>
           )}
         </ErrorBoundary>
+
+        {/* Floating AI mini-toolbar for voice/code/sketch notes (Pro). The
+            rich-editor branch above renders its own toolbar inside the editor
+            container; this one overlays the alternate editors so every note
+            type can dictate (Mic) and scan images to text (Camera). */}
+        {(noteType === 'voice' || noteType === 'code' || noteType === 'sketch') && (
+          <div className="absolute bottom-3 right-3 z-30 flex flex-col gap-2 pointer-events-auto">
+            <button
+              type="button"
+              onClick={() => {
+                if (!requireFeature('ai_dictation')) return;
+                setShowVoiceNote(true);
+              }}
+              className="w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+              aria-label={t('voiceNote.title', 'Dictate to note')}
+              title={t('voiceNote.title', 'Dictate to note')}
+            >
+              <Mic className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (!requireFeature('ai_dictation')) return;
+                setShowScanNote(true);
+              }}
+              className="w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+              aria-label={t('scanNote.title', 'Scan page to note')}
+              title={t('scanNote.title', 'Scan page to note')}
+            >
+              <Camera className="h-5 w-5" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Backlinks Section */}
