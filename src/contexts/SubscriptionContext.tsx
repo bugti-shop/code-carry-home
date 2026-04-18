@@ -132,6 +132,7 @@ interface UnifiedBillingContextType {
   // Soft paywall (new-user teaser mode)
   isNewFreeUser: boolean;
   markAsNewFreeUser: () => Promise<void>;
+  canCreateWithinSoftLimit: (kind: SoftLimitKind, currentCount: number) => boolean;
   softRequireCreate: (kind: SoftLimitKind, currentCount: number) => boolean;
   softRequireMutate: () => boolean;
 
@@ -1224,23 +1225,27 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Returns true when allowed to create. Opens paywall + returns false when lifetime quota exhausted.
-  // Applies to ALL free users (not just brand-new). Pro users always allowed.
-  const softRequireCreate = useCallback((kind: SoftLimitKind, currentCount: number): boolean => {
+  const canCreateWithinSoftLimit = useCallback((kind: SoftLimitKind, currentCount: number): boolean => {
     if (isPro) return true;
     const limit = SOFT_FREE_LIMITS[kind];
     const lifetimeMax = getLifetimeMax(kind);
-    // Quota = max(currentCount, lifetimeEverCreated). Once they've ever hit the limit, no more creates.
-    const effectiveCount = Math.max(currentCount, lifetimeMax);
-    if (effectiveCount >= limit) {
+    return Math.max(currentCount, lifetimeMax) < limit;
+  }, [isPro]);
+
+  // Returns true when allowed to create. Opens paywall + returns false when lifetime quota exhausted.
+  // Applies to ALL free users (not just brand-new). Pro users always allowed.
+  const softRequireCreate = useCallback((kind: SoftLimitKind, currentCount: number): boolean => {
+    if (!canCreateWithinSoftLimit(kind, currentCount)) {
       setPaywallFeature(`soft_limit_${kind}`);
       setShowPaywall(true);
       return false;
     }
+    const lifetimeMax = getLifetimeMax(kind);
+    const effectiveCount = Math.max(currentCount, lifetimeMax);
     // Pre-bump: assume the upcoming create will land — record it so deletes don't reopen the gate.
     bumpLifetimeMax(kind, effectiveCount + 1);
     return true;
-  }, [isPro]);
+  }, [canCreateWithinSoftLimit]);
 
   // Returns true when allowed to mutate (edit/delete). Free users CAN edit/delete their existing items.
   // Only creation of new items is blocked once lifetime quota is hit.
