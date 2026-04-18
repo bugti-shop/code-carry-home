@@ -44,9 +44,9 @@ export const STRIPE_PAYMENT_LINKS: Record<PlanType, string> = {
 
 // Stripe Price IDs
 export const STRIPE_PRICE_IDS: Record<PlanType, string> = {
-  weekly: 'price_1THRuxFAPtKh08jGJAJyGPSS',
-  monthly: 'price_1THRyrFAPtKh08jGj5rZr1CB',
-  yearly: 'price_1THRzxFAPtKh08jGoDkVIric',
+  weekly: 'price_1TNY0ZFAPtKh08jGLnp6RBqy',
+  monthly: 'price_1TNY13FAPtKh08jGUybjx3uC',
+  yearly: 'price_1TNY1CFAPtKh08jGscKXlbzA',
 };
 
 // Pricing display (for UI only - actual pricing comes from RevenueCat/Store)
