@@ -189,23 +189,38 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [graceExpired, setGraceExpired] = useState(false);
   const [signoutGraceActive, setSignoutGraceActive] = useState(false);
 
+  // Cache expiry windows — after this, cached entitlement is NOT trusted on mount.
+  // This prevents deleted/cancelled customers from keeping access indefinitely offline.
+  const RC_CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;   // 7 days for native (RC)
+  const STRIPE_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;   // 24h for web (Stripe)
+  const isCacheFresh = (key: string, maxAgeMs: number): boolean => {
+    try {
+      const ts = Number(localStorage.getItem(key) || '0');
+      return ts > 0 && (Date.now() - ts) < maxAgeMs;
+    } catch { return false; }
+  };
+
   // RevenueCat state
-  // If native user was previously entitled, mark as initialized immediately for offline-first access
+  // If native user was previously entitled AND cache is fresh, mark as initialized for offline-first access
   const [isInitialized, setIsInitialized] = useState(() => {
     if (Capacitor.isNativePlatform()) {
-      try { return localStorage.getItem('flowist_rc_entitled') === 'true'; } catch {}
+      try {
+        return localStorage.getItem('flowist_rc_entitled') === 'true'
+          && isCacheFresh('flowist_rc_verified_at', RC_CACHE_MAX_AGE_MS);
+      } catch {}
     }
     return false;
   });
   const [rcLoading, setRcLoading] = useState(false);
-  // Initialize rcIsPro from local cache for instant access on both web and native
+  // Initialize rcIsPro from local cache only when cache is FRESH (verified recently).
   const [rcIsPro, setRcIsPro] = useState(() => {
     try {
       if (!Capacitor.isNativePlatform()) {
-        return localStorage.getItem('flowist_stripe_subscribed') === 'true';
+        return localStorage.getItem('flowist_stripe_subscribed') === 'true'
+          && isCacheFresh('flowist_sub_verified_at', STRIPE_CACHE_MAX_AGE_MS);
       }
-      // On native, trust cached RC entitlement until RC verifies
-      return localStorage.getItem('flowist_rc_entitled') === 'true';
+      return localStorage.getItem('flowist_rc_entitled') === 'true'
+        && isCacheFresh('flowist_rc_verified_at', RC_CACHE_MAX_AGE_MS);
     } catch {}
     return false;
   });
