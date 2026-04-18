@@ -66,6 +66,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Sparkles as SparklesIcon, Loader2, ScanLine } from 'lucide-react';
 import { ImageTaskExtractorSheet } from './ImageTaskExtractorSheet';
 import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
+import { acquireAiLock, getAiBusyMessage } from '@/utils/aiConcurrencyLock';
 import { getRecentDictationLangs, recordRecentDictationLang } from '@/utils/dictationLangRecent';
 
 interface TaskSection {
@@ -558,6 +559,14 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       toast.error(getLimitReachedMessage('voice'));
       return;
     }
+    // Prevent concurrent AI calls — Android WebView OOMs with parallel calls.
+    const release = acquireAiLock();
+    if (!release) {
+      setIsAIProcessing(false);
+      if (!taskText.trim()) setTaskText(text);
+      toast.error(getAiBusyMessage());
+      return;
+    }
     setIsAIProcessing(true);
     try {
       const { data, error } = await supabase.functions.invoke('ai-parse-task', {
@@ -587,6 +596,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       else toast.error(t('tasks.aiFailed', 'AI parsing failed, used transcript as title'));
     } finally {
       setIsAIProcessing(false);
+      release();
     }
   };
 
