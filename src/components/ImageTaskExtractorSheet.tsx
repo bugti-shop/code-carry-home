@@ -28,6 +28,7 @@ import { TodoItem, Folder, Priority, RepeatType } from '@/types/note';
 import { cn } from '@/lib/utils';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
+import { acquireAiLock, getAiBusyMessage } from '@/utils/aiConcurrencyLock';
 
 interface TaskSection { id: string; name: string }
 
@@ -117,6 +118,12 @@ export const ImageTaskExtractorSheet = ({
       toast.error(getLimitReachedMessage('scan'));
       return;
     }
+    // Prevent concurrent AI calls — Android WebView OOMs with parallel base64 uploads.
+    const release = acquireAiLock();
+    if (!release) {
+      toast.error(getAiBusyMessage());
+      return;
+    }
     setIsExtracting(true);
     setHasRun(false);
     setItems([]);
@@ -177,6 +184,7 @@ export const ImageTaskExtractorSheet = ({
       }
     } finally {
       setIsExtracting(false);
+      release();
     }
   };
 
