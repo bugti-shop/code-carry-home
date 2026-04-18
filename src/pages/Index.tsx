@@ -395,10 +395,6 @@ const Index = () => {
   };
 
   const handleCreateNote = (type: NoteType) => {
-    if (!isPro && !softRequireCreate('notes', notes.length)) {
-      return;
-    }
-    // Free users limited to 10 notes total (including archived and deleted)
     if (!isPro && notes.length >= FREE_LIMITS.maxNotes) {
       openPaywall('extra_notes');
       return;
