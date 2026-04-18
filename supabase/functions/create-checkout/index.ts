@@ -88,7 +88,7 @@ serve(async (req) => {
 
     // Only offer trial to monthly/yearly plans, NOT weekly — and only to new customers
     if (!hadPreviousSubscription && planType !== 'weekly') {
-      sessionConfig.subscription_data.trial_period_days = 8;
+      sessionConfig.subscription_data.trial_period_days = 4;
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
