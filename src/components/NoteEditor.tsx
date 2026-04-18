@@ -870,15 +870,39 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
       setTitle(suggestedTitle);
     }
     if (['sticky', 'lined', 'regular', 'textformat'].includes(noteType) && editorRef.current) {
-      editorRef.current.focus();
+      const editor = editorRef.current;
+      editor.focus();
+      // Ensure a valid selection exists INSIDE the editor. If the user never
+      // tapped into the note (opened dictation straight away), selection is
+      // null or outside the editor → execCommand('insertHTML') silently
+      // no-ops and the transcript is lost. Place caret at end first so
+      // insert ALWAYS lands, even without prior cursor placement.
       try {
-        document.execCommand('insertHTML', false, html + '<p><br></p>');
+        const sel = window.getSelection();
+        const needsRestore =
+          !sel ||
+          sel.rangeCount === 0 ||
+          !editor.contains(sel.getRangeAt(0).commonAncestorContainer);
+        if (needsRestore && sel) {
+          const range = document.createRange();
+          range.selectNodeContents(editor);
+          range.collapse(false); // end of editor
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      } catch {}
+      let inserted = false;
+      try {
+        inserted = document.execCommand('insertHTML', false, html + '<p><br></p>');
       } catch {
-        setContent(prev => (prev || '') + html);
+        inserted = false;
       }
-      if (editorRef.current) {
-        setContent(editorRef.current.innerHTML);
+      if (!inserted) {
+        // Fallback: direct DOM append so transcript is never lost even if
+        // execCommand is blocked/deprecated.
+        editor.insertAdjacentHTML('beforeend', html + '<p><br></p>');
       }
+      setContent(editor.innerHTML);
     } else if (noteType === 'code') {
       // Strip HTML → plain text, append to code buffer.
       const tmp = document.createElement('div');
