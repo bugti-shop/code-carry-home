@@ -57,13 +57,35 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
+  // Append text to transcript while guarding against duplicate trailing words.
+  // Some Chrome builds re-emit the same interim chunk as final after a session
+  // cycle, which previously caused "your your your" style duplication.
+  const appendToTranscript = (chunk: string) => {
+    const clean = chunk.trim();
+    if (!clean) return;
+    setTranscript((prev) => {
+      const prevTrim = prev.trim();
+      if (!prevTrim) return clean;
+      if (prevTrim.toLowerCase().endsWith(clean.toLowerCase())) return prevTrim;
+      const prevWords = prevTrim.split(/\s+/);
+      const newWords = clean.split(/\s+/);
+      const maxOverlap = Math.min(prevWords.length, newWords.length, 8);
+      let overlap = 0;
+      for (let n = maxOverlap; n > 0; n--) {
+        const tail = prevWords.slice(-n).join(' ').toLowerCase();
+        const head = newWords.slice(0, n).join(' ').toLowerCase();
+        if (tail === head) { overlap = n; break; }
+      }
+      const remaining = newWords.slice(overlap).join(' ');
+      return remaining ? prevTrim + ' ' + remaining : prevTrim;
+    });
+  };
+
   const stopListening = () => {
     userStoppedRef.current = true;
-    // Commit any uncommitted interim text so trailing words aren't lost
-    // when the user taps Stop mid-sentence.
     const trailing = interimRef.current.trim();
     if (trailing) {
-      setTranscript((prev) => (prev ? prev + ' ' + trailing : trailing).trim());
+      appendToTranscript(trailing);
       interimRef.current = '';
     }
     try {
@@ -108,7 +130,7 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
         }
       }
       if (finalChunk) {
-        setTranscript((prev) => (prev ? prev + ' ' + finalChunk : finalChunk).trim());
+        appendToTranscript(finalChunk);
         finalChunk = '';
       }
       interimRef.current = interimText;
@@ -127,14 +149,11 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
       }
     };
     rec.onend = () => {
-      // Commit any uncommitted interim before restart so words on the
-      // boundary aren't dropped when SpeechRecognition cycles.
-      const trailing = interimRef.current.trim();
-      if (trailing) {
-        setTranscript((prev) => (prev ? prev + ' ' + trailing : trailing).trim());
-        interimRef.current = '';
-        setInterim('');
-      }
+      // Do NOT flush interim during auto-restart — Chrome often re-emits the
+      // same words as final on the next session, causing duplication. Interim
+      // is only committed when the user explicitly taps Stop.
+      interimRef.current = '';
+      setInterim('');
       // If the user didn't tap Stop, the browser auto-ended on silence/timeout.
       // Restart with a small delay + backoff to avoid InvalidStateError.
       if (!userStoppedRef.current && recognitionRef.current === rec) {
