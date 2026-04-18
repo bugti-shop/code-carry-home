@@ -67,4 +67,4 @@ export const recordAiUsage = (f: AiFeature) => {
 
 /** Friendly message for a toast when the cap is hit. */
 export const getLimitReachedMessage = (f: AiFeature) =>
-  `Daily limit reached (${LIMITS[f]} ${LABELS[f]}/day on Free & Trial). Upgrade to Pro for unlimited use, or try again tomorrow.`;
+  `Daily limit reached (${LIMITS[f]} ${LABELS[f]}/day on the free trial without a card). Upgrade to Pro for unlimited use, or try again tomorrow.`;
