@@ -21,7 +21,7 @@ import { getSetting } from '@/utils/settingsStorage';
 
 const NotesCalendar = () => {
   const { t } = useTranslation();
-  const { isPro, openPaywall } = useSubscription();
+  const { isPro, openPaywall, softRequireCreate, softRequireMutate } = useSubscription();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   
@@ -78,8 +78,9 @@ const NotesCalendar = () => {
 
   const handleSaveNote = useCallback(async (noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => {
     const currentEditingId = editingNoteIdRef.current;
-    
+
     if (currentEditingId) {
+      if (!softRequireMutate()) return;
       const existingNote = notes.find(n => n.id === currentEditingId);
       if (existingNote) {
         const updatedNote: Note = {
@@ -93,6 +94,7 @@ const NotesCalendar = () => {
         await saveNoteToDBSingle(updatedNote);
       }
     } else {
+      if (!isPro && !softRequireCreate('notes', notes.length)) return;
       const newNote: Note = {
         ...noteData,
         id: genId(),
@@ -104,12 +106,12 @@ const NotesCalendar = () => {
       setNotes(updatedNotes);
       await saveNoteToDBSingle(newNote);
     }
-    
+
     setIsEditorOpen(false);
     editingNoteIdRef.current = null;
     setEditingNote(null);
     window.dispatchEvent(new Event('notesUpdated'));
-  }, [notes, setNotes, date]);
+  }, [notes, setNotes, date, isPro, softRequireCreate, softRequireMutate]);
 
   const handleEditNote = useCallback((note: Note) => {
     // Store the note ID in ref to prevent stale reference
@@ -119,9 +121,7 @@ const NotesCalendar = () => {
   }, []);
 
   const handleCreateNote = useCallback((type: NoteType) => {
-    // Free users limited to 10 notes total (including archived and deleted)
-    if (!isPro && notes.length >= FREE_LIMITS.maxNotes) {
-      openPaywall('extra_notes');
+    if (!isPro && !softRequireCreate('notes', notes.length)) {
       return;
     }
     setDefaultType(type);
