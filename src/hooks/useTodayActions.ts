@@ -252,8 +252,11 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     // Soft paywall: new free users get 1 task
     if (!isPro && isNewFreeUser && !softRequireCreate('tasks', itemsRef.current.length)) return;
     const now = new Date();
+    // Unique id: timestamp + random suffix. Plain Date.now() collides when
+    // multiple tasks are added in the same tick (e.g. AI image extraction
+    // forEach loop), causing all of them to share one id and toggle together.
     const newItem: TodoItem = {
-      id: Date.now().toString(), completed: false, ...task,
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, completed: false, ...task,
       sectionId: task.sectionId || inputSectionId || defaultSectionId || sections[0]?.id,
       dueDate: task.dueDate || new Date(),
       createdAt: now, modifiedAt: now,
