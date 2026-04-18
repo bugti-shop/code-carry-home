@@ -1,11 +1,27 @@
 import { useState } from 'react';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { ChevronRight, Crown } from 'lucide-react';
+import { toast } from 'sonner';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { AppLogo } from '@/components/AppLogo';
 import { useSettingsPageState } from '@/hooks/useSettingsPageState';
 import { SettingsDialogs } from '@/components/settings/SettingsDialogs';
 import { SettingsSheets } from '@/components/settings/SettingsSheets';
+
+// Keys for one-time coachmarks shown across the app. Add new keys here so
+// "Show tips again" resets them all in one place.
+const COACHMARK_KEYS = [
+  'scanTasksCoachmarkSeen_v1',
+  'aiMicCoachmarkSeen_v1',
+];
+
+const resetAllCoachmarks = () => {
+  try {
+    COACHMARK_KEYS.forEach((k) => localStorage.removeItem(k));
+  } catch {
+    // ignore
+  }
+};
 
 
 
