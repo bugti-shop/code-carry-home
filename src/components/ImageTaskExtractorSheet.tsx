@@ -66,9 +66,10 @@ export const ImageTaskExtractorSheet = ({
   currentSectionId,
 }: Props) => {
   const { t, i18n } = useTranslation();
-  const { isPro, isLocalTrial } = useSubscription();
+  const { isPro, isLocalTrial, requireFeature } = useSubscription();
   const isStripeTrialing = typeof window !== 'undefined' && Boolean((window as any).__stripeIsTrialing);
-  const isPaidPro = isPro && !isLocalTrial && !isStripeTrialing;
+  const isOnTrial = isLocalTrial || isStripeTrialing;
+  const isPaidPro = isPro && !isOnTrial;
   const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -102,6 +103,11 @@ export const ImageTaskExtractorSheet = ({
   };
 
   const runExtraction = async (dataUrl: string) => {
+    if (!isPaidPro && !isOnTrial) {
+      onClose();
+      requireFeature('ai_scan' as any);
+      return;
+    }
     if (!isPaidPro && !canUseAiFeature('scan')) {
       toast.error(getLimitReachedMessage('scan'));
       return;
