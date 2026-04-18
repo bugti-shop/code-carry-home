@@ -204,10 +204,10 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleSaveNote = (note: Note) => {
+  const handleSaveNote = (note: Note): boolean => {
     const isExisting = notes.some((n) => n.id === note.id);
     if (!isExisting && !isPro && !softRequireCreate('notes', notes.length)) {
-      return;
+      return false;
     }
 
     setNotes((prev) => {
@@ -218,6 +218,7 @@ const Index = () => {
       const noteWithFolder = { ...note, folderId: note.folderId || note.type };
       return [noteWithFolder, ...prev];
     });
+    return true;
   };
 
   const handleDeleteNote = (id: string) => {

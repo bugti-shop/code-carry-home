@@ -76,11 +76,11 @@ const NotesCalendar = () => {
     }
   }, [notes, isEditorOpen]);
 
-  const handleSaveNote = useCallback(async (noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const handleSaveNote = useCallback(async (noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>): Promise<boolean> => {
     const currentEditingId = editingNoteIdRef.current;
 
     if (currentEditingId) {
-      if (!softRequireMutate()) return;
+      if (!softRequireMutate()) return false;
       const existingNote = notes.find(n => n.id === currentEditingId);
       if (existingNote) {
         const updatedNote: Note = {
@@ -94,7 +94,7 @@ const NotesCalendar = () => {
         await saveNoteToDBSingle(updatedNote);
       }
     } else {
-      if (!isPro && !softRequireCreate('notes', notes.length)) return;
+      if (!isPro && !softRequireCreate('notes', notes.length)) return false;
       const newNote: Note = {
         ...noteData,
         id: genId(),
@@ -111,6 +111,7 @@ const NotesCalendar = () => {
     editingNoteIdRef.current = null;
     setEditingNote(null);
     window.dispatchEvent(new Event('notesUpdated'));
+    return true;
   }, [notes, setNotes, date, isPro, softRequireCreate, softRequireMutate]);
 
   const handleEditNote = useCallback((note: Note) => {

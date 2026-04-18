@@ -91,12 +91,12 @@ const Notes = () => {
   }, [showTagManager]);
 
 
-  const handleSaveNote = useCallback((note: Note) => {
+  const handleSaveNote = useCallback((note: Note): boolean => {
     const isExisting = notes.some(n => n.id === note.id);
     if (isExisting) {
-      if (!softRequireMutate()) return;
+      if (!softRequireMutate()) return false;
     } else if (!isPro && !softRequireCreate('notes', notes.length)) {
-      return;
+      return false;
     }
 
     setNotes(prevNotes => {
@@ -111,6 +111,7 @@ const Notes = () => {
       saveNoteToDBSingle(note);
       return updatedNotes;
     });
+    return true;
   }, [isPro, softRequireCreate, softRequireMutate, notes, setNotes]);
 
   const handleEditNote = (note: Note) => {
