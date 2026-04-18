@@ -10,6 +10,12 @@ import { Camera, Image as ImageIcon, Loader2, Sparkles, X, Check, Trash2, Rotate
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
