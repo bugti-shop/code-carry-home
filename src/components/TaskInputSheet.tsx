@@ -509,7 +509,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   };
 
   const startAIDictation = async () => {
-    if (!requireFeature('voice_recording')) return;
+    if (!requireFeature('ai_dictation')) return;
     const SR: any =
       (typeof window !== 'undefined' &&
         ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
