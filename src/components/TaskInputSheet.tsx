@@ -549,8 +549,40 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     }
   };
 
+  const [showMicCoachmark, setShowMicCoachmark] = useState(false);
+  const MIC_COACHMARK_KEY = 'aiMicCoachmarkSeen_v1';
+  const dismissMicCoachmark = () => {
+    setShowMicCoachmark(false);
+    runAIDictation();
+  };
+  const runAIDictation = async () => {
+    const SR: any =
+      (typeof window !== 'undefined' &&
+        ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
+    if (!SR) {
+      toast.error(t('tasks.aiNoSpeech', 'Speech recognition not supported on this device'));
+      return;
+    }
+    await actuallyStartDictation(SR);
+  };
   const startAIDictation = async () => {
     if (!requireFeature('ai_dictation')) return;
+    const seen = typeof window !== 'undefined' && localStorage.getItem(MIC_COACHMARK_KEY) === '1';
+    if (!seen) {
+      setShowMicCoachmark(true);
+      try { localStorage.setItem(MIC_COACHMARK_KEY, '1'); } catch {}
+      return;
+    }
+    const SR: any =
+      (typeof window !== 'undefined' &&
+        ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
+    if (!SR) {
+      toast.error(t('tasks.aiNoSpeech', 'Speech recognition not supported on this device'));
+      return;
+    }
+    await actuallyStartDictation(SR);
+  };
+  const actuallyStartDictation = async (SR: any) => {
     const SR: any =
       (typeof window !== 'undefined' &&
         ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
