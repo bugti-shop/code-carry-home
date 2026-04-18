@@ -251,27 +251,39 @@ export const ImageTaskExtractorSheet = ({
                   'Snap a photo of your sticky notes, whiteboard, or handwritten to-do list. AI will extract each task.',
                 )}
               </p>
-              <div className="grid grid-cols-2 gap-2">
+              {isNative ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={() => runCapture('camera')}
+                    className="h-14 flex-col gap-1"
+                  >
+                    <Camera className="h-5 w-5" />
+                    <span className="text-xs">
+                      {t('imageExtract.takePhoto', 'Take photo')}
+                    </span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => runCapture('gallery')}
+                    className="h-14 flex-col gap-1"
+                  >
+                    <ImageIcon className="h-5 w-5" />
+                    <span className="text-xs">
+                      {t('imageExtract.fromGallery', 'From gallery')}
+                    </span>
+                  </Button>
+                </div>
+              ) : (
                 <Button
-                  onClick={() => runCapture('camera')}
-                  className="h-14 flex-col gap-1"
-                >
-                  <Camera className="h-5 w-5" />
-                  <span className="text-xs">
-                    {t('imageExtract.takePhoto', 'Take photo')}
-                  </span>
-                </Button>
-                <Button
-                  variant="outline"
                   onClick={() => runCapture('gallery')}
-                  className="h-14 flex-col gap-1"
+                  className="h-14 w-full gap-2"
                 >
-                  <ImageIcon className="h-5 w-5" />
-                  <span className="text-xs">
-                    {t('imageExtract.fromGallery', 'From gallery')}
+                  <ImagePlus className="h-5 w-5" />
+                  <span className="text-sm">
+                    {t('imageExtract.pickOrTakeWeb', 'Pick or take a photo')}
                   </span>
                 </Button>
-              </div>
+              )}
             </div>
           )}
 
