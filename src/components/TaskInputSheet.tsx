@@ -227,11 +227,14 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   // AI dictation (replaces voice recording UI in the mic button)
   const [isAIListening, setIsAIListening] = useState(false);
   const [isAIProcessing, setIsAIProcessing] = useState(false);
+  const [aiElapsedMs, setAiElapsedMs] = useState(0);
   const speechRecognitionRef = useRef<any>(null);
   const aiTranscriptRef = useRef<string>('');
   // True only when user explicitly tapped Stop. Lets us silently restart
   // SpeechRecognition when the browser auto-ends on silence/timeout.
   const userStoppedDictationRef = useRef(false);
+  const aiStartedAtRef = useRef<number | null>(null);
+  const aiTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // AI vision: scan tasks from a paper / sticky-note image (Pro-gated)
   const [showImageExtractor, setShowImageExtractor] = useState(false);
@@ -644,6 +647,15 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       speechRecognitionRef.current = recognition;
       recognition.start();
       setIsAIListening(true);
+      // Start elapsed-time counter (MM:SS feedback while dictating).
+      aiStartedAtRef.current = Date.now();
+      setAiElapsedMs(0);
+      if (aiTickRef.current) clearInterval(aiTickRef.current);
+      aiTickRef.current = setInterval(() => {
+        if (aiStartedAtRef.current != null) {
+          setAiElapsedMs(Date.now() - aiStartedAtRef.current);
+        }
+      }, 250);
       try { await Haptics.impact({ style: ImpactStyle.Medium }); } catch {}
     } catch (err) {
       console.error('[AI dictation] start failed', err);
@@ -658,6 +670,20 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       speechRecognitionRef.current?.stop();
     } catch {}
     setIsAIListening(false);
+    if (aiTickRef.current) {
+      clearInterval(aiTickRef.current);
+      aiTickRef.current = null;
+    }
+    aiStartedAtRef.current = null;
+    setAiElapsedMs(0);
+  };
+
+  // Format ms → MM:SS for the on-screen dictation timer.
+  const formatAiElapsed = (ms: number) => {
+    const total = Math.floor(ms / 1000);
+    const m = String(Math.floor(total / 60)).padStart(2, '0');
+    const s = String(total % 60).padStart(2, '0');
+    return `${m}:${s}`;
   };
 
   const startRecording = async () => {
@@ -1048,13 +1074,22 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
                 <Send className="h-5 w-5 text-primary-foreground rotate-45" />
               </button>
             ) : isAIListening ? (
-              <button
-                onClick={stopAIDictation}
-                className="w-10 h-10 rounded-lg bg-destructive hover:opacity-90 flex items-center justify-center flex-shrink-0 transition-all animate-pulse"
-                aria-label={t('tasks.aiStopListening', 'Stop listening')}
-              >
-                <Square className="h-4 w-4 text-destructive-foreground" />
-              </button>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <div
+                  className="flex items-center gap-1.5 text-sm font-mono text-destructive tabular-nums"
+                  aria-live="polite"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+                  {formatAiElapsed(aiElapsedMs)}
+                </div>
+                <button
+                  onClick={stopAIDictation}
+                  className="w-10 h-10 rounded-lg bg-destructive hover:opacity-90 flex items-center justify-center transition-all animate-pulse"
+                  aria-label={t('tasks.aiStopListening', 'Stop listening')}
+                >
+                  <Square className="h-4 w-4 text-destructive-foreground" />
+                </button>
+              </div>
             ) : isAIProcessing ? (
               <div
                 className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"
