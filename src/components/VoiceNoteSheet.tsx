@@ -10,6 +10,35 @@ import { Mic, Loader2, Check, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Languages } from 'lucide-react';
+
+// Common dictation languages. BCP-47 codes for Web Speech API.
+const DICTATION_LANGUAGES: { code: string; label: string }[] = [
+  { code: 'en-US', label: 'English (US)' },
+  { code: 'en-GB', label: 'English (UK)' },
+  { code: 'ur-PK', label: 'اردو (Urdu)' },
+  { code: 'hi-IN', label: 'हिन्दी (Hindi)' },
+  { code: 'ar-SA', label: 'العربية (Arabic)' },
+  { code: 'es-ES', label: 'Español' },
+  { code: 'fr-FR', label: 'Français' },
+  { code: 'de-DE', label: 'Deutsch' },
+  { code: 'it-IT', label: 'Italiano' },
+  { code: 'pt-BR', label: 'Português (BR)' },
+  { code: 'ru-RU', label: 'Русский' },
+  { code: 'zh-CN', label: '中文 (简体)' },
+  { code: 'ja-JP', label: '日本語' },
+  { code: 'ko-KR', label: '한국어' },
+  { code: 'tr-TR', label: 'Türkçe' },
+  { code: 'bn-IN', label: 'বাংলা (Bengali)' },
+  { code: 'ta-IN', label: 'தமிழ் (Tamil)' },
+  { code: 'te-IN', label: 'తెలుగు (Telugu)' },
+  { code: 'mr-IN', label: 'मराठी (Marathi)' },
+  { code: 'he-IL', label: 'עברית (Hebrew)' },
+  { code: 'id-ID', label: 'Bahasa Indonesia' },
+];
+
+const LANG_STORAGE_KEY = 'flowist_dictation_lang';
 import { toast } from 'sonner';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
