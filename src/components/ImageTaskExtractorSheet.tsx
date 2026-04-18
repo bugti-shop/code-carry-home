@@ -10,6 +10,12 @@ import { Camera, Image as ImageIcon, Loader2, Sparkles, X, Check, Trash2, Rotate
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -278,20 +284,44 @@ export const ImageTaskExtractorSheet = ({
                 {t('imageExtract.tapToZoom', 'Tap to zoom')}
               </div>
               <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                <button
-                  onClick={() => {
-                    setImageDataUrl(null);
-                    setItems([]);
-                    setHasRun(false);
-                    runCapture('camera');
-                  }}
-                  disabled={isExtracting}
-                  className="h-8 px-3 rounded-full bg-black/60 text-white flex items-center gap-1 text-xs font-medium disabled:opacity-50"
-                  aria-label={t('imageExtract.retake', 'Retake')}
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  {t('imageExtract.retake', 'Retake')}
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      disabled={isExtracting}
+                      className="h-8 px-3 rounded-full bg-black/60 text-white flex items-center gap-1 text-xs font-medium disabled:opacity-50"
+                      aria-label={t('imageExtract.retake', 'Retake')}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      {t('imageExtract.retake', 'Retake')}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setImageDataUrl(null);
+                        setItems([]);
+                        setHasRun(false);
+                        runCapture('camera');
+                      }}
+                      className="gap-2"
+                    >
+                      <Camera className="h-4 w-4" />
+                      {t('imageExtract.takePhoto', 'Take photo')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setImageDataUrl(null);
+                        setItems([]);
+                        setHasRun(false);
+                        runCapture('gallery');
+                      }}
+                      className="gap-2"
+                    >
+                      <ImageIcon className="h-4 w-4" />
+                      {t('imageExtract.fromGallery', 'From gallery')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <button
                   onClick={() => {
                     setImageDataUrl(null);
