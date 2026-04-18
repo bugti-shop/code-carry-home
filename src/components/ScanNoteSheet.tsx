@@ -54,10 +54,6 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
 
   const runCapture = async (source: 'camera' | 'gallery') => {
     if (captureLockRef.current) return;
-    if (!isPro && !canUseAiFeature('scan')) {
-      toast.error(getLimitReachedMessage('scan'));
-      return;
-    }
     captureLockRef.current = true;
     try {
       const dataUrl = await captureImageForAI(source);
@@ -93,7 +89,6 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
       setHtml(rawHtml);
       setSuggestedTitle(title);
       setHasRun(true);
-      if (!isPro) recordAiUsage('scan');
 
       if (!rawHtml) {
         toast.info(t('scanNote.noText', 'No readable text found in this image'));

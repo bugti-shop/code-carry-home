@@ -236,10 +236,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const SCAN_COACHMARK_KEY = 'scanTasksCoachmarkSeen_v1';
   const openImageExtractor = () => {
     if (!requireFeature('ai_dictation')) return;
-    if (!isPro && !canUseAiFeature('scan')) {
-      toast.error(getLimitReachedMessage('scan'));
-      return;
-    }
     const seen = typeof window !== 'undefined' && localStorage.getItem(SCAN_COACHMARK_KEY) === '1';
     if (!seen) {
       setShowScanCoachmark(true);
@@ -539,7 +535,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
       applyAIParsed((data as any)?.parsed);
-      if (!isPro) recordAiUsage('voice');
       try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
       toast.success(t('tasks.aiParsedSuccess', 'AI filled the task'));
     } catch (e: any) {
@@ -573,10 +568,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   };
   const startAIDictation = async () => {
     if (!requireFeature('ai_dictation')) return;
-    if (!isPro && !canUseAiFeature('voice')) {
-      toast.error(getLimitReachedMessage('voice'));
-      return;
-    }
     const seen = typeof window !== 'undefined' && localStorage.getItem(MIC_COACHMARK_KEY) === '1';
     if (!seen) {
       setShowMicCoachmark(true);
