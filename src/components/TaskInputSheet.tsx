@@ -947,38 +947,37 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
             {taskText.trim() || voiceRecording ? (
               <button
-                onMouseDown={(e) => e.preventDefault()} // Prevent input blur on touch/click
-                onTouchStart={(e) => e.preventDefault()} // Prevent input blur on mobile
+                onMouseDown={(e) => e.preventDefault()}
+                onTouchStart={(e) => e.preventDefault()}
                 onClick={(e) => handleSend(e)}
                 className="w-10 h-10 rounded-lg bg-primary hover:opacity-90 flex items-center justify-center transition-all flex-shrink-0"
               >
                 <Send className="h-5 w-5 text-primary-foreground rotate-45" />
               </button>
-            ) : isRecording ? (
-              <div className="flex items-center gap-2">
-                <WaveformVisualizer 
-                  audioData={audioData} 
-                  isActive={isRecording} 
-                  barCount={12}
-                  color="hsl(var(--destructive))"
-                  className="h-8"
-                />
-                <span className="text-sm font-mono text-destructive animate-pulse">
-                  {formatRecordingTime(recordingTime)}
-                </span>
-                <button 
-                  onClick={stopRecording}
-                  className="w-10 h-10 rounded-lg bg-destructive hover:opacity-90 flex items-center justify-center transition-all flex-shrink-0"
-                >
-                  <Square className="h-5 w-5 text-destructive-foreground" />
-                </button>
+            ) : isAIListening ? (
+              <button
+                onClick={stopAIDictation}
+                className="w-10 h-10 rounded-lg bg-destructive hover:opacity-90 flex items-center justify-center flex-shrink-0 transition-all animate-pulse"
+                aria-label={t('tasks.aiStopListening', 'Stop listening')}
+              >
+                <Square className="h-4 w-4 text-destructive-foreground" />
+              </button>
+            ) : isAIProcessing ? (
+              <div
+                className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"
+                aria-label={t('tasks.aiProcessing', 'AI thinking…')}
+              >
+                <Loader2 className="h-5 w-5 text-primary animate-spin" />
               </div>
             ) : (
-              <button 
-                onClick={startRecording}
-                className="w-10 h-10 rounded-lg bg-muted/30 hover:bg-muted flex items-center justify-center flex-shrink-0 transition-colors"
+              <button
+                onClick={startAIDictation}
+                className="w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center flex-shrink-0 transition-colors relative"
+                aria-label={t('tasks.aiDictate', 'AI voice task')}
+                title={t('tasks.aiDictateHint', 'Speak: e.g. "Buy groceries tomorrow at 5pm in Sample folder"')}
               >
-                <Mic className="h-5 w-5 text-muted-foreground/60" />
+                <Mic className="h-5 w-5 text-primary" />
+                <SparklesIcon className="h-2.5 w-2.5 text-primary absolute top-1.5 right-1.5" />
               </button>
             )}
           </div>
