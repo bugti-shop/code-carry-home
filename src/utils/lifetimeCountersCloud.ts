@@ -42,6 +42,34 @@ export const setLocalLifetimeMax = (kind: SoftLimitKind, value: number) => {
   try { localStorage.setItem(LIFETIME_KEY(kind), String(value)); } catch {}
 };
 
+/**
+ * Wipe all lifetime counters in localStorage AND zero them in the cloud row.
+ * Call this when a user upgrades to Pro so the slate is clean if they ever downgrade.
+ */
+export const resetAllLifetimeCounters = async (): Promise<void> => {
+  try {
+    (Object.keys(COLUMN_MAP) as SoftLimitKind[]).forEach((kind) => {
+      localStorage.removeItem(LIFETIME_KEY(kind));
+    });
+    localStorage.removeItem(LAST_SYNC_KEY);
+  } catch {}
+
+  try {
+    const { identifier, type } = await getIdentifier();
+    const payload: Record<string, any> = { identifier, identifier_type: type };
+    (Object.keys(COLUMN_MAP) as SoftLimitKind[]).forEach((kind) => {
+      payload[COLUMN_MAP[kind]] = 0;
+    });
+    const { error } = await db
+      .from('user_lifetime_counters')
+      .upsert(payload, { onConflict: 'identifier,identifier_type' });
+    if (error) console.warn('[LifetimeCounters] reset failed:', error.message);
+    else console.log('[LifetimeCounters] ✅ Reset all counters (local + cloud)');
+  } catch (e) {
+    console.warn('[LifetimeCounters] reset error:', e);
+  }
+};
+
 // ── Identifier ──
 
 const getOrCreateDeviceId = (): string => {

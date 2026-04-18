@@ -8,6 +8,7 @@ import {
   setLocalLifetimeMax,
   pushLifetimeCounter,
   pullAndMergeLifetimeCounters,
+  resetAllLifetimeCounters,
 } from '@/utils/lifetimeCountersCloud';
 import {
   Purchases,
@@ -1192,6 +1193,21 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setSetting('flowist_new_user', false).catch(() => {});
     }
   }, [isPro, isNewFreeUser]);
+
+  // When user upgrades to Pro: wipe lifetime counters (local + cloud) so a fresh
+  // slate is in place if they ever downgrade. Guarded by a flag so it runs only once
+  // per upgrade (not on every re-render). Flag is cleared if user drops back to Free.
+  useEffect(() => {
+    if (isPro) {
+      try {
+        if (localStorage.getItem('flowist_lifetime_reset_done') === 'true') return;
+        localStorage.setItem('flowist_lifetime_reset_done', 'true');
+      } catch {}
+      void resetAllLifetimeCounters();
+    } else {
+      try { localStorage.removeItem('flowist_lifetime_reset_done'); } catch {}
+    }
+  }, [isPro]);
 
   // Lifetime quota: track the highest count ever reached for each kind in localStorage,
   // mirrored to Supabase (per email or device_id) so reinstalls/new devices don't reset.
