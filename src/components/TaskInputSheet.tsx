@@ -647,6 +647,15 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       speechRecognitionRef.current = recognition;
       recognition.start();
       setIsAIListening(true);
+      // Start elapsed-time counter (MM:SS feedback while dictating).
+      aiStartedAtRef.current = Date.now();
+      setAiElapsedMs(0);
+      if (aiTickRef.current) clearInterval(aiTickRef.current);
+      aiTickRef.current = setInterval(() => {
+        if (aiStartedAtRef.current != null) {
+          setAiElapsedMs(Date.now() - aiStartedAtRef.current);
+        }
+      }, 250);
       try { await Haptics.impact({ style: ImpactStyle.Medium }); } catch {}
     } catch (err) {
       console.error('[AI dictation] start failed', err);
@@ -661,6 +670,20 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       speechRecognitionRef.current?.stop();
     } catch {}
     setIsAIListening(false);
+    if (aiTickRef.current) {
+      clearInterval(aiTickRef.current);
+      aiTickRef.current = null;
+    }
+    aiStartedAtRef.current = null;
+    setAiElapsedMs(0);
+  };
+
+  // Format ms → MM:SS for the on-screen dictation timer.
+  const formatAiElapsed = (ms: number) => {
+    const total = Math.floor(ms / 1000);
+    const m = String(Math.floor(total / 60)).padStart(2, '0');
+    const s = String(total % 60).padStart(2, '0');
+    return `${m}:${s}`;
   };
 
   const startRecording = async () => {
