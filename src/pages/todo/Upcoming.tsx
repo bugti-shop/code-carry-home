@@ -39,7 +39,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 const Upcoming = () => {
   const { t } = useTranslation();
-  const { requireFeature, isPro } = useSubscription();
+  const { requireFeature, isPro, softRequireCreate } = useSubscription();
   const [items, setItems] = useState<TodoItem[]>([]);
   const [allItems, setAllItems] = useState<TodoItem[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -136,6 +136,7 @@ const Upcoming = () => {
   };
 
   const handleAddTask = async (task: Omit<TodoItem, 'id' | 'completed'>) => {
+    if (!isPro && !softRequireCreate('tasks', allItems.length)) return;
     const newItem: TodoItem = { id: genId(), completed: false, ...task };
     const updatedAllItems = [newItem, ...allItems];
     setAllItems(updatedAllItems);

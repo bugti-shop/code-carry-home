@@ -58,7 +58,7 @@ const CustomToolDetail = () => {
   const { toolId } = useParams<{ toolId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isPro, requireFeature } = useSubscription();
+  const { isPro, requireFeature, softRequireCreate } = useSubscription();
   const [tool, setTool] = useState<CustomTool | null>(null);
   const [linkedTasks, setLinkedTasks] = useState<TodoItem[]>([]);
   const [allTasks, setAllTasks] = useState<TodoItem[]>([]);
@@ -196,7 +196,8 @@ const CustomToolDetail = () => {
 
   const handleAddTask = async (taskData: Omit<TodoItem, 'id' | 'completed'>) => {
     if (!tool) return;
-    
+    if (!isPro && !softRequireCreate('tasks', allTasks.length)) return;
+
     const newTask: TodoItem = {
       ...taskData,
       id: genId(),

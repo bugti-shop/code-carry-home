@@ -58,7 +58,7 @@ const defaultSections: TaskSection[] = [
 const TodoCalendar = () => {
   const { t } = useTranslation();
   const { getPriorityColor } = usePriorities();
-  const { requireFeature, isPro } = useSubscription();
+  const { requireFeature, isPro, softRequireCreate } = useSubscription();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isInputOpen, setIsInputOpen] = useState(false);
   const [isEventEditorOpen, setIsEventEditorOpen] = useState(false);
@@ -383,15 +383,15 @@ const TodoCalendar = () => {
   };
 
   const handleAddTask = async (task: Omit<TodoItem, 'id' | 'completed'>) => {
+    const allItemsExisting = await loadTodoItems();
+    if (!isPro && !softRequireCreate('tasks', allItemsExisting.length)) return;
     const newItem: TodoItem = { id: genId(), completed: false, ...task };
-    // Add task to storage FIRST, then schedule notifications in background
-    const allItems = await loadTodoItems();
-    allItems.unshift(newItem);
-    await saveTodoItems(allItems);
-    setItems(allItems);
-    setTaskDates(allItems.filter(t => t.dueDate).map(t => new Date(t.dueDate!)));
+    allItemsExisting.unshift(newItem);
+    await saveTodoItems(allItemsExisting);
+    setItems(allItemsExisting);
+    setTaskDates(allItemsExisting.filter(t => t.dueDate).map(t => new Date(t.dueDate!)));
     window.dispatchEvent(new Event('tasksUpdated'));
-    
+
     // Notification scheduling removed
   };
 
