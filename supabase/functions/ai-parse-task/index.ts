@@ -13,6 +13,8 @@ interface ParseRequest {
   sections?: { id: string; name: string }[];
   nowIso?: string;
   timezone?: string;
+  languageCode?: string;
+  languageName?: string;
 }
 
 Deno.serve(async (req) => {
@@ -42,10 +44,13 @@ Deno.serve(async (req) => {
     const sections = body.sections || [];
     const now = body.nowIso || new Date().toISOString();
     const tz = body.timezone || "UTC";
+    const langCode = body.languageCode || "en";
+    const langName = body.languageName || "English";
 
-    const systemPrompt = `You are a task parser. Convert a spoken task description into structured JSON.
+    const systemPrompt = `You are a multilingual task parser. The user's transcript is in ${langName} (${langCode}) but may mix in other languages. Convert the spoken task description into structured JSON.
 Current datetime (ISO): ${now}
 User timezone: ${tz}
+User language: ${langName} (${langCode})
 
 Available folders (match by name, case-insensitive, fuzzy ok):
 ${folders.length ? folders.map((f) => `- ${f.name} (id: ${f.id})`).join("\n") : "(none)"}
