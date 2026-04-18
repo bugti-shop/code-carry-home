@@ -85,7 +85,19 @@ interface TaskInputSheetProps {
 }
 
 export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFolderId, onCreateFolder, sections = [], selectedSectionId, defaultDate, preventBackdropClose = false }: TaskInputSheetProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  // Map i18n short codes -> BCP-47 tags for Web Speech API
+  const SPEECH_LANG_MAP: Record<string, string> = {
+    en: 'en-US', hi: 'hi-IN', ur: 'ur-PK', bn: 'bn-IN', ta: 'ta-IN', te: 'te-IN', mr: 'mr-IN',
+    es: 'es-ES', pt: 'pt-BR', fr: 'fr-FR', de: 'de-DE', it: 'it-IT', tr: 'tr-TR',
+    ar: 'ar-SA', he: 'he-IL', ru: 'ru-RU', zh: 'zh-CN', ja: 'ja-JP', ko: 'ko-KR', id: 'id-ID',
+  };
+  const LANG_NAMES: Record<string, string> = {
+    en: 'English', hi: 'Hindi', ur: 'Urdu', bn: 'Bengali', ta: 'Tamil', te: 'Telugu', mr: 'Marathi',
+    es: 'Spanish', pt: 'Portuguese', fr: 'French', de: 'German', it: 'Italian', tr: 'Turkish',
+    ar: 'Arabic', he: 'Hebrew', ru: 'Russian', zh: 'Chinese', ja: 'Japanese', ko: 'Korean', id: 'Indonesian',
+  };
   
   // Swipe-down to close
   const swipeStartY = useRef<number | null>(null);
@@ -488,6 +500,8 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
           sections: sections.map((s) => ({ id: s.id, name: s.name })),
           nowIso: new Date().toISOString(),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          languageCode: (i18n.language || 'en').split('-')[0],
+          languageName: LANG_NAMES[(i18n.language || 'en').split('-')[0]] || 'English',
         },
       });
       if (error) throw error;
@@ -521,7 +535,11 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       const recognition = new SR();
       recognition.continuous = false;
       recognition.interimResults = false;
-      recognition.lang = (typeof navigator !== 'undefined' && navigator.language) || 'en-US';
+      const shortLang = (i18n.language || 'en').split('-')[0];
+      recognition.lang =
+        SPEECH_LANG_MAP[shortLang] ||
+        (typeof navigator !== 'undefined' && navigator.language) ||
+        'en-US';
       aiTranscriptRef.current = '';
 
       recognition.onresult = (event: any) => {
