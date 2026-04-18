@@ -4,6 +4,12 @@ import { getStoredGoogleUser } from '@/utils/googleAuth';
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/lib/supabase';
 import {
+  getLocalLifetimeMax,
+  setLocalLifetimeMax,
+  pushLifetimeCounter,
+  pullAndMergeLifetimeCounters,
+} from '@/utils/lifetimeCountersCloud';
+import {
   Purchases,
   LOG_LEVEL,
   CustomerInfo,
@@ -237,6 +243,16 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     };
     window.addEventListener('flowistNewFreeUserChanged', handleNewFreeUserChanged);
     return () => window.removeEventListener('flowistNewFreeUserChanged', handleNewFreeUserChanged);
+  }, []);
+
+  // Pull cloud lifetime counters on mount + whenever auth state changes (sign-in/out).
+  // Merges max(local, cloud) so reinstalls / new devices inherit the user's quota usage.
+  useEffect(() => {
+    void pullAndMergeLifetimeCounters();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      void pullAndMergeLifetimeCounters();
+    });
+    return () => { sub.subscription.unsubscribe(); };
   }, []);
 
   // Check sign-out grace period on mount
@@ -1177,17 +1193,17 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [isPro, isNewFreeUser]);
 
-  // Lifetime quota: track the highest count ever reached for each kind in localStorage.
+  // Lifetime quota: track the highest count ever reached for each kind in localStorage,
+  // mirrored to Supabase (per email or device_id) so reinstalls/new devices don't reset.
   // Deleting items does NOT free up quota — user must upgrade to Pro to create more.
-  const LIFETIME_KEY = (kind: SoftLimitKind) => `flowist_lifetime_${kind}`;
-  const getLifetimeMax = (kind: SoftLimitKind): number => {
-    try { return parseInt(localStorage.getItem(LIFETIME_KEY(kind)) || '0', 10) || 0; } catch { return 0; }
-  };
+  const getLifetimeMax = (kind: SoftLimitKind): number => getLocalLifetimeMax(kind);
   const bumpLifetimeMax = (kind: SoftLimitKind, currentCount: number) => {
-    try {
-      const prev = getLifetimeMax(kind);
-      if (currentCount > prev) localStorage.setItem(LIFETIME_KEY(kind), String(currentCount));
-    } catch {}
+    const prev = getLifetimeMax(kind);
+    if (currentCount > prev) {
+      setLocalLifetimeMax(kind, currentCount);
+      // Fire-and-forget cloud push so other devices/reinstalls see the bump
+      void pushLifetimeCounter(kind, currentCount);
+    }
   };
 
   // Returns true when allowed to create. Opens paywall + returns false when lifetime quota exhausted.
