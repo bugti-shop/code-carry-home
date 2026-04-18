@@ -130,7 +130,7 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
         }
       }
       if (finalChunk) {
-        setTranscript((prev) => (prev ? prev + ' ' + finalChunk : finalChunk).trim());
+        appendToTranscript(finalChunk);
         finalChunk = '';
       }
       interimRef.current = interimText;
