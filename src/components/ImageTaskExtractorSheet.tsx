@@ -9,7 +9,8 @@ import { useTranslation } from 'react-i18next';
 import { Camera, Image as ImageIcon, Loader2, Sparkles, X, Check, Trash2, RotateCcw, Minus, Plus, Maximize2, ImagePlus } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { Capacitor } from '@capacitor/core';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetOverlay, SheetPortal } from '@/components/ui/sheet';
+import * as SheetPrimitive from '@radix-ui/react-dialog';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   DropdownMenu,
