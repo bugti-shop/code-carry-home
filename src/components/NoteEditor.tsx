@@ -1698,7 +1698,7 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
       )}
 
       {/* Full Page Content Editor */}
-      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col relative">
         <ErrorBoundary>
           {noteType === 'voice' ? (
             <div className="h-full flex flex-col overflow-y-auto">
