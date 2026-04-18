@@ -276,17 +276,33 @@ export const ImageTaskExtractorSheet = ({
               <div className="absolute bottom-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-black/60 text-white pointer-events-none">
                 {t('imageExtract.tapToZoom', 'Tap to zoom')}
               </div>
-              <button
-                onClick={() => {
-                  setImageDataUrl(null);
-                  setItems([]);
-                  setHasRun(false);
-                }}
-                className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center"
-                aria-label={t('common.remove', 'Remove')}
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                <button
+                  onClick={() => {
+                    setImageDataUrl(null);
+                    setItems([]);
+                    setHasRun(false);
+                    runCapture('camera');
+                  }}
+                  disabled={isExtracting}
+                  className="h-8 px-3 rounded-full bg-black/60 text-white flex items-center gap-1 text-xs font-medium disabled:opacity-50"
+                  aria-label={t('imageExtract.retake', 'Retake')}
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  {t('imageExtract.retake', 'Retake')}
+                </button>
+                <button
+                  onClick={() => {
+                    setImageDataUrl(null);
+                    setItems([]);
+                    setHasRun(false);
+                  }}
+                  className="w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center"
+                  aria-label={t('common.remove', 'Remove')}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           )}
 
