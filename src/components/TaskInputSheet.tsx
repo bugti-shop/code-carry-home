@@ -1003,15 +1003,26 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
                 <Loader2 className="h-5 w-5 text-primary animate-spin" />
               </div>
             ) : (
-              <button
-                onClick={startAIDictation}
-                className="w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center flex-shrink-0 transition-colors relative"
-                aria-label={t('tasks.aiDictate', 'AI voice task')}
-                title={t('tasks.aiDictateHint', 'Speak: e.g. "Buy groceries tomorrow at 5pm in Sample folder"')}
-              >
-                <Mic className="h-5 w-5 text-primary" />
-                <SparklesIcon className="h-2.5 w-2.5 text-primary absolute top-1.5 right-1.5" />
-              </button>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <button
+                  onClick={openImageExtractor}
+                  className="w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors relative"
+                  aria-label={t('tasks.aiScanImage', 'Scan tasks from photo')}
+                  title={t('tasks.aiScanImageHint', 'Scan a paper or sticky-note board to add tasks')}
+                >
+                  <ScanLine className="h-5 w-5 text-primary" />
+                  <SparklesIcon className="h-2.5 w-2.5 text-primary absolute top-1.5 right-1.5" />
+                </button>
+                <button
+                  onClick={startAIDictation}
+                  className="w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors relative"
+                  aria-label={t('tasks.aiDictate', 'AI voice task')}
+                  title={t('tasks.aiDictateHint', 'Speak: e.g. "Buy groceries tomorrow at 5pm in Sample folder"')}
+                >
+                  <Mic className="h-5 w-5 text-primary" />
+                  <SparklesIcon className="h-2.5 w-2.5 text-primary absolute top-1.5 right-1.5" />
+                </button>
+              </div>
             )}
           </div>
 
