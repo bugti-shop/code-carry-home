@@ -1125,7 +1125,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
                       </span>
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent side="top" align="end" className="w-56 p-1 max-h-72 overflow-y-auto">
+                  <PopoverContent side="top" align="start" sideOffset={8} className="w-56 p-1 max-h-72 overflow-y-auto z-[60]">
                     {(() => {
                       // Build ordered list: recent (pinned) → rest, no dupes.
                       const recents = getRecentDictationLangs();
