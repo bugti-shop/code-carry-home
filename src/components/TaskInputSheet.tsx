@@ -231,8 +231,20 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
   // AI vision: scan tasks from a paper / sticky-note image (Pro-gated)
   const [showImageExtractor, setShowImageExtractor] = useState(false);
+  const [showScanCoachmark, setShowScanCoachmark] = useState(false);
+  const SCAN_COACHMARK_KEY = 'scanTasksCoachmarkSeen_v1';
   const openImageExtractor = () => {
     if (!requireFeature('ai_dictation')) return;
+    const seen = typeof window !== 'undefined' && localStorage.getItem(SCAN_COACHMARK_KEY) === '1';
+    if (!seen) {
+      setShowScanCoachmark(true);
+      try { localStorage.setItem(SCAN_COACHMARK_KEY, '1'); } catch {}
+      return;
+    }
+    setShowImageExtractor(true);
+  };
+  const dismissScanCoachmark = () => {
+    setShowScanCoachmark(false);
     setShowImageExtractor(true);
   };
   const handleExtractedTasksAdd = (
@@ -1004,15 +1016,47 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
               </div>
             ) : (
               <div className="flex items-center gap-1.5 flex-shrink-0">
-                <button
-                  onClick={openImageExtractor}
-                  className="w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors relative"
-                  aria-label={t('tasks.aiScanImage', 'Scan tasks from photo')}
-                  title={t('tasks.aiScanImageHint', 'Scan a paper or sticky-note board to add tasks')}
-                >
-                  <ScanLine className="h-5 w-5 text-primary" />
-                  <SparklesIcon className="h-2.5 w-2.5 text-primary absolute top-1.5 right-1.5" />
-                </button>
+                <Popover open={showScanCoachmark} onOpenChange={(o) => !o && dismissScanCoachmark()}>
+                  <PopoverTrigger asChild>
+                    <button
+                      onClick={openImageExtractor}
+                      className="w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors relative"
+                      aria-label={t('tasks.aiScanImage', 'Scan tasks from photo')}
+                      title={t('tasks.aiScanImageHint', 'Scan a paper or sticky-note board to add tasks')}
+                    >
+                      <ScanLine className="h-5 w-5 text-primary" />
+                      <SparklesIcon className="h-2.5 w-2.5 text-primary absolute top-1.5 right-1.5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side="top"
+                    align="end"
+                    className="w-72 p-3 border-primary/20"
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <ScanLine className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <p className="text-sm font-medium leading-tight">
+                          {t('tasks.scanCoachmarkTitle', 'Scan tasks from photos')}
+                        </p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {t(
+                            'tasks.scanCoachmarkBody',
+                            'Scan paper, sticky notes, or whiteboard photos — AI extracts each task automatically.',
+                          )}
+                        </p>
+                        <button
+                          onClick={dismissScanCoachmark}
+                          className="text-xs font-medium text-primary hover:underline"
+                        >
+                          {t('common.gotIt', 'Got it')}
+                        </button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 <button
                   onClick={startAIDictation}
                   className="w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors relative"
