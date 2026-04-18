@@ -56,6 +56,11 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
       recognitionRef.current?.stop?.();
     } catch {}
     recognitionRef.current = null;
+    if (tickRef.current) {
+      clearInterval(tickRef.current);
+      tickRef.current = null;
+    }
+    startedAtRef.current = null;
     setIsListening(false);
     setInterim('');
   };
@@ -114,12 +119,29 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
     userStoppedRef.current = false;
     recognitionRef.current = rec;
     setIsListening(true);
+    // Start elapsed-time counter (only when user begins, not on auto-restarts).
+    startedAtRef.current = Date.now();
+    setElapsedMs(0);
+    if (tickRef.current) clearInterval(tickRef.current);
+    tickRef.current = setInterval(() => {
+      if (startedAtRef.current != null) {
+        setElapsedMs(Date.now() - startedAtRef.current);
+      }
+    }, 250);
     try {
       rec.start();
     } catch (e) {
       console.error('[voice note] start failed', e);
       stopListening();
     }
+  };
+
+  // Format ms → MM:SS for the on-screen timer.
+  const formatElapsed = (ms: number) => {
+    const total = Math.floor(ms / 1000);
+    const m = Math.floor(total / 60).toString().padStart(2, '0');
+    const s = (total % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
   };
 
   const handleInsert = () => {
