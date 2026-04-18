@@ -149,7 +149,9 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     priority: 'sheet',
   });
 
-  const { requireFeature, isRecurringSubscriber, isPro } = useSubscription();
+  const { requireFeature, isRecurringSubscriber, isPro, isLocalTrial } = useSubscription();
+  const isStripeTrialing = typeof window !== 'undefined' && Boolean((window as any).__stripeIsTrialing);
+  const isPaidPro = isPro && !isLocalTrial && !isStripeTrialing;
   const [taskText, setTaskText] = useState('');
   const [priority, setPriority] = useState<Priority>('none');
   const [dueDate, setDueDate] = useState<Date | undefined>();
@@ -535,6 +537,12 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     const text = transcript.trim();
     if (!text) {
       setIsAIProcessing(false);
+      return;
+    }
+    if (!isPaidPro && !canUseAiFeature('voice')) {
+      setIsAIProcessing(false);
+      if (!taskText.trim()) setTaskText(text);
+      toast.error(getLimitReachedMessage('voice'));
       return;
     }
     setIsAIProcessing(true);
