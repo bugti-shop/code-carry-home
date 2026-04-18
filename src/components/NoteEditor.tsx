@@ -928,16 +928,6 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
     }
   };
 
-  // Insert dictated transcript (plain text) wrapped in a paragraph.
-  const handleAiInsertText = (text: string) => {
-    const safe = text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-    handleAiInsertHtml(`<p>${safe}</p>`);
-  };
-
-
   const getEditorBackgroundColor = () => {
     if (noteType === 'sticky') {
       return STICKY_COLOR_VALUES[color];
