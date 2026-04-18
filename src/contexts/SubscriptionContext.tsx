@@ -467,11 +467,20 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       const errorMessage = err instanceof Error ? err.message : 'Failed to initialize RevenueCat';
       console.error('RevenueCat: Initialization error', err);
       setError(errorMessage);
-      // Offline-first: if RC fails (no network) but cache says entitled, keep access
+      // Offline-first: only honor cached entitlement if cache is FRESH (within 7 days).
+      // Stale cache → revoke access so deleted/cancelled customers can't keep using app indefinitely offline.
       try {
-        if (localStorage.getItem('flowist_rc_entitled') === 'true') {
-          console.log('RevenueCat: Init failed but cached entitlement found — granting offline access');
+        const cachedEntitled = localStorage.getItem('flowist_rc_entitled') === 'true';
+        const fresh = isCacheFresh('flowist_rc_verified_at', RC_CACHE_MAX_AGE_MS);
+        if (cachedEntitled && fresh) {
+          console.log('RevenueCat: Init failed but fresh cached entitlement found — granting offline access');
           setRcIsPro(true);
+        } else {
+          if (cachedEntitled && !fresh) {
+            console.log('RevenueCat: Cached entitlement is stale — revoking access');
+            localStorage.setItem('flowist_rc_entitled', 'false');
+          }
+          setRcIsPro(false);
         }
       } catch {}
       setIsInitialized(true); // Always resolve so isLoading doesn't hang
