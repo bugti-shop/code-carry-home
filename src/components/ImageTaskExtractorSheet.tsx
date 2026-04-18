@@ -6,7 +6,8 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Camera, Image as ImageIcon, Loader2, Sparkles, X, Check, Trash2, RotateCcw } from 'lucide-react';
+import { Camera, Image as ImageIcon, Loader2, Sparkles, X, Check, Trash2, RotateCcw, Minus, Plus, Maximize2 } from 'lucide-react';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -438,16 +439,72 @@ export const ImageTaskExtractorSheet = ({
       </SheetContent>
 
       <Dialog open={isZoomed} onOpenChange={setIsZoomed}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-transparent shadow-none overflow-hidden">
+        <DialogContent className="max-w-[100vw] w-screen h-screen max-h-screen p-0 border-0 bg-black rounded-none shadow-none overflow-hidden sm:rounded-none">
           {imageDataUrl && (
-            <div className="w-full h-full overflow-auto bg-black/90 rounded-lg">
-              <img
-                src={imageDataUrl}
-                alt={t('imageExtract.previewAlt', 'Captured tasks')}
-                className="w-full h-auto min-w-[200%] object-contain"
-                onClick={() => setIsZoomed(false)}
-              />
-            </div>
+            <TransformWrapper
+              initialScale={1}
+              minScale={1}
+              maxScale={6}
+              doubleClick={{ mode: 'toggle', step: 2 }}
+              wheel={{ step: 0.2 }}
+              pinch={{ step: 5 }}
+              centerOnInit
+            >
+              {({ zoomIn, zoomOut, resetTransform }) => (
+                <>
+                  <TransformComponent
+                    wrapperClass="!w-full !h-full"
+                    contentClass="!w-full !h-full flex items-center justify-center"
+                  >
+                    <img
+                      src={imageDataUrl}
+                      alt={t('imageExtract.previewAlt', 'Captured tasks')}
+                      className="max-w-full max-h-full object-contain select-none"
+                      draggable={false}
+                    />
+                  </TransformComponent>
+
+                  {/* Top-right close */}
+                  <button
+                    onClick={() => setIsZoomed(false)}
+                    className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/15 backdrop-blur text-white flex items-center justify-center hover:bg-white/25 transition-colors z-10"
+                    aria-label={t('common.close', 'Close')}
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+
+                  {/* Bottom controls */}
+                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-2 py-1.5 rounded-full bg-white/15 backdrop-blur z-10">
+                    <button
+                      onClick={() => zoomOut()}
+                      className="w-9 h-9 rounded-full text-white flex items-center justify-center hover:bg-white/20 transition-colors"
+                      aria-label={t('imageExtract.zoomOut', 'Zoom out')}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => resetTransform()}
+                      className="w-9 h-9 rounded-full text-white flex items-center justify-center hover:bg-white/20 transition-colors"
+                      aria-label={t('imageExtract.reset', 'Reset zoom')}
+                    >
+                      <Maximize2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => zoomIn()}
+                      className="w-9 h-9 rounded-full text-white flex items-center justify-center hover:bg-white/20 transition-colors"
+                      aria-label={t('imageExtract.zoomIn', 'Zoom in')}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {/* Hint */}
+                  <div className="absolute top-4 left-4 text-[11px] px-2.5 py-1 rounded-full bg-white/15 backdrop-blur text-white pointer-events-none z-10">
+                    {t('imageExtract.pinchHint', 'Pinch or double-tap to zoom')}
+                  </div>
+                </>
+              )}
+            </TransformWrapper>
           )}
         </DialogContent>
       </Dialog>
