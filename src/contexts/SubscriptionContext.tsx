@@ -665,6 +665,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setCustomerInfo(info);
       const hasEntitlement = info.entitlements.active[ENTITLEMENT_ID] !== undefined;
       setRcIsPro(hasEntitlement);
+      try { localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false'); localStorage.setItem('flowist_rc_verified_at', String(Date.now())); } catch {}
       console.log('RevenueCat: Restore successful', { isPro: hasEntitlement });
       return hasEntitlement;
     } catch (err) {
