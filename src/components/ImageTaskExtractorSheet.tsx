@@ -28,7 +28,7 @@ import { TodoItem, Folder, Priority, RepeatType } from '@/types/note';
 import { cn } from '@/lib/utils';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
-import { acquireAiLock, getAiBusyMessage } from '@/utils/aiConcurrencyLock';
+import { acquireAiLock, getAiBusyMessage, releaseAllAiLocks } from '@/utils/aiConcurrencyLock';
 
 interface TaskSection { id: string; name: string }
 
@@ -92,6 +92,9 @@ export const ImageTaskExtractorSheet = ({
       setIsExtracting(false);
       setHasRun(false);
       captureLockRef.current = false;
+      // Force-release any in-flight AI lock so the app never stays "busy"
+      // if the user closed the sheet mid-request.
+      releaseAllAiLocks();
     }
   }, [isOpen]);
 
