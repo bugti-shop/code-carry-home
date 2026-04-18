@@ -121,7 +121,8 @@ const NotesCalendar = () => {
   }, []);
 
   const handleCreateNote = useCallback((type: NoteType) => {
-    if (!isPro && !softRequireCreate('notes', notes.length)) {
+    if (!isPro && notes.length >= FREE_LIMITS.maxNotes) {
+      openPaywall('extra_notes');
       return;
     }
     setDefaultType(type);
