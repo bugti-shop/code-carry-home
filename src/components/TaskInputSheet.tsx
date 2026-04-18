@@ -229,6 +229,15 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const [isAIListening, setIsAIListening] = useState(false);
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const [aiElapsedMs, setAiElapsedMs] = useState(0);
+  // Persisted dictation language (BCP-47). Synced with VoiceNoteSheet via the
+  // same `flowist_dictation_lang` key so user picks language once app-wide.
+  const [dictationLang, setDictationLang] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'en-US';
+    const saved = localStorage.getItem('flowist_dictation_lang');
+    if (saved) return saved;
+    const shortLang = (i18n.language || 'en').split('-')[0];
+    return SPEECH_LANG_MAP[shortLang] || 'en-US';
+  });
   const speechRecognitionRef = useRef<any>(null);
   const aiTranscriptRef = useRef<string>('');
   // True only when user explicitly tapped Stop. Lets us silently restart
@@ -595,9 +604,9 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       const recognition = new SR();
       recognition.continuous = true;
       recognition.interimResults = true;
-      const shortLang = (i18n.language || 'en').split('-')[0];
+      // Use user-picked dictation language (persisted) instead of i18n locale.
       recognition.lang =
-        SPEECH_LANG_MAP[shortLang] ||
+        dictationLang ||
         (typeof navigator !== 'undefined' && navigator.language) ||
         'en-US';
       aiTranscriptRef.current = '';
