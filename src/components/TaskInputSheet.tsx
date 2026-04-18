@@ -231,8 +231,20 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
   // AI vision: scan tasks from a paper / sticky-note image (Pro-gated)
   const [showImageExtractor, setShowImageExtractor] = useState(false);
+  const [showScanCoachmark, setShowScanCoachmark] = useState(false);
+  const SCAN_COACHMARK_KEY = 'scanTasksCoachmarkSeen_v1';
   const openImageExtractor = () => {
     if (!requireFeature('ai_dictation')) return;
+    const seen = typeof window !== 'undefined' && localStorage.getItem(SCAN_COACHMARK_KEY) === '1';
+    if (!seen) {
+      setShowScanCoachmark(true);
+      try { localStorage.setItem(SCAN_COACHMARK_KEY, '1'); } catch {}
+      return;
+    }
+    setShowImageExtractor(true);
+  };
+  const dismissScanCoachmark = () => {
+    setShowScanCoachmark(false);
     setShowImageExtractor(true);
   };
   const handleExtractedTasksAdd = (
