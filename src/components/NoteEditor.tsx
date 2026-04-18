@@ -1891,20 +1891,22 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
                 />
               )}
 
-              {/* AI mini-toolbar (Pro): dictate to text, scan page → formatted note */}
+              {/* AI mini-toolbar (Pro): scan handwritten/printed page → formatted note */}
               {(noteType === 'regular' || noteType === 'sticky' || noteType === 'lined' || noteType === 'textformat') && (
-                <div className="absolute bottom-20 right-3 z-20 flex flex-col gap-2">
+                <div className="absolute bottom-20 right-3 z-20 flex flex-col gap-2 items-end">
                   <button
                     type="button"
                     onClick={() => {
                       if (!requireFeature('ai_dictation')) return;
                       setShowScanNote(true);
                     }}
-                    className="w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
-                    aria-label={t('scanNote.title', 'Scan page to note')}
-                    title={t('scanNote.title', 'Scan page to note')}
+                    className="group relative h-14 pl-4 pr-5 rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/30 flex items-center gap-2 hover:scale-105 active:scale-95 transition-transform ring-2 ring-primary/20"
+                    aria-label={t('scanNote.tooltip', 'Scan a handwritten or printed page — AI converts it into a formatted note')}
+                    title={t('scanNote.tooltip', 'Scan a handwritten or printed page — AI converts it into a formatted note')}
                   >
-                    <Camera className="h-5 w-5" />
+                    <span className="absolute inset-0 rounded-full bg-primary/40 animate-ping opacity-60 pointer-events-none" />
+                    <Camera className="h-5 w-5 relative z-10" />
+                    <span className="text-sm font-semibold relative z-10">{t('scanNote.scan', 'Scan')}</span>
                   </button>
                 </div>
               )}
@@ -1917,18 +1919,20 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
             container; this one overlays the alternate editors so every note
             type can dictate (Mic) and scan images to text (Camera). */}
         {(noteType === 'voice' || noteType === 'code' || noteType === 'sketch') && (
-          <div className="absolute bottom-20 right-3 z-30 flex flex-col gap-2 pointer-events-auto">
+          <div className="absolute bottom-20 right-3 z-30 flex flex-col gap-2 items-end pointer-events-auto">
             <button
               type="button"
               onClick={() => {
                 if (!requireFeature('ai_dictation')) return;
                 setShowScanNote(true);
               }}
-              className="w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
-              aria-label={t('scanNote.title', 'Scan page to note')}
-              title={t('scanNote.title', 'Scan page to note')}
+              className="group relative h-14 pl-4 pr-5 rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/30 flex items-center gap-2 hover:scale-105 active:scale-95 transition-transform ring-2 ring-primary/20"
+              aria-label={t('scanNote.tooltip', 'Scan a handwritten or printed page — AI converts it into a formatted note')}
+              title={t('scanNote.tooltip', 'Scan a handwritten or printed page — AI converts it into a formatted note')}
             >
-              <Camera className="h-5 w-5" />
+              <span className="absolute inset-0 rounded-full bg-primary/40 animate-ping opacity-60 pointer-events-none" />
+              <Camera className="h-5 w-5 relative z-10" />
+              <span className="text-sm font-semibold relative z-10">{t('scanNote.scan', 'Scan')}</span>
             </button>
           </div>
         )}
