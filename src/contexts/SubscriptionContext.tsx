@@ -151,7 +151,7 @@ const UnifiedBillingContext = createContext<UnifiedBillingContextType | undefine
 
 // Free trial duration in days
 const FREE_TRIAL_DAYS = 4;
-const GRACE_PERIOD_DAYS = 3;
+const GRACE_PERIOD_DAYS = 2;
 const SIGNOUT_GRACE_MS = 24 * 60 * 60 * 1000; // 1 day after sign-out
 
 export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
