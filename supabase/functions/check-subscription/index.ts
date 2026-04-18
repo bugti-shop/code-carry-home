@@ -15,7 +15,8 @@ const PRODUCT_TO_PLAN: Record<string, string> = {
   prod_UFxvRW5CagcDV1: "yearly",
 };
 
-const GRACE_PERIOD_MS = 3 * 24 * 60 * 60 * 1000;
+// After trial/period ends and payment fails, give user 2 days max before forcing them to free
+const GRACE_PERIOD_MS = 2 * 24 * 60 * 60 * 1000;
 
 const jsonResponse = (body: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(body), {
