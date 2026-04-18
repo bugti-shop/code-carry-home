@@ -292,9 +292,26 @@ function PaywallVariantA({ logic }: { logic: ReturnType<typeof usePaywallLogic> 
           </h1>
         </motion.div>
 
+        {softLimitMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mx-auto mb-6 max-w-sm rounded-xl px-4 py-3 text-center text-sm font-semibold"
+            style={{
+              background: 'hsl(var(--primary) / 0.08)',
+              color: 'hsl(var(--primary))',
+              border: '1px solid hsl(var(--primary) / 0.2)',
+              fontFamily: "'Nunito Sans', sans-serif",
+            }}
+          >
+            {softLimitMessage}
+          </motion.div>
+        )}
+
         {/* Feature timeline */}
         <div className="flex flex-col items-start mx-auto w-80 relative">
           <div className="absolute left-[10.5px] top-[20px] bottom-[20px] w-[11px] rounded-b-full" style={{ background: 'hsl(var(--primary) / 0.2)' }} />
+
 
           {[
             { icon: <Unlock size={16} strokeWidth={2} />, title: t('onboarding.paywall.unlockAllFeatures'), desc: t('onboarding.paywall.unlockAllFeaturesDesc') },
