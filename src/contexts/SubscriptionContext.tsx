@@ -1191,8 +1191,16 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!Capacitor.isNativePlatform() || !isInitialized) return;
 
-    const handleResume = () => {
-      console.log('RevenueCat: App resumed, re-checking entitlement');
+    const handleResume = async () => {
+      console.log('RevenueCat: App resumed, syncing purchases & re-checking entitlement');
+      // Force RC to pull latest receipt from store — catches cancellations made
+      // outside the app (e.g. Play Store) while we were backgrounded/offline.
+      try {
+        await Purchases.syncPurchases();
+        console.log('RevenueCat: syncPurchases() completed');
+      } catch (err) {
+        console.warn('RevenueCat: syncPurchases() failed', err);
+      }
       checkEntitlement();
     };
 
