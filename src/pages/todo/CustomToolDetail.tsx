@@ -58,7 +58,7 @@ const CustomToolDetail = () => {
   const { toolId } = useParams<{ toolId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isPro, requireFeature, softRequireCreate } = useSubscription();
+  const { isPro, requireFeature, softRequireCreate, canCreateWithinSoftLimit } = useSubscription();
   const [tool, setTool] = useState<CustomTool | null>(null);
   const [linkedTasks, setLinkedTasks] = useState<TodoItem[]>([]);
   const [allTasks, setAllTasks] = useState<TodoItem[]>([]);
