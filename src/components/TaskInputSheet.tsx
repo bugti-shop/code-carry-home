@@ -66,6 +66,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Sparkles as SparklesIcon, Loader2, ScanLine } from 'lucide-react';
 import { ImageTaskExtractorSheet } from './ImageTaskExtractorSheet';
 import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
+import { getRecentDictationLangs, recordRecentDictationLang } from '@/utils/dictationLangRecent';
 
 interface TaskSection {
   id: string;
@@ -1125,13 +1126,21 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
                     </button>
                   </PopoverTrigger>
                   <PopoverContent side="top" align="end" className="w-56 p-1 max-h-72 overflow-y-auto">
-                    <div className="space-y-0.5">
-                      {Object.entries(SPEECH_LANG_MAP).map(([short, bcp47]) => (
+                    {(() => {
+                      // Build ordered list: recent (pinned) → rest, no dupes.
+                      const recents = getRecentDictationLangs();
+                      const all = Object.entries(SPEECH_LANG_MAP);
+                      const recentEntries = recents
+                        .map((bcp) => all.find(([, b]) => b === bcp))
+                        .filter((x): x is [string, string] => !!x);
+                      const restEntries = all.filter(([, b]) => !recents.includes(b));
+                      const renderRow = ([short, bcp47]: [string, string]) => (
                         <button
                           key={bcp47}
                           onClick={() => {
                             setDictationLang(bcp47);
                             try { localStorage.setItem('flowist_dictation_lang', bcp47); } catch {}
+                            recordRecentDictationLang(bcp47);
                           }}
                           className={cn(
                             'w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-sm hover:bg-accent transition-colors text-left',
@@ -1141,8 +1150,25 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
                           <span>{LANG_NAMES[short] || short}</span>
                           <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{bcp47}</span>
                         </button>
-                      ))}
-                    </div>
+                      );
+                      return (
+                        <div className="space-y-0.5">
+                          {recentEntries.length > 0 && (
+                            <>
+                              <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                {t('voiceNote.recent', 'Recent')}
+                              </div>
+                              {recentEntries.map(renderRow)}
+                              <div className="my-1 h-px bg-border" />
+                              <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                {t('voiceNote.allLanguages', 'All languages')}
+                              </div>
+                            </>
+                          )}
+                          {restEntries.map(renderRow)}
+                        </div>
+                      );
+                    })()}
                   </PopoverContent>
                 </Popover>
                 <Popover open={showScanCoachmark} onOpenChange={(o) => !o && dismissScanCoachmark()}>
