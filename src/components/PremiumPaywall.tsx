@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import appLogo from '@/assets/app-logo.webp';
 import { useTranslation } from 'react-i18next';
-import { Crown, Unlock, Bell, Gift, Check } from 'lucide-react';
+import { Crown, Unlock, Bell, Gift, Check, X } from 'lucide-react';
 import { useSubscription, ProductType } from '@/contexts/SubscriptionContext';
 import { Capacitor } from '@capacitor/core';
 import { PurchasesPackage, PACKAGE_TYPE } from '@revenuecat/purchases-capacitor';
@@ -27,7 +27,7 @@ const PERIOD_LABELS: Record<string, string> = {
 // Shared hook for plans and purchase logic
 function usePaywallLogic() {
   const { t } = useTranslation();
-  const { showPaywall, closePaywall, unlockPro, purchase, offerings, restorePurchases } = useSubscription();
+  const { showPaywall, closePaywall, unlockPro, purchase, offerings, restorePurchases, isNewFreeUser, isPro } = useSubscription();
   const [selectedPlan, setSelectedPlan] = useState<ProductType>('monthly');
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
@@ -211,7 +211,7 @@ function usePaywallLogic() {
   };
 
   return {
-    t, showPaywall, selectedPlan, setSelectedPlan, isPurchasing, isRestoring,
+    t, showPaywall, closePaywall, isNewFreeUser, isPro, selectedPlan, setSelectedPlan, isPurchasing, isRestoring,
     adminCode, setAdminCode, showAdminInput, setShowAdminInput, adminError,
     PLANS, currentPlan, handlePurchase, handleRestore, handleAccessCode, hasUsedTrial,
     restoreEmail, setRestoreEmail, showRestoreEmail,
@@ -259,10 +259,21 @@ function PaywallFooter({ logic }: { logic: ReturnType<typeof usePaywallLogic> })
    VARIANT A — Timeline Feature List (Original)
    ═══════════════════════════════════════════ */
 function PaywallVariantA({ logic }: { logic: ReturnType<typeof usePaywallLogic> }) {
-  const { t, selectedPlan, setSelectedPlan, isPurchasing, PLANS, currentPlan, handlePurchase, hasUsedTrial } = logic;
+  const { t, selectedPlan, setSelectedPlan, isPurchasing, PLANS, currentPlan, handlePurchase, hasUsedTrial, isNewFreeUser, isPro, closePaywall } = logic;
+  const canDismiss = isNewFreeUser || isPro;
 
   return (
     <div className="fixed inset-0 z-[200] flex flex-col" style={{ paddingTop: 'calc(var(--safe-top, 0px) + 12px)', paddingBottom: 'max(var(--safe-bottom, 0px), 12px)', background: 'hsl(0 0% 100%)', color: 'hsl(0 0% 3.9%)', fontFamily: "'Nunito Sans', sans-serif" }}>
+      {canDismiss && (
+        <button
+          onClick={closePaywall}
+          aria-label="Close"
+          className="absolute right-3 z-10 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 transition-transform"
+          style={{ top: 'calc(var(--safe-top, 0px) + 12px)', background: 'hsl(0 0% 96.1%)', color: 'hsl(0 0% 3.9%)' }}
+        >
+          <X size={18} strokeWidth={2.5} />
+        </button>
+      )}
       <div className="px-4 py-2" />
       <div className="flex-1 overflow-y-auto px-6">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-center gap-2.5 mb-6">
