@@ -116,6 +116,8 @@ interface UnifiedBillingContextType {
   isLocalTrial: boolean;
   localTrialExpired: boolean;
   graceExpired: boolean;
+  /** True when the user unlocked Pro via the BUGTI admin access code. */
+  isAdminBypass: boolean;
   checkStripeByEmail: (email: string) => Promise<boolean>;
   
   // Feature gating
@@ -1438,6 +1440,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         isLocalTrial,
         localTrialExpired,
         graceExpired,
+        isAdminBypass,
         checkStripeByEmail,
         // Feature gating
         showPaywall,
@@ -1487,6 +1490,7 @@ const FALLBACK_CONTEXT: UnifiedBillingContextType = {
   isLocalTrial: false,
   localTrialExpired: false,
   graceExpired: false,
+  isAdminBypass: false,
   checkStripeByEmail: async () => false,
   showPaywall: false,
   isVerifyingCheckout: false,
