@@ -860,6 +860,9 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
   };
 
   // Insert AI-generated HTML (from page scan) at cursor or append to end.
+  // For code/voice/sketch notes (which don't render rich HTML), strips tags
+  // and appends plain text to the appropriate field, plus copies to clipboard
+  // so the user can paste anywhere they want.
   const handleAiInsertHtml = (html: string, suggestedTitle?: string) => {
     if (!html) return;
     if (suggestedTitle && !title.trim()) {
@@ -874,6 +877,26 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
       }
       if (editorRef.current) {
         setContent(editorRef.current.innerHTML);
+      }
+    } else if (noteType === 'code') {
+      // Strip HTML → plain text, append to code buffer.
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const plain = (tmp.textContent || '').trim();
+      if (plain) {
+        setCodeContent(prev => (prev ? prev + '\n\n' : '') + plain);
+        toast.success(t('scanNote.appendedToCode', 'Extracted text added to code'));
+      }
+    } else if (noteType === 'voice' || noteType === 'sketch') {
+      // Voice/sketch don't render HTML body — extract plain text, store in
+      // content (persists with the note) and copy to clipboard for easy paste.
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const plain = (tmp.textContent || '').trim();
+      if (plain) {
+        setContent(prev => (prev ? prev + '\n\n' : '') + plain);
+        try { void navigator.clipboard?.writeText(plain); } catch {}
+        toast.success(t('scanNote.copiedToClipboard', 'Extracted text copied to clipboard'));
       }
     } else {
       setContent(prev => (prev || '') + html);
