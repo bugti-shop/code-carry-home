@@ -8,6 +8,7 @@ import {
   setLocalLifetimeMax,
   pushLifetimeCounter,
   pullAndMergeLifetimeCounters,
+  resetAllLifetimeCounters,
 } from '@/utils/lifetimeCountersCloud';
 import {
   Purchases,
