@@ -66,6 +66,7 @@ export const ImageTaskExtractorSheet = ({
 }: Props) => {
   const { t, i18n } = useTranslation();
   const { isPro } = useSubscription();
+  const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const [items, setItems] = useState<ReviewItem[]>([]);
