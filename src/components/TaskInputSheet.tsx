@@ -61,7 +61,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { TaskDateTimePage, RepeatSettings } from './TaskDateTimePage';
 import { parseNaturalLanguageTask, hasNaturalLanguagePatterns } from '@/utils/naturalLanguageParser';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles as SparklesIcon, Loader2 } from 'lucide-react';
+import { Sparkles as SparklesIcon, Loader2, ScanLine } from 'lucide-react';
+import { ImageTaskExtractorSheet } from './ImageTaskExtractorSheet';
 
 interface TaskSection {
   id: string;
@@ -227,6 +228,20 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const speechRecognitionRef = useRef<any>(null);
   const aiTranscriptRef = useRef<string>('');
+
+  // AI vision: scan tasks from a paper / sticky-note image (Pro-gated)
+  const [showImageExtractor, setShowImageExtractor] = useState(false);
+  const openImageExtractor = () => {
+    if (!requireFeature('ai_dictation')) return;
+    setShowImageExtractor(true);
+  };
+  const handleExtractedTasksAdd = (
+    tasks: Array<Omit<TodoItem, 'id' | 'completed'>>,
+  ) => {
+    tasks.forEach((tk) => onAddTask(tk));
+    setShowImageExtractor(false);
+    onClose();
+  };
 
   const folderColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -988,15 +1003,26 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
                 <Loader2 className="h-5 w-5 text-primary animate-spin" />
               </div>
             ) : (
-              <button
-                onClick={startAIDictation}
-                className="w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center flex-shrink-0 transition-colors relative"
-                aria-label={t('tasks.aiDictate', 'AI voice task')}
-                title={t('tasks.aiDictateHint', 'Speak: e.g. "Buy groceries tomorrow at 5pm in Sample folder"')}
-              >
-                <Mic className="h-5 w-5 text-primary" />
-                <SparklesIcon className="h-2.5 w-2.5 text-primary absolute top-1.5 right-1.5" />
-              </button>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <button
+                  onClick={openImageExtractor}
+                  className="w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors relative"
+                  aria-label={t('tasks.aiScanImage', 'Scan tasks from photo')}
+                  title={t('tasks.aiScanImageHint', 'Scan a paper or sticky-note board to add tasks')}
+                >
+                  <ScanLine className="h-5 w-5 text-primary" />
+                  <SparklesIcon className="h-2.5 w-2.5 text-primary absolute top-1.5 right-1.5" />
+                </button>
+                <button
+                  onClick={startAIDictation}
+                  className="w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors relative"
+                  aria-label={t('tasks.aiDictate', 'AI voice task')}
+                  title={t('tasks.aiDictateHint', 'Speak: e.g. "Buy groceries tomorrow at 5pm in Sample folder"')}
+                >
+                  <Mic className="h-5 w-5 text-primary" />
+                  <SparklesIcon className="h-2.5 w-2.5 text-primary absolute top-1.5 right-1.5" />
+                </button>
+              </div>
             )}
           </div>
 
@@ -1750,6 +1776,17 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
         isOpen={showTemplateSheet}
         onClose={() => setShowTemplateSheet(false)}
         onSelectTemplate={handleSelectTemplate}
+      />
+
+      {/* AI vision: Scan tasks from a paper / sticky-note image */}
+      <ImageTaskExtractorSheet
+        isOpen={showImageExtractor}
+        onClose={() => setShowImageExtractor(false)}
+        onAddTasks={handleExtractedTasksAdd}
+        folders={folders}
+        sections={sections}
+        currentFolderId={folderId ?? selectedFolderId ?? null}
+        currentSectionId={sectionId ?? selectedSectionId ?? null}
       />
     </>
   );
