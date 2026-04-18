@@ -226,11 +226,18 @@ export const ImageTaskExtractorSheet = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent
-        side="bottom"
-        className="rounded-t-3xl max-h-[92vh] overflow-y-auto p-0 z-[80]"
-        style={{ zIndex: 80 }}
-      >
+      <SheetPortal>
+        <SheetPrimitive.Overlay
+          className="fixed inset-0 z-[199] bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+          style={{ zIndex: 199 }}
+        />
+        <SheetPrimitive.Content
+          className="fixed inset-x-0 bottom-0 z-[200] gap-4 bg-background border border-white/20 p-0 shadow-2xl rounded-t-3xl max-h-[92vh] overflow-y-auto data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom data-[state=closed]:duration-300 data-[state=open]:duration-500"
+          style={{ zIndex: 200, paddingBottom: `calc(1.5rem + var(--safe-bottom, 0px))` }}
+        >
+          <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none">
+            <X className="h-4 w-4" />
+          </SheetPrimitive.Close>
         <SheetHeader className="px-4 pt-4 pb-2">
           <SheetTitle className="flex items-center gap-2 text-left">
             <Sparkles className="h-5 w-5 text-primary" />
