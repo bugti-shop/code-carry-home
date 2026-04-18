@@ -1080,9 +1080,17 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
     const subscribe = async () => {
       try {
+        // Use RevenueCat's actual appUserID — this is what the webhook receives.
+        let rcAppUserID: string | null = null;
+        try {
+          const result = await Purchases.getAppUserID();
+          // SDK returns either a string or { appUserID: string } depending on version
+          rcAppUserID = typeof result === 'string' ? result : (result as any)?.appUserID ?? null;
+        } catch {}
         const storedUser = await getStoredGoogleUser();
-        const appUserID = storedUser?.uid || storedUser?.email;
+        const appUserID = rcAppUserID || storedUser?.uid || storedUser?.email;
         if (!appUserID || cancelled) return;
+        console.log('[Realtime] Subscribing to entitlements for', appUserID);
 
         // Initial fetch
         const { data: existing } = await supabase
