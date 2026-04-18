@@ -1074,13 +1074,22 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
                 <Send className="h-5 w-5 text-primary-foreground rotate-45" />
               </button>
             ) : isAIListening ? (
-              <button
-                onClick={stopAIDictation}
-                className="w-10 h-10 rounded-lg bg-destructive hover:opacity-90 flex items-center justify-center flex-shrink-0 transition-all animate-pulse"
-                aria-label={t('tasks.aiStopListening', 'Stop listening')}
-              >
-                <Square className="h-4 w-4 text-destructive-foreground" />
-              </button>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <div
+                  className="flex items-center gap-1.5 text-sm font-mono text-destructive tabular-nums"
+                  aria-live="polite"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+                  {formatAiElapsed(aiElapsedMs)}
+                </div>
+                <button
+                  onClick={stopAIDictation}
+                  className="w-10 h-10 rounded-lg bg-destructive hover:opacity-90 flex items-center justify-center transition-all animate-pulse"
+                  aria-label={t('tasks.aiStopListening', 'Stop listening')}
+                >
+                  <Square className="h-4 w-4 text-destructive-foreground" />
+                </button>
+              </div>
             ) : isAIProcessing ? (
               <div
                 className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"
