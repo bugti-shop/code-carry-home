@@ -859,6 +859,37 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
     setVoiceRecordings(voiceRecordings.filter(r => r.id !== id));
   };
 
+  // Insert AI-generated HTML (from page scan) at cursor or append to end.
+  const handleAiInsertHtml = (html: string, suggestedTitle?: string) => {
+    if (!html) return;
+    if (suggestedTitle && !title.trim()) {
+      setTitle(suggestedTitle);
+    }
+    if (['sticky', 'lined', 'regular', 'textformat'].includes(noteType) && editorRef.current) {
+      editorRef.current.focus();
+      try {
+        document.execCommand('insertHTML', false, html + '<p><br></p>');
+      } catch {
+        setContent(prev => (prev || '') + html);
+      }
+      if (editorRef.current) {
+        setContent(editorRef.current.innerHTML);
+      }
+    } else {
+      setContent(prev => (prev || '') + html);
+    }
+  };
+
+  // Insert dictated transcript (plain text) wrapped in a paragraph.
+  const handleAiInsertText = (text: string) => {
+    const safe = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    handleAiInsertHtml(`<p>${safe}</p>`);
+  };
+
+
   const getEditorBackgroundColor = () => {
     if (noteType === 'sticky') {
       return STICKY_COLOR_VALUES[color];
