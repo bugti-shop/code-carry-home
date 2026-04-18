@@ -17,10 +17,10 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
 });
 
-// Events that REVOKE access immediately
+// Events that REVOKE access immediately (no grace period for user-initiated cancels)
 const REVOKE_EVENTS = new Set([
   "EXPIRATION",
-  "CANCELLATION", // user cancelled — remains active until expires_at; we still record
+  "CANCELLATION", // user cancelled in store — revoke instantly, no grace
   "SUBSCRIPTION_PAUSED",
   "TRANSFER", // moved to another app_user_id
 ]);
@@ -96,12 +96,11 @@ Deno.serve(async (req) => {
       isActive = gracePeriodExpirationAtMs ? gracePeriodExpirationAtMs > Date.now() : true;
       inBillingRetry = true;
     } else if (REVOKE_EVENTS.has(eventType)) {
-      // CANCELLATION: still active until expires_at — only revoke if expired
-      if (eventType === "CANCELLATION" && expirationAtMs && expirationAtMs > Date.now()) {
-        isActive = true;
-      } else {
-        isActive = false;
-      }
+      // User-initiated cancellation OR expiration → revoke instantly, no grace period
+      // Distinguish from billing issues (which DO get grace via BILLING_ISSUE_EVENTS above)
+      const cancelReason: string | null = event.cancel_reason || null;
+      console.log(`[RC Webhook] Revoking access for ${appUserId} — reason: ${cancelReason || 'none'}`);
+      isActive = false;
     } else {
       // Unknown event — preserve existing state by re-fetching
       const { data: existing } = await supabase
