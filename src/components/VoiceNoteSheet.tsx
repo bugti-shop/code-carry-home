@@ -10,8 +10,9 @@ import { Mic, Loader2, Check, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel, SelectSeparator } from '@/components/ui/select';
 import { Languages } from 'lucide-react';
+import { getRecentDictationLangs, recordRecentDictationLang } from '@/utils/dictationLangRecent';
 
 // Common dictation languages. BCP-47 codes for Web Speech API.
 const DICTATION_LANGUAGES: { code: string; label: string }[] = [
@@ -295,6 +296,7 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
               onValueChange={(v) => {
                 setLang(v);
                 try { localStorage.setItem(LANG_STORAGE_KEY, v); } catch {}
+                recordRecentDictationLang(v);
                 // If currently listening, restart with new language.
                 if (isListening) {
                   stopListening();
@@ -307,11 +309,44 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="max-h-72">
-                {DICTATION_LANGUAGES.map((l) => (
-                  <SelectItem key={l.code} value={l.code}>
-                    {l.label}
-                  </SelectItem>
-                ))}
+                {(() => {
+                  const recents = getRecentDictationLangs();
+                  const recentItems = recents
+                    .map((code) => DICTATION_LANGUAGES.find((l) => l.code === code))
+                    .filter((x): x is { code: string; label: string } => !!x);
+                  const restItems = DICTATION_LANGUAGES.filter((l) => !recents.includes(l.code));
+                  return (
+                    <>
+                      {recentItems.length > 0 && (
+                        <>
+                          <SelectGroup>
+                            <SelectLabel className="text-[10px] uppercase tracking-wider">
+                              {t('voiceNote.recent', 'Recent')}
+                            </SelectLabel>
+                            {recentItems.map((l) => (
+                              <SelectItem key={`r-${l.code}`} value={l.code}>
+                                {l.label}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                          <SelectSeparator />
+                        </>
+                      )}
+                      <SelectGroup>
+                        {recentItems.length > 0 && (
+                          <SelectLabel className="text-[10px] uppercase tracking-wider">
+                            {t('voiceNote.allLanguages', 'All languages')}
+                          </SelectLabel>
+                        )}
+                        {restItems.map((l) => (
+                          <SelectItem key={l.code} value={l.code}>
+                            {l.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </>
+                  );
+                })()}
               </SelectContent>
             </Select>
           </div>
