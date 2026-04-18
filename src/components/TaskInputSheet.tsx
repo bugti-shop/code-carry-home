@@ -66,7 +66,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Sparkles as SparklesIcon, Loader2, ScanLine } from 'lucide-react';
 import { ImageTaskExtractorSheet } from './ImageTaskExtractorSheet';
 import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
-import { acquireAiLock, getAiBusyMessage } from '@/utils/aiConcurrencyLock';
+import { acquireAiLock, getAiBusyMessage, releaseAllAiLocks } from '@/utils/aiConcurrencyLock';
 import { getRecentDictationLangs, recordRecentDictationLang } from '@/utils/dictationLangRecent';
 
 interface TaskSection {
@@ -305,6 +305,9 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
   useEffect(() => {
     if (!isOpen) {
+      // Force-release any in-flight AI lock so the app never stays "busy"
+      // if the user closed the sheet mid-request.
+      releaseAllAiLocks();
       setTaskText('');
       setPriority('none');
       setDueDate(undefined);
