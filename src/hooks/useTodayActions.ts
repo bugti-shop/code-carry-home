@@ -74,7 +74,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
   } = props;
 
   // Soft paywall — free users have hard lifetime create caps; edit/delete stays allowed.
-  const { softRequireCreate, softRequireMutate } = useSubscription();
+  const { softRequireCreate, softRequireMutate, canCreateWithinSoftLimit } = useSubscription();
 
   // Keep a ref to items for reliable access in async callbacks
   const itemsRef = useRef(items);
