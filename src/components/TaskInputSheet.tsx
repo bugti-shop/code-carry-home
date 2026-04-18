@@ -145,7 +145,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     priority: 'sheet',
   });
 
-  const { requireFeature, isRecurringSubscriber } = useSubscription();
+  const { requireFeature, isRecurringSubscriber, isPro } = useSubscription();
   const [taskText, setTaskText] = useState('');
   const [priority, setPriority] = useState<Priority>('none');
   const [dueDate, setDueDate] = useState<Date | undefined>();
