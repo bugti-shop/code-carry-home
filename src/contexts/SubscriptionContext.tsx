@@ -447,11 +447,14 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       // Cache entitlement + plan details on native for offline-first access
       try {
         localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false');
+        localStorage.setItem('flowist_rc_verified_at', String(Date.now()));
         if (hasEntitlement) {
           const entitlement = info.entitlements.active[ENTITLEMENT_ID];
           if (entitlement?.productIdentifier) {
             localStorage.setItem('flowist_rc_product', entitlement.productIdentifier);
           }
+        } else {
+          localStorage.removeItem('flowist_rc_product');
         }
       } catch {}
 
