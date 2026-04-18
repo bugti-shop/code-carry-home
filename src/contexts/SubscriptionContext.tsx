@@ -379,7 +379,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     const trialInterval = setInterval(async () => {
       const stillActive = await checkLocalTrial();
       if (!stillActive && !isAdminBypass) {
-        // Trial expired — will be handled by App.tsx
+        // Trial expired AND no admin bypass — revoke local pro access immediately
+        console.log('[Trial] Local trial expired — revoking Pro access');
+        setLocalProAccess(false);
       }
     }, 60000);
 
