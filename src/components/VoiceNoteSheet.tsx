@@ -284,6 +284,38 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
             )}
           </p>
 
+          {/* Dictation language picker */}
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <Languages className="h-3.5 w-3.5" />
+              {t('voiceNote.language', 'Recognition language')}
+            </label>
+            <Select
+              value={lang}
+              onValueChange={(v) => {
+                setLang(v);
+                try { localStorage.setItem(LANG_STORAGE_KEY, v); } catch {}
+                // If currently listening, restart with new language.
+                if (isListening) {
+                  stopListening();
+                  setTimeout(() => startListening(), 150);
+                }
+              }}
+              disabled={isListening}
+            >
+              <SelectTrigger className="h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {DICTATION_LANGUAGES.map((l) => (
+                  <SelectItem key={l.code} value={l.code}>
+                    {l.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Big mic button */}
           <div className="flex flex-col items-center gap-3 py-4">
             <button
