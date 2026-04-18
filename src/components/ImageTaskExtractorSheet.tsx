@@ -420,6 +420,21 @@ export const ImageTaskExtractorSheet = ({
           )}
         </div>
       </SheetContent>
+
+      <Dialog open={isZoomed} onOpenChange={setIsZoomed}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-transparent shadow-none overflow-hidden">
+          {imageDataUrl && (
+            <div className="w-full h-full overflow-auto bg-black/90 rounded-lg">
+              <img
+                src={imageDataUrl}
+                alt={t('imageExtract.previewAlt', 'Captured tasks')}
+                className="w-full h-auto min-w-[200%] object-contain"
+                onClick={() => setIsZoomed(false)}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Sheet>
   );
 };
