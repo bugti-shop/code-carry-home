@@ -92,15 +92,13 @@ const Notes = () => {
 
 
   const handleSaveNote = useCallback((note: Note) => {
-    // Soft paywall: gate create vs edit for new free users
-    if (!isPro && isNewFreeUser) {
-      const isExisting = notes.some(n => n.id === note.id);
-      if (isExisting) {
-        if (!softRequireMutate()) return;
-      } else if (!softRequireCreate('notes', notes.length)) {
-        return;
-      }
+    const isExisting = notes.some(n => n.id === note.id);
+    if (isExisting) {
+      if (!softRequireMutate()) return;
+    } else if (!isPro && !softRequireCreate('notes', notes.length)) {
+      return;
     }
+
     setNotes(prevNotes => {
       const existingIndex = prevNotes.findIndex((n) => n.id === note.id);
       let updatedNotes;
@@ -109,13 +107,11 @@ const Notes = () => {
       } else {
         updatedNotes = [note, ...prevNotes];
       }
-      // Save to IndexedDB with debounce
       debouncedSaveNotes(updatedNotes, 1000);
-      // Also save individual note immediately for safety
       saveNoteToDBSingle(note);
       return updatedNotes;
     });
-  }, [isPro, isNewFreeUser, softRequireCreate, softRequireMutate, notes, setNotes]);
+  }, [isPro, softRequireCreate, softRequireMutate, notes, setNotes]);
 
   const handleEditNote = (note: Note) => {
     setSelectedNote(note);
