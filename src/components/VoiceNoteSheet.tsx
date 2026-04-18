@@ -56,11 +56,6 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
       toast.error(t('tasks.aiNoSpeech', 'Speech recognition not supported on this device'));
       return;
     }
-    if (!isPro && !canUseAiFeature('voice')) {
-      toast.error(getLimitReachedMessage('voice'));
-      return;
-    }
-
     const SR: any =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const rec = new SR();
@@ -112,7 +107,6 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
     }
     stopListening();
     onInsertText(text);
-    if (!isPro) recordAiUsage('voice');
     toast.success(t('voiceNote.inserted', 'Transcript inserted'));
     onClose();
   };
