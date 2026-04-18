@@ -60,6 +60,8 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TaskDateTimePage, RepeatSettings } from './TaskDateTimePage';
 import { parseNaturalLanguageTask, hasNaturalLanguagePatterns } from '@/utils/naturalLanguageParser';
+import { supabase } from '@/integrations/supabase/client';
+import { Sparkles as SparklesIcon, Loader2 } from 'lucide-react';
 
 interface TaskSection {
   id: string;
