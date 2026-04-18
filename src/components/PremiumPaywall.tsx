@@ -27,7 +27,7 @@ const PERIOD_LABELS: Record<string, string> = {
 // Shared hook for plans and purchase logic
 function usePaywallLogic() {
   const { t } = useTranslation();
-  const { showPaywall, closePaywall, unlockPro, purchase, offerings, restorePurchases, isNewFreeUser, isPro } = useSubscription();
+  const { showPaywall, closePaywall, unlockPro, purchase, offerings, restorePurchases, isNewFreeUser, isPro, paywallFeature } = useSubscription();
   const [selectedPlan, setSelectedPlan] = useState<ProductType>('monthly');
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
