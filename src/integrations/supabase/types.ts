@@ -167,6 +167,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_entitlements: {
+        Row: {
+          app_user_id: string
+          created_at: string
+          expires_at: string | null
+          grace_period_expires_at: string | null
+          id: string
+          in_billing_retry: boolean
+          is_active: boolean
+          last_event_at: string
+          last_event_type: string | null
+          product_id: string | null
+          store: string | null
+          updated_at: string
+        }
+        Insert: {
+          app_user_id: string
+          created_at?: string
+          expires_at?: string | null
+          grace_period_expires_at?: string | null
+          id?: string
+          in_billing_retry?: boolean
+          is_active?: boolean
+          last_event_at?: string
+          last_event_type?: string | null
+          product_id?: string | null
+          store?: string | null
+          updated_at?: string
+        }
+        Update: {
+          app_user_id?: string
+          created_at?: string
+          expires_at?: string | null
+          grace_period_expires_at?: string | null
+          id?: string
+          in_billing_retry?: boolean
+          is_active?: boolean
+          last_event_at?: string
+          last_event_type?: string | null
+          product_id?: string | null
+          store?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_lifetime_counters: {
         Row: {
           created_at: string
