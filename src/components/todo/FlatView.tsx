@@ -44,7 +44,11 @@ export const FlatView = ({
   setOrderVersion,
 }: FlatViewProps) => {
   const { t } = useTranslation();
-  const useVirtualizedList = shouldUseVirtualization(uncompletedItems.length);
+  // NOTE: Virtualization disabled in Flat layout — it caused tasks to disappear
+  // beyond ~50 items because the inner scroll container conflicted with the
+  // page-level scroll. Other views (Priority/Kanban/Status) render all tasks
+  // directly, so we mirror that behavior here for consistency.
+  const useVirtualizedList = false;
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
