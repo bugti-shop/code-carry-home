@@ -227,11 +227,14 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   // AI dictation (replaces voice recording UI in the mic button)
   const [isAIListening, setIsAIListening] = useState(false);
   const [isAIProcessing, setIsAIProcessing] = useState(false);
+  const [aiElapsedMs, setAiElapsedMs] = useState(0);
   const speechRecognitionRef = useRef<any>(null);
   const aiTranscriptRef = useRef<string>('');
   // True only when user explicitly tapped Stop. Lets us silently restart
   // SpeechRecognition when the browser auto-ends on silence/timeout.
   const userStoppedDictationRef = useRef(false);
+  const aiStartedAtRef = useRef<number | null>(null);
+  const aiTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // AI vision: scan tasks from a paper / sticky-note image (Pro-gated)
   const [showImageExtractor, setShowImageExtractor] = useState(false);
