@@ -189,23 +189,38 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [graceExpired, setGraceExpired] = useState(false);
   const [signoutGraceActive, setSignoutGraceActive] = useState(false);
 
+  // Cache expiry windows — after this, cached entitlement is NOT trusted on mount.
+  // This prevents deleted/cancelled customers from keeping access indefinitely offline.
+  const RC_CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;   // 7 days for native (RC)
+  const STRIPE_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;   // 24h for web (Stripe)
+  const isCacheFresh = (key: string, maxAgeMs: number): boolean => {
+    try {
+      const ts = Number(localStorage.getItem(key) || '0');
+      return ts > 0 && (Date.now() - ts) < maxAgeMs;
+    } catch { return false; }
+  };
+
   // RevenueCat state
-  // If native user was previously entitled, mark as initialized immediately for offline-first access
+  // If native user was previously entitled AND cache is fresh, mark as initialized for offline-first access
   const [isInitialized, setIsInitialized] = useState(() => {
     if (Capacitor.isNativePlatform()) {
-      try { return localStorage.getItem('flowist_rc_entitled') === 'true'; } catch {}
+      try {
+        return localStorage.getItem('flowist_rc_entitled') === 'true'
+          && isCacheFresh('flowist_rc_verified_at', RC_CACHE_MAX_AGE_MS);
+      } catch {}
     }
     return false;
   });
   const [rcLoading, setRcLoading] = useState(false);
-  // Initialize rcIsPro from local cache for instant access on both web and native
+  // Initialize rcIsPro from local cache only when cache is FRESH (verified recently).
   const [rcIsPro, setRcIsPro] = useState(() => {
     try {
       if (!Capacitor.isNativePlatform()) {
-        return localStorage.getItem('flowist_stripe_subscribed') === 'true';
+        return localStorage.getItem('flowist_stripe_subscribed') === 'true'
+          && isCacheFresh('flowist_sub_verified_at', STRIPE_CACHE_MAX_AGE_MS);
       }
-      // On native, trust cached RC entitlement until RC verifies
-      return localStorage.getItem('flowist_rc_entitled') === 'true';
+      return localStorage.getItem('flowist_rc_entitled') === 'true'
+        && isCacheFresh('flowist_rc_verified_at', RC_CACHE_MAX_AGE_MS);
     } catch {}
     return false;
   });
@@ -214,11 +229,12 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
   const [listenerHandle, setListenerHandle] = useState<PurchasesCallbackId | null>(null);
   const [isAdminBypass, setIsAdminBypass] = useState(false);
-  // If locally cached as subscribed, mark as resolved immediately to avoid loading state
+  // If locally cached as subscribed AND cache is fresh, mark as resolved to avoid loading state
   const [isWebSubscriptionResolved, setIsWebSubscriptionResolved] = useState(() => {
     if (Capacitor.isNativePlatform()) return true;
     try {
-      if (localStorage.getItem('flowist_stripe_subscribed') === 'true') return true;
+      if (localStorage.getItem('flowist_stripe_subscribed') === 'true'
+        && isCacheFresh('flowist_sub_verified_at', STRIPE_CACHE_MAX_AGE_MS)) return true;
     } catch {}
     return false;
   });
@@ -346,10 +362,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           setGraceExpired(false);
           await setSetting('flowist_trial_start', 0);
         }
-        // Check local free trial
+        // Check local free trial — only grant access if trial actively running.
+        // If expired, ensure localProAccess is false (unless admin bypass).
         const trialActive = await checkLocalTrial();
         if (trialActive && !adminBypass) {
           setLocalProAccess(true);
+        } else if (!trialActive && !adminBypass) {
+          setLocalProAccess(false);
         }
       } catch (e) {
         console.error('Failed to load subscription:', e);
@@ -379,7 +398,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     const trialInterval = setInterval(async () => {
       const stillActive = await checkLocalTrial();
       if (!stillActive && !isAdminBypass) {
-        // Trial expired — will be handled by App.tsx
+        // Trial expired AND no admin bypass — revoke local pro access immediately
+        console.log('[Trial] Local trial expired — revoking Pro access');
+        setLocalProAccess(false);
       }
     }, 60000);
 
@@ -426,11 +447,14 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       // Cache entitlement + plan details on native for offline-first access
       try {
         localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false');
+        localStorage.setItem('flowist_rc_verified_at', String(Date.now()));
         if (hasEntitlement) {
           const entitlement = info.entitlements.active[ENTITLEMENT_ID];
           if (entitlement?.productIdentifier) {
             localStorage.setItem('flowist_rc_product', entitlement.productIdentifier);
           }
+        } else {
+          localStorage.removeItem('flowist_rc_product');
         }
       } catch {}
 
@@ -443,11 +467,20 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       const errorMessage = err instanceof Error ? err.message : 'Failed to initialize RevenueCat';
       console.error('RevenueCat: Initialization error', err);
       setError(errorMessage);
-      // Offline-first: if RC fails (no network) but cache says entitled, keep access
+      // Offline-first: only honor cached entitlement if cache is FRESH (within 7 days).
+      // Stale cache → revoke access so deleted/cancelled customers can't keep using app indefinitely offline.
       try {
-        if (localStorage.getItem('flowist_rc_entitled') === 'true') {
-          console.log('RevenueCat: Init failed but cached entitlement found — granting offline access');
+        const cachedEntitled = localStorage.getItem('flowist_rc_entitled') === 'true';
+        const fresh = isCacheFresh('flowist_rc_verified_at', RC_CACHE_MAX_AGE_MS);
+        if (cachedEntitled && fresh) {
+          console.log('RevenueCat: Init failed but fresh cached entitlement found — granting offline access');
           setRcIsPro(true);
+        } else {
+          if (cachedEntitled && !fresh) {
+            console.log('RevenueCat: Cached entitlement is stale — revoking access');
+            localStorage.setItem('flowist_rc_entitled', 'false');
+          }
+          setRcIsPro(false);
         }
       } catch {}
       setIsInitialized(true); // Always resolve so isLoading doesn't hang
@@ -463,7 +496,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setCustomerInfo(info);
       const hasEntitlement = info.entitlements.active[ENTITLEMENT_ID] !== undefined;
       setRcIsPro(hasEntitlement);
-      try { localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false'); } catch {}
+      try {
+        localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false');
+        localStorage.setItem('flowist_rc_verified_at', String(Date.now()));
+      } catch {}
       return hasEntitlement;
     } catch (err) {
       console.error('RevenueCat: Error checking entitlement', err);
@@ -495,6 +531,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setCustomerInfo(result.customerInfo);
       const hasEntitlement = result.customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
       setRcIsPro(hasEntitlement);
+      try { localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false'); localStorage.setItem('flowist_rc_verified_at', String(Date.now())); } catch {}
       console.log('RevenueCat: Purchase successful', { isPro: hasEntitlement });
       return hasEntitlement;
     } catch (err: any) {
@@ -607,6 +644,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setCustomerInfo(result.customerInfo);
       const hasEntitlement = result.customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
       setRcIsPro(hasEntitlement);
+      try { localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false'); localStorage.setItem('flowist_rc_verified_at', String(Date.now())); } catch {}
       return hasEntitlement;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Purchase failed';
@@ -627,6 +665,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setCustomerInfo(info);
       const hasEntitlement = info.entitlements.active[ENTITLEMENT_ID] !== undefined;
       setRcIsPro(hasEntitlement);
+      try { localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false'); localStorage.setItem('flowist_rc_verified_at', String(Date.now())); } catch {}
       console.log('RevenueCat: Restore successful', { isPro: hasEntitlement });
       return hasEntitlement;
     } catch (err) {
@@ -1007,6 +1046,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           setCustomerInfo(info);
           const hasEntitlement = info.entitlements.active[ENTITLEMENT_ID] !== undefined;
           setRcIsPro(hasEntitlement);
+          try { localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false'); localStorage.setItem('flowist_rc_verified_at', String(Date.now())); } catch {}
           console.log('RevenueCat: Logged in with Firebase UID, isPro:', hasEntitlement);
           
           // Also check Stripe subscription for this Gmail (cross-platform sync)
@@ -1051,6 +1091,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
             setCustomerInfo(info);
             const hasEntitlement = info.entitlements.active[ENTITLEMENT_ID] !== undefined;
             setRcIsPro(hasEntitlement);
+            try {
+              localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false');
+              localStorage.setItem('flowist_rc_verified_at', String(Date.now()));
+            } catch {}
           }
         });
         if (isMounted) setListenerHandle(handle);
