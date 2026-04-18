@@ -10,6 +10,35 @@ import { Mic, Loader2, Check, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Languages } from 'lucide-react';
+
+// Common dictation languages. BCP-47 codes for Web Speech API.
+const DICTATION_LANGUAGES: { code: string; label: string }[] = [
+  { code: 'en-US', label: 'English (US)' },
+  { code: 'en-GB', label: 'English (UK)' },
+  { code: 'ur-PK', label: 'اردو (Urdu)' },
+  { code: 'hi-IN', label: 'हिन्दी (Hindi)' },
+  { code: 'ar-SA', label: 'العربية (Arabic)' },
+  { code: 'es-ES', label: 'Español' },
+  { code: 'fr-FR', label: 'Français' },
+  { code: 'de-DE', label: 'Deutsch' },
+  { code: 'it-IT', label: 'Italiano' },
+  { code: 'pt-BR', label: 'Português (BR)' },
+  { code: 'ru-RU', label: 'Русский' },
+  { code: 'zh-CN', label: '中文 (简体)' },
+  { code: 'ja-JP', label: '日本語' },
+  { code: 'ko-KR', label: '한국어' },
+  { code: 'tr-TR', label: 'Türkçe' },
+  { code: 'bn-IN', label: 'বাংলা (Bengali)' },
+  { code: 'ta-IN', label: 'தமிழ் (Tamil)' },
+  { code: 'te-IN', label: 'తెలుగు (Telugu)' },
+  { code: 'mr-IN', label: 'मराठी (Marathi)' },
+  { code: 'he-IL', label: 'עברית (Hebrew)' },
+  { code: 'id-ID', label: 'Bahasa Indonesia' },
+];
+
+const LANG_STORAGE_KEY = 'flowist_dictation_lang';
 import { toast } from 'sonner';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
@@ -29,6 +58,11 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
   const [transcript, setTranscript] = useState('');
   const [interim, setInterim] = useState('');
   const [elapsedMs, setElapsedMs] = useState(0);
+  // Persisted dictation language. Defaults to saved → en-US.
+  const [lang, setLang] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'en-US';
+    return localStorage.getItem(LANG_STORAGE_KEY) || 'en-US';
+  });
   const recognitionRef = useRef<any>(null);
   const startedAtRef = useRef<number | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -114,7 +148,7 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
     const SR: any =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const rec = new SR();
-    rec.lang = i18n.language || 'en-US';
+    rec.lang = lang || 'en-US';
     rec.interimResults = true;
     rec.continuous = true;
 
@@ -249,6 +283,38 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
               'Tap the mic and start speaking. Your words become text you can insert into the note.',
             )}
           </p>
+
+          {/* Dictation language picker */}
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <Languages className="h-3.5 w-3.5" />
+              {t('voiceNote.language', 'Recognition language')}
+            </label>
+            <Select
+              value={lang}
+              onValueChange={(v) => {
+                setLang(v);
+                try { localStorage.setItem(LANG_STORAGE_KEY, v); } catch {}
+                // If currently listening, restart with new language.
+                if (isListening) {
+                  stopListening();
+                  setTimeout(() => startListening(), 150);
+                }
+              }}
+              disabled={isListening}
+            >
+              <SelectTrigger className="h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {DICTATION_LANGUAGES.map((l) => (
+                  <SelectItem key={l.code} value={l.code}>
+                    {l.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Big mic button */}
           <div className="flex flex-col items-center gap-3 py-4">
