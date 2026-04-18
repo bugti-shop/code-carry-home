@@ -58,6 +58,11 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
   const [transcript, setTranscript] = useState('');
   const [interim, setInterim] = useState('');
   const [elapsedMs, setElapsedMs] = useState(0);
+  // Persisted dictation language. Defaults to saved → en-US.
+  const [lang, setLang] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'en-US';
+    return localStorage.getItem(LANG_STORAGE_KEY) || 'en-US';
+  });
   const recognitionRef = useRef<any>(null);
   const startedAtRef = useRef<number | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -143,7 +148,7 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
     const SR: any =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const rec = new SR();
-    rec.lang = i18n.language || 'en-US';
+    rec.lang = lang || 'en-US';
     rec.interimResults = true;
     rec.continuous = true;
 
