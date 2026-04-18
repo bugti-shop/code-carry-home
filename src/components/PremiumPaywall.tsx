@@ -211,7 +211,7 @@ function usePaywallLogic() {
   };
 
   return {
-    t, showPaywall, selectedPlan, setSelectedPlan, isPurchasing, isRestoring,
+    t, showPaywall, closePaywall, isNewFreeUser, isPro, selectedPlan, setSelectedPlan, isPurchasing, isRestoring,
     adminCode, setAdminCode, showAdminInput, setShowAdminInput, adminError,
     PLANS, currentPlan, handlePurchase, handleRestore, handleAccessCode, hasUsedTrial,
     restoreEmail, setRestoreEmail, showRestoreEmail,
