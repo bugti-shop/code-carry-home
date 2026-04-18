@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { sanitizeForDisplay } from '@/lib/sanitize';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
+import { acquireAiLock, getAiBusyMessage } from '@/utils/aiConcurrencyLock';
 
 interface Props {
   isOpen: boolean;
@@ -85,6 +86,12 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
       toast.error(getLimitReachedMessage('scan'));
       return;
     }
+    // Prevent concurrent AI calls — Android WebView OOMs with parallel base64 uploads.
+    const release = acquireAiLock();
+    if (!release) {
+      toast.error(getAiBusyMessage());
+      return;
+    }
     setIsExtracting(true);
     setHasRun(false);
     setHtml('');
@@ -125,6 +132,7 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
       }
     } finally {
       setIsExtracting(false);
+      release();
     }
   };
 
