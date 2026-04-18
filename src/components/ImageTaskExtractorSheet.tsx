@@ -66,7 +66,9 @@ export const ImageTaskExtractorSheet = ({
   currentSectionId,
 }: Props) => {
   const { t, i18n } = useTranslation();
-  const { isPro } = useSubscription();
+  const { isPro, isLocalTrial } = useSubscription();
+  const isStripeTrialing = typeof window !== 'undefined' && Boolean((window as any).__stripeIsTrialing);
+  const isPaidPro = isPro && !isLocalTrial && !isStripeTrialing;
   const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
