@@ -235,6 +235,10 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const SCAN_COACHMARK_KEY = 'scanTasksCoachmarkSeen_v1';
   const openImageExtractor = () => {
     if (!requireFeature('ai_dictation')) return;
+    if (!isPro && !canUseAiFeature('scan')) {
+      toast.error(getLimitReachedMessage('scan'));
+      return;
+    }
     const seen = typeof window !== 'undefined' && localStorage.getItem(SCAN_COACHMARK_KEY) === '1';
     if (!seen) {
       setShowScanCoachmark(true);
