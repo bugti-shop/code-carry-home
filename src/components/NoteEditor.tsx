@@ -1908,18 +1908,6 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
                     type="button"
                     onClick={() => {
                       if (!requireFeature('ai_dictation')) return;
-                      setShowVoiceNote(true);
-                    }}
-                    className="w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
-                    aria-label={t('voiceNote.title', 'Dictate to note')}
-                    title={t('voiceNote.title', 'Dictate to note')}
-                  >
-                    <Mic className="h-5 w-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!requireFeature('ai_dictation')) return;
                       setShowScanNote(true);
                     }}
                     className="w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
@@ -1927,6 +1915,18 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
                     title={t('scanNote.title', 'Scan page to note')}
                   >
                     <Camera className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!requireFeature('ai_dictation')) return;
+                      setShowVoiceNote(true);
+                    }}
+                    className="w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+                    aria-label={t('voiceNote.title', 'Dictate to note')}
+                    title={t('voiceNote.title', 'Dictate to note')}
+                  >
+                    <Mic className="h-5 w-5" />
                   </button>
                 </div>
               )}
@@ -1944,18 +1944,6 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
               type="button"
               onClick={() => {
                 if (!requireFeature('ai_dictation')) return;
-                setShowVoiceNote(true);
-              }}
-              className="w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
-              aria-label={t('voiceNote.title', 'Dictate to note')}
-              title={t('voiceNote.title', 'Dictate to note')}
-            >
-              <Mic className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (!requireFeature('ai_dictation')) return;
                 setShowScanNote(true);
               }}
               className="w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
@@ -1963,6 +1951,18 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
               title={t('scanNote.title', 'Scan page to note')}
             >
               <Camera className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (!requireFeature('ai_dictation')) return;
+                setShowVoiceNote(true);
+              }}
+              className="w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+              aria-label={t('voiceNote.title', 'Dictate to note')}
+              title={t('voiceNote.title', 'Dictate to note')}
+            >
+              <Mic className="h-5 w-5" />
             </button>
           </div>
         )}
