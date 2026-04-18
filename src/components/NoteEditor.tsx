@@ -192,6 +192,8 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
   
   // Voice recorder state
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [showScanNote, setShowScanNote] = useState(false);
+  const [showVoiceNote, setShowVoiceNote] = useState(false);
   const [showSketchLibrary, setShowSketchLibrary] = useState(false);
   
   // Input sheet page states (replaces window.prompt)
