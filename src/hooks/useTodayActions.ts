@@ -257,7 +257,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     // multiple tasks are added in the same tick (e.g. AI image extraction
     // forEach loop), causing all of them to share one id and toggle together.
     const newItem: TodoItem = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, completed: false, ...task,
+      id: genId(), completed: false, ...task,
       sectionId: task.sectionId || inputSectionId || defaultSectionId || sections[0]?.id,
       dueDate: task.dueDate || new Date(),
       createdAt: now, modifiedAt: now,
@@ -279,7 +279,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     if (!isPro && isNewFreeUser && !softRequireCreate('tasks', itemsRef.current.length)) return;
     const now = new Date();
     const newItems: TodoItem[] = taskTexts.map((text, idx) => ({
-      id: `${Date.now()}-${idx}`, text, completed: false,
+      id: genId(), text, completed: false,
       folderId: folderId || selectedFolderId || undefined,
       sectionId: sectionId || inputSectionId || sections[0]?.id,
       priority, dueDate: dueDate || new Date(), createdAt: now, modifiedAt: now,
@@ -411,7 +411,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     const filteredItems = selectedFolderId ? items.filter(i => i.folderId === selectedFolderId) : items;
     let toDuplicate: TodoItem[] = option === 'uncompleted' ? filteredItems.filter(i => !i.completed) : filteredItems;
     const duplicated = toDuplicate.map((item, idx) => ({
-      ...item, id: `${Date.now()}-${idx}`, completed: option === 'all-reset' ? false : item.completed, text: `${item.text} (Copy)`
+      ...item, id: genId(), completed: option === 'all-reset' ? false : item.completed, text: `${item.text} (Copy)`
     }));
     setItems(prev => [...duplicated, ...prev]);
     toast.success(t('todayPage.duplicatedTasks', { count: duplicated.length }));
@@ -420,7 +420,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
   const convertToNotes = useCallback(async (tasksToConvert: TodoItem[]) => {
     const existingNotes = await loadNotesFromDB();
     const newNotes: Note[] = tasksToConvert.map((task, idx) => ({
-      id: `${Date.now()}-${idx}`, type: 'regular' as const, title: task.text,
+      id: genId(), type: 'regular' as const, title: task.text,
       content: task.description || '', voiceRecordings: [],
       images: task.imageUrl ? [task.imageUrl] : [],
       createdAt: new Date(), updatedAt: new Date(),
@@ -469,7 +469,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
         break;
       case 'priority': setIsPrioritySheetOpen(true); break;
       case 'duplicate':
-        const duplicated = selectedItems.map((item, idx) => ({ ...item, id: `${Date.now()}-${idx}`, completed: false, text: `${item.text} (Copy)` }));
+        const duplicated = selectedItems.map((item, idx) => ({ ...item, id: genId(), completed: false, text: `${item.text} (Copy)` }));
         setItems(prev => [...duplicated, ...prev]);
         setSelectedTaskIds(new Set()); setIsSelectionMode(false);
         toast.success(t('todayPage.duplicatedTasks', { count: selectedItems.length }));
