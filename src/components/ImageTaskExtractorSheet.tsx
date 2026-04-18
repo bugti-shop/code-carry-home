@@ -142,6 +142,7 @@ export const ImageTaskExtractorSheet = ({
 
       setItems(reviewItems);
       setHasRun(true);
+      if (!isPro) recordAiUsage('scan');
 
       if (reviewItems.length === 0) {
         toast.info(t('imageExtract.noTasks', 'No tasks detected in this image'));
