@@ -87,10 +87,10 @@ export const FREE_LIMITS = {
   maxNotes: Infinity,
 };
 
-// Soft paywall limits — apply ONLY to brand-new free users after onboarding.
-// Existing/grandfathered users keep full access. New users get 1 of each as a teaser.
+// Free user lifetime limits — applies to ALL free users (not just brand-new).
+// These are LIFETIME counts: deleting items does NOT free up quota. User must upgrade to Pro.
 export const SOFT_FREE_LIMITS = {
-  notes: 1,
+  notes: 2,
   tasks: 1,
   noteFolders: 1,
   taskFolders: 1,
@@ -1177,27 +1177,42 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [isPro, isNewFreeUser]);
 
-  // Returns true when allowed to create. Opens paywall + returns false when soft-limit hit.
+  // Lifetime quota: track the highest count ever reached for each kind in localStorage.
+  // Deleting items does NOT free up quota — user must upgrade to Pro to create more.
+  const LIFETIME_KEY = (kind: SoftLimitKind) => `flowist_lifetime_${kind}`;
+  const getLifetimeMax = (kind: SoftLimitKind): number => {
+    try { return parseInt(localStorage.getItem(LIFETIME_KEY(kind)) || '0', 10) || 0; } catch { return 0; }
+  };
+  const bumpLifetimeMax = (kind: SoftLimitKind, currentCount: number) => {
+    try {
+      const prev = getLifetimeMax(kind);
+      if (currentCount > prev) localStorage.setItem(LIFETIME_KEY(kind), String(currentCount));
+    } catch {}
+  };
+
+  // Returns true when allowed to create. Opens paywall + returns false when lifetime quota exhausted.
+  // Applies to ALL free users (not just brand-new). Pro users always allowed.
   const softRequireCreate = useCallback((kind: SoftLimitKind, currentCount: number): boolean => {
     if (isPro) return true;
-    if (!isNewFreeUser) return true; // grandfathered/existing users — full access
     const limit = SOFT_FREE_LIMITS[kind];
-    if (currentCount >= limit) {
+    const lifetimeMax = getLifetimeMax(kind);
+    // Quota = max(currentCount, lifetimeEverCreated). Once they've ever hit the limit, no more creates.
+    const effectiveCount = Math.max(currentCount, lifetimeMax);
+    if (effectiveCount >= limit) {
       setPaywallFeature(`soft_limit_${kind}`);
       setShowPaywall(true);
       return false;
     }
+    // Pre-bump: assume the upcoming create will land — record it so deletes don't reopen the gate.
+    bumpLifetimeMax(kind, effectiveCount + 1);
     return true;
-  }, [isPro, isNewFreeUser]);
+  }, [isPro]);
 
-  // Returns true when allowed to mutate (edit/delete). Opens paywall + returns false otherwise.
+  // Returns true when allowed to mutate (edit/delete). Free users CAN edit/delete their existing items.
+  // Only creation of new items is blocked once lifetime quota is hit.
   const softRequireMutate = useCallback((): boolean => {
-    if (isPro) return true;
-    if (!isNewFreeUser) return true;
-    setPaywallFeature('soft_limit_edit');
-    setShowPaywall(true);
-    return false;
-  }, [isPro, isNewFreeUser]);
+    return true;
+  }, []);
 
   // Check Stripe subscription by email (used from onboarding Google sign-in)
   const checkStripeByEmail = useCallback(async (email: string): Promise<boolean> => {
