@@ -4,6 +4,12 @@ import { getStoredGoogleUser } from '@/utils/googleAuth';
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/lib/supabase';
 import {
+  getLocalLifetimeMax,
+  setLocalLifetimeMax,
+  pushLifetimeCounter,
+  pullAndMergeLifetimeCounters,
+} from '@/utils/lifetimeCountersCloud';
+import {
   Purchases,
   LOG_LEVEL,
   CustomerInfo,
