@@ -1191,26 +1191,40 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!Capacitor.isNativePlatform() || !isInitialized) return;
 
+    let lastSyncAt = 0;
+    let wasHidden = false;
+    const SYNC_THROTTLE_MS = 30_000; // don't hammer the store
+
     const handleResume = async () => {
+      if (Date.now() - lastSyncAt < SYNC_THROTTLE_MS) return;
+      lastSyncAt = Date.now();
+
       console.log('RevenueCat: App resumed, syncing purchases & re-checking entitlement');
-      // Force RC to pull latest receipt from store — catches cancellations made
-      // outside the app (e.g. Play Store) while we were backgrounded/offline.
       try {
         await Purchases.syncPurchases();
         console.log('RevenueCat: syncPurchases() completed');
       } catch (err) {
         console.warn('RevenueCat: syncPurchases() failed', err);
       }
-      checkEntitlement();
+      try { await checkEntitlement(); } catch (e) { console.warn('checkEntitlement failed', e); }
     };
 
-    // Capacitor App plugin fires 'resume' but we also listen to visibilitychange for broader coverage
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') handleResume();
-    });
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        wasHidden = true;
+        return;
+      }
+      // Only sync on a true background→foreground transition — never on initial mount.
+      // This prevents syncPurchases() from running during cold start and blocking the UI.
+      if (document.visibilityState === 'visible' && wasHidden) {
+        wasHidden = false;
+        handleResume();
+      }
+    };
 
+    document.addEventListener('visibilitychange', onVisibility);
     return () => {
-      document.removeEventListener('visibilitychange', handleResume);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [isInitialized, checkEntitlement]);
   // On web: only Stripe-verified subscription or admin bypass grants access (no local trial)
