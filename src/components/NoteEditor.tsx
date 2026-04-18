@@ -1903,7 +1903,7 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
 
               {/* AI mini-toolbar (Pro): dictate to text, scan page → formatted note */}
               {(noteType === 'regular' || noteType === 'sticky' || noteType === 'lined' || noteType === 'textformat') && (
-                <div className="absolute bottom-3 right-3 z-20 flex flex-col gap-2">
+                <div className="absolute bottom-20 right-3 z-20 flex flex-col gap-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -1939,7 +1939,7 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
             container; this one overlays the alternate editors so every note
             type can dictate (Mic) and scan images to text (Camera). */}
         {(noteType === 'voice' || noteType === 'code' || noteType === 'sketch') && (
-          <div className="absolute bottom-3 right-3 z-30 flex flex-col gap-2 pointer-events-auto">
+          <div className="absolute bottom-20 right-3 z-30 flex flex-col gap-2 pointer-events-auto">
             <button
               type="button"
               onClick={() => {
