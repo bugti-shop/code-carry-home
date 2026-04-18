@@ -1082,15 +1082,47 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
                     </div>
                   </PopoverContent>
                 </Popover>
-                <button
-                  onClick={startAIDictation}
-                  className="w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors relative"
-                  aria-label={t('tasks.aiDictate', 'AI voice task')}
-                  title={t('tasks.aiDictateHint', 'Speak: e.g. "Buy groceries tomorrow at 5pm in Sample folder"')}
-                >
-                  <Mic className="h-5 w-5 text-primary" />
-                  <SparklesIcon className="h-2.5 w-2.5 text-primary absolute top-1.5 right-1.5" />
-                </button>
+                <Popover open={showMicCoachmark} onOpenChange={(o) => !o && dismissMicCoachmark()}>
+                  <PopoverTrigger asChild>
+                    <button
+                      onClick={startAIDictation}
+                      className="w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors relative"
+                      aria-label={t('tasks.aiDictate', 'AI voice task')}
+                      title={t('tasks.aiDictateHint', 'Speak: e.g. "Buy groceries tomorrow at 5pm in Sample folder"')}
+                    >
+                      <Mic className="h-5 w-5 text-primary" />
+                      <SparklesIcon className="h-2.5 w-2.5 text-primary absolute top-1.5 right-1.5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side="top"
+                    align="end"
+                    className="w-72 p-3 border-primary/20"
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Mic className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <p className="text-sm font-medium leading-tight">
+                          {t('tasks.micCoachmarkTitle', 'Speak your tasks')}
+                        </p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {t(
+                            'tasks.micCoachmarkBody',
+                            'Speak naturally — AI picks up dates, priorities, folders, and works in any language.',
+                          )}
+                        </p>
+                        <button
+                          onClick={dismissMicCoachmark}
+                          className="text-xs font-medium text-primary hover:underline"
+                        >
+                          {t('common.gotIt', 'Got it')}
+                        </button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             )}
           </div>
