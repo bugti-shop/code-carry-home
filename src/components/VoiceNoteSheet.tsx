@@ -28,7 +28,10 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [interim, setInterim] = useState('');
+  const [elapsedMs, setElapsedMs] = useState(0);
   const recognitionRef = useRef<any>(null);
+  const startedAtRef = useRef<number | null>(null);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // True only when the user explicitly tapped Stop. Used so that when the
   // browser auto-ends the SpeechRecognition session (silence / timeout), we
   // transparently restart it instead of finalizing the transcript.
