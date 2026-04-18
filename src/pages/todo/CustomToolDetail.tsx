@@ -373,7 +373,10 @@ const CustomToolDetail = () => {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setShowTaskInput(true)}
+              onClick={() => {
+                if (!isPro && !canCreateWithinSoftLimit('tasks', allTasks.length)) { softRequireCreate('tasks', allTasks.length); return; }
+                setShowTaskInput(true);
+              }}
             >
               {t('customTool.moreOptions')}
             </Button>
