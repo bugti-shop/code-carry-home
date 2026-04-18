@@ -96,6 +96,7 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
       setHtml(rawHtml);
       setSuggestedTitle(title);
       setHasRun(true);
+      if (!isPaidPro) recordAiUsage('scan');
 
       if (!rawHtml) {
         toast.info(t('scanNote.noText', 'No readable text found in this image'));
