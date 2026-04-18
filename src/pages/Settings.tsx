@@ -63,16 +63,16 @@ const Settings = () => {
             <SectionHeading title={t('settings.preferences', 'Preferences')} />
             <SettingsRow label={t('settings.appearance')} onClick={() => state.setShowThemeDialog(true)} />
             <SettingsRow label={t('settings.language')} onClick={() => state.setShowLanguageDialog(true)} />
-            <SettingsRow label={<>{t('settings.noteTypeVisibility', 'Note Type Visibility')} {!isProSub && <Crown className="h-3.5 w-3.5 inline ml-1" style={{ color: '#3c78f0' }} />}</>} onClick={() => { if (requireFeature('notes_type_visibility')) state.setShowNoteTypeVisibilitySheet(true); }} />
-            <SettingsRow label={<>{t('settings.notesSettings', 'Notes Settings')} {!isProSub && <Crown className="h-3.5 w-3.5 inline ml-1" style={{ color: '#3c78f0' }} />}</>} onClick={() => { if (requireFeature('notes_settings')) state.setShowNotesSettingsSheet(true); }} />
-            <SettingsRow label={<>{t('settings.tasksSettings', 'Tasks Settings')} {!isProSub && <Crown className="h-3.5 w-3.5 inline ml-1" style={{ color: '#3c78f0' }} />}</>} onClick={() => { if (requireFeature('tasks_settings')) state.setShowTasksSettingsSheet(true); }} />
-            <SettingsRow label={<>{t('settings.customizeNavigation', 'Customize Navigation')} {!isProSub && <Crown className="h-3.5 w-3.5 inline ml-1" style={{ color: '#3c78f0' }} />}</>} onClick={() => { if (requireFeature('customize_navigation')) state.setShowCustomizeNavigationSheet(true); }} />
+            <SettingsRow label={t('settings.noteTypeVisibility', 'Note Type Visibility')} onClick={() => { if (requireFeature('notes_type_visibility')) state.setShowNoteTypeVisibilitySheet(true); }} />
+            <SettingsRow label={t('settings.notesSettings', 'Notes Settings')} onClick={() => { if (requireFeature('notes_settings')) state.setShowNotesSettingsSheet(true); }} />
+            <SettingsRow label={t('settings.tasksSettings', 'Tasks Settings')} onClick={() => { if (requireFeature('tasks_settings')) state.setShowTasksSettingsSheet(true); }} />
+            <SettingsRow label={t('settings.customizeNavigation', 'Customize Navigation')} onClick={() => { if (requireFeature('customize_navigation')) state.setShowCustomizeNavigationSheet(true); }} />
           </div>
 
           {/* Security Section */}
           <div className="border border-border rounded-lg overflow-hidden" data-tour="settings-security">
             <SectionHeading title={t('settings.security', 'Security')} />
-            <SettingsRow label={<>{t('settings.appLock', 'App Lock')} {!isProSub && <Crown className="h-3.5 w-3.5 inline ml-1" style={{ color: '#3c78f0' }} />}</>} onClick={() => { if (requireFeature('app_lock')) state.setShowAppLockSettingsSheet(true); }} />
+            <SettingsRow label={t('settings.appLock', 'App Lock')} onClick={() => { if (requireFeature('app_lock')) state.setShowAppLockSettingsSheet(true); }} />
           </div>
 
           {/* Data Management Section */}
@@ -85,7 +85,6 @@ const Settings = () => {
             >
               <span className="text-foreground text-sm flex items-center gap-1">
                 {isBackingUp ? t('settings.backingUp', 'Backing up...') : t('settings.backupData')}
-                {!isProSub && <Crown className="h-3.5 w-3.5" style={{ color: '#3c78f0' }} />}
               </span>
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </button>
