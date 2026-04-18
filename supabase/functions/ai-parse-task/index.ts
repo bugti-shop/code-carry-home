@@ -59,15 +59,16 @@ Available sections:
 ${sections.length ? sections.map((s) => `- ${s.name} (id: ${s.id})`).join("\n") : "(none)"}
 
 Rules:
-- "title": short, action-oriented, no time/date/folder words.
-- "dueDateIso": ISO 8601 with timezone offset. Resolve "tomorrow", "next Monday", "at 5pm", etc. relative to current datetime.
-- "deadlineIso": only if user explicitly says "deadline", "due by", "must finish by".
-- "priority": "high" | "medium" | "low" | "none". Map "urgent/asap/important" -> high.
-- "folderId": id of the folder if user mentions one matching the available list. Otherwise null.
+- "title": short, action-oriented, no time/date/folder words. Write the title in the SAME language as the transcript (${langName}). Do NOT translate to English.
+- Recognize date/time words in ${langName} as well as English (e.g. Hindi "kal" = tomorrow, Urdu "kal/parson", Spanish "mañana", French "demain", Arabic "غداً", etc.).
+- "dueDateIso": ISO 8601 with timezone offset. Resolve relative words ("tomorrow", "next Monday", "at 5pm", and their ${langName} equivalents) relative to current datetime in the user's timezone.
+- "deadlineIso": only if user explicitly says "deadline", "due by", "must finish by" (or ${langName} equivalent).
+- "priority": "high" | "medium" | "low" | "none". Map "urgent/asap/important" (and ${langName} equivalents) -> high.
+- "folderId": id of the folder if user mentions one matching the available list (case-insensitive, fuzzy). Otherwise null.
 - "sectionId": same logic.
 - "repeatType": "none" | "daily" | "weekly" | "monthly" | "yearly".
-- "location": physical place mentioned (e.g. "at the gym").
-- "description": extra detail beyond the title.
+- "location": physical place mentioned, kept in original language.
+- "description": extra detail beyond the title, kept in original language.
 Return only via the tool call.`;
 
     const aiResponse = await fetch(
