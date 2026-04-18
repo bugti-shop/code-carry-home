@@ -24,6 +24,8 @@ import { captureImageForAI } from '@/utils/imageCaptureForAI';
 import { supabase } from '@/integrations/supabase/client';
 import { TodoItem, Folder, Priority, RepeatType } from '@/types/note';
 import { cn } from '@/lib/utils';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
 
 interface TaskSection { id: string; name: string }
 
