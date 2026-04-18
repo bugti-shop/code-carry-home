@@ -111,31 +111,59 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
         setTranscript((prev) => (prev ? prev + ' ' + finalChunk : finalChunk).trim());
         finalChunk = '';
       }
+      interimRef.current = interimText;
       setInterim(interimText);
     };
     rec.onerror = (e: any) => {
-      console.warn('[voice note] recognition error', e);
-      // 'no-speech' / 'aborted' aren't fatal — let onend handle restart.
-      if (e?.error && e.error !== 'no-speech' && e.error !== 'aborted') {
+      console.warn('[voice note] recognition error', e?.error);
+      // Recoverable: 'no-speech' (silence), 'aborted' (programmatic stop),
+      // 'network' (transient on long sessions) — let onend restart.
+      const recoverable = ['no-speech', 'aborted', 'network', 'audio-capture'];
+      if (e?.error && !recoverable.includes(e.error)) {
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+          toast.error(t('errors.microphoneFailed', 'Microphone permission denied'));
+        }
         stopListening();
       }
     };
     rec.onend = () => {
-      // If the user didn't tap Stop, the browser auto-ended on silence.
-      // Restart silently so recording continues until they decide to stop.
+      // Commit any uncommitted interim before restart so words on the
+      // boundary aren't dropped when SpeechRecognition cycles.
+      const trailing = interimRef.current.trim();
+      if (trailing) {
+        setTranscript((prev) => (prev ? prev + ' ' + trailing : trailing).trim());
+        interimRef.current = '';
+        setInterim('');
+      }
+      // If the user didn't tap Stop, the browser auto-ended on silence/timeout.
+      // Restart with a small delay + backoff to avoid InvalidStateError.
       if (!userStoppedRef.current && recognitionRef.current === rec) {
-        try {
-          rec.start();
+        const attempt = ++restartAttemptsRef.current;
+        const delay = Math.min(2000, 100 * attempt); // 100, 200, 300… capped 2s
+        if (attempt > 10) {
+          console.warn('[voice note] giving up after 10 restart failures');
+          stopListening();
           return;
-        } catch {
-          // fallthrough — finalize below
         }
+        setTimeout(() => {
+          if (userStoppedRef.current || recognitionRef.current !== rec) return;
+          try {
+            rec.start();
+            restartAttemptsRef.current = 0; // success path
+          } catch {
+            // Fire onend again so the next backoff tick retries.
+            try { rec.onend?.(new Event('end') as any); } catch {}
+          }
+        }, delay);
+        return;
       }
       setIsListening(false);
       setInterim('');
     };
 
     userStoppedRef.current = false;
+    restartAttemptsRef.current = 0;
+    interimRef.current = '';
     recognitionRef.current = rec;
     setIsListening(true);
     // Start elapsed-time counter (only when user begins, not on auto-restarts).
@@ -147,6 +175,16 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
         setElapsedMs(Date.now() - startedAtRef.current);
       }
     }, 250);
+    // Safety cycle: every ~50s force a restart. Some Chrome builds silently
+    // stop returning results after several minutes of continuous dictation.
+    if (safetyRestartRef.current) clearInterval(safetyRestartRef.current);
+    safetyRestartRef.current = setInterval(() => {
+      if (userStoppedRef.current || recognitionRef.current !== rec) return;
+      try {
+        // .stop() will trigger onend → auto-restart path above.
+        rec.stop();
+      } catch {}
+    }, 50_000);
     try {
       rec.start();
     } catch (e) {
