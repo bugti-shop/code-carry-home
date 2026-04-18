@@ -87,10 +87,10 @@ export const FREE_LIMITS = {
   maxNotes: Infinity,
 };
 
-// Soft paywall limits — apply ONLY to brand-new free users after onboarding.
-// Existing/grandfathered users keep full access. New users get 1 of each as a teaser.
+// Free user lifetime limits — applies to ALL free users (not just brand-new).
+// These are LIFETIME counts: deleting items does NOT free up quota. User must upgrade to Pro.
 export const SOFT_FREE_LIMITS = {
-  notes: 1,
+  notes: 2,
   tasks: 1,
   noteFolders: 1,
   taskFolders: 1,
