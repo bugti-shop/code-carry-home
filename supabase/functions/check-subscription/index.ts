@@ -15,7 +15,8 @@ const PRODUCT_TO_PLAN: Record<string, string> = {
   prod_UFxvRW5CagcDV1: "yearly",
 };
 
-const GRACE_PERIOD_MS = 3 * 24 * 60 * 60 * 1000;
+// After trial/period ends and payment fails, give user 2 days max before forcing them to free
+const GRACE_PERIOD_MS = 2 * 24 * 60 * 60 * 1000;
 
 const jsonResponse = (body: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -219,7 +220,17 @@ serve(async (req) => {
           customer_email: normalizedEmail,
         });
       }
-      logStep("Past-due subscription grace period expired");
+      logStep("Past-due grace expired — cancelling Stripe subscription to stop retries");
+      try {
+        await stripe.subscriptions.cancel(pastDueSub.stripe_subscription_id);
+      } catch (e) {
+        logStep("Warning: failed to cancel past-due subscription", { error: String(e) });
+      }
+      await supabaseAdmin
+        .from("subscriptions")
+        .update({ status: "canceled", cancel_at_period_end: false, updated_at: new Date().toISOString() })
+        .eq("stripe_subscription_id", pastDueSub.stripe_subscription_id);
+      return jsonResponse({ subscribed: false, subscription_status: "canceled", customer_email: normalizedEmail });
     }
 
     // 2. Fallback: check Stripe API directly (for cases where webhook hasn't fired yet)
@@ -241,12 +252,23 @@ serve(async (req) => {
 
     const allSubs = [...activeSubs.data, ...trialingSubs.data];
     
-    // Check past_due with grace period
+    // Check past_due with grace period — cancel if expired so retries stop
     if (allSubs.length === 0 && pastDueSubs.data.length > 0) {
       const pdSub = pastDueSubs.data[0];
       const periodEnd = pdSub.current_period_end * 1000;
       if (Date.now() < periodEnd + GRACE_PERIOD_MS) {
         allSubs.push(pdSub);
+      } else {
+        logStep("Stripe past-due grace expired — cancelling subscription");
+        try {
+          await stripe.subscriptions.cancel(pdSub.id);
+        } catch (e) {
+          logStep("Warning: failed to cancel past-due subscription", { error: String(e) });
+        }
+        await supabaseAdmin
+          .from("subscriptions")
+          .update({ status: "canceled", cancel_at_period_end: false, updated_at: new Date().toISOString() })
+          .eq("stripe_subscription_id", pdSub.id);
       }
     }
 
