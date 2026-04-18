@@ -1050,7 +1050,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
                       title={t('tasks.aiScanImageHint', 'Scan a paper or sticky-note board to add tasks')}
                     >
                       <ScanLine className="h-5 w-5 text-primary" />
-                      <SparklesIcon className="h-2.5 w-2.5 text-primary absolute top-1.5 right-1.5" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
@@ -1091,7 +1090,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
                       title={t('tasks.aiDictateHint', 'Speak: e.g. "Buy groceries tomorrow at 5pm in Sample folder"')}
                     >
                       <Mic className="h-5 w-5 text-primary" />
-                      <SparklesIcon className="h-2.5 w-2.5 text-primary absolute top-1.5 right-1.5" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
