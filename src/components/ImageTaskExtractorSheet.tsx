@@ -509,7 +509,8 @@ export const ImageTaskExtractorSheet = ({
             </div>
           )}
         </div>
-      </SheetContent>
+        </SheetPrimitive.Content>
+      </SheetPortal>
 
       <Dialog open={isZoomed} onOpenChange={setIsZoomed}>
         <DialogContent className="max-w-[100vw] w-screen h-screen max-h-screen p-0 border-0 bg-black rounded-none shadow-none overflow-hidden sm:rounded-none">
