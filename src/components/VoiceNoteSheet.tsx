@@ -194,6 +194,16 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
                 ? t('voiceNote.listening', 'Listening… tap to stop')
                 : t('voiceNote.tapToSpeak', 'Tap to speak')}
             </span>
+            {isListening && (
+              <div
+                className="flex items-center gap-1.5 text-sm font-mono tabular-nums text-destructive"
+                aria-live="polite"
+                aria-label={t('voiceNote.elapsed', 'Recording time')}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+                {formatElapsed(elapsedMs)}
+              </div>
+            )}
           </div>
 
           {/* Editable transcript */}
