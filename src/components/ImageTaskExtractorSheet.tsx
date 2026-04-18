@@ -4,10 +4,11 @@
  *
  * Pro-gated via the `ai_dictation` (alias `ai_vision`) feature flag.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Camera, Image as ImageIcon, Loader2, Sparkles, X, Check, Trash2, RotateCcw, Minus, Plus, Maximize2 } from 'lucide-react';
+import { Camera, Image as ImageIcon, Loader2, Sparkles, X, Check, Trash2, RotateCcw, Minus, Plus, Maximize2, ImagePlus } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import { Capacitor } from '@capacitor/core';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
