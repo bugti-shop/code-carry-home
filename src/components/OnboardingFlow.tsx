@@ -1755,27 +1755,18 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             setShowReadyScreen(false);
             await setSetting('onboarding_completed', true);
             await setSetting('onboarding_progress_state', null);
-            // Mark as new free user (soft paywall) — only if they have no pre-existing data.
-            // Existing users (returning, restored from backup, etc.) keep full access.
+            // Mark as new free user (soft paywall mode) — paywall becomes dismissable.
+            // Returning users with active subscriptions already skipped onboarding earlier (see step 1308).
             try {
-              const { loadNotesFromDB } = await import('@/utils/noteStorage');
-              const { loadTasksFromDB } = await import('@/utils/taskStorage');
-              const [existingNotes, existingTasks] = await Promise.all([
-                loadNotesFromDB().catch(() => []),
-                loadTasksFromDB().catch(() => []),
-              ]);
-              // Onboarding may create 1 sample note/task — anything <=1 each is still "new user"
-              const isNewUser = (existingNotes?.length || 0) <= 1 && (existingTasks?.length || 0) <= 1;
-              if (isNewUser) {
-                await setSetting('flowist_new_user', true);
-                try { localStorage.setItem('flowist_new_user', 'true'); } catch {}
-                window.dispatchEvent(new CustomEvent('flowistNewFreeUserChanged', { detail: { value: true } }));
-              }
+              await setSetting('flowist_new_user', true);
+              try { localStorage.setItem('flowist_new_user', 'true'); } catch {}
+              window.dispatchEvent(new CustomEvent('flowistNewFreeUserChanged', { detail: { value: true } }));
             } catch (e) {
-              console.warn('[Onboarding] Could not check pre-existing data:', e);
+              console.warn('[Onboarding] Could not mark as new free user:', e);
             }
             onComplete();
-            setTimeout(() => openPaywall(), 300);
+            // Delay paywall slightly longer to ensure isNewFreeUser state propagates before render
+            setTimeout(() => openPaywall(), 400);
           }} className="w-full py-4 rounded-2xl text-[17px] font-bold" style={{ backgroundColor: '#1a1a1a', color: '#ffffff', boxShadow: '0 8px 0 0 #000000' }} whileTap={{ scale: 0.97 }}>
             {t('onboarding.continue')}
           </motion.button>
