@@ -1109,6 +1109,41 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
               </div>
             ) : (
               <div className="flex items-center gap-1.5 flex-shrink-0">
+                {/* Dictation language picker — synced app-wide via localStorage */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="h-10 px-2 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center gap-1 text-primary transition-colors"
+                      aria-label={t('voiceNote.language', 'Recognition language')}
+                      title={t('voiceNote.language', 'Recognition language')}
+                    >
+                      <Languages className="h-4 w-4" />
+                      <span className="text-[10px] font-semibold uppercase tracking-wide">
+                        {dictationLang.split('-')[0]}
+                      </span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="top" align="end" className="w-56 p-1 max-h-72 overflow-y-auto">
+                    <div className="space-y-0.5">
+                      {Object.entries(SPEECH_LANG_MAP).map(([short, bcp47]) => (
+                        <button
+                          key={bcp47}
+                          onClick={() => {
+                            setDictationLang(bcp47);
+                            try { localStorage.setItem('flowist_dictation_lang', bcp47); } catch {}
+                          }}
+                          className={cn(
+                            'w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-sm hover:bg-accent transition-colors text-left',
+                            dictationLang === bcp47 && 'bg-primary/10 text-primary font-medium',
+                          )}
+                        >
+                          <span>{LANG_NAMES[short] || short}</span>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{bcp47}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 <Popover open={showScanCoachmark} onOpenChange={(o) => !o && dismissScanCoachmark()}>
                   <PopoverTrigger asChild>
                     <button
