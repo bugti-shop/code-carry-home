@@ -1125,7 +1125,15 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
                       </span>
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent side="top" align="start" sideOffset={8} className="w-56 p-1 max-h-72 overflow-y-auto z-[60]">
+                  <PopoverContent
+                    side="top"
+                    align="start"
+                    sideOffset={8}
+                    className="w-56 p-1 max-h-72 overflow-y-auto overscroll-contain z-[60]"
+                    style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
+                    onWheel={(e) => e.stopPropagation()}
+                    onTouchMove={(e) => e.stopPropagation()}
+                  >
                     {(() => {
                       // Build ordered list: recent (pinned) → rest, no dupes.
                       const recents = getRecentDictationLangs();
