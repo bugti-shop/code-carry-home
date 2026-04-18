@@ -59,6 +59,13 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
 
   const stopListening = () => {
     userStoppedRef.current = true;
+    // Commit any uncommitted interim text so trailing words aren't lost
+    // when the user taps Stop mid-sentence.
+    const trailing = interimRef.current.trim();
+    if (trailing) {
+      setTranscript((prev) => (prev ? prev + ' ' + trailing : trailing).trim());
+      interimRef.current = '';
+    }
     try {
       recognitionRef.current?.stop?.();
     } catch {}
@@ -67,7 +74,12 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
       clearInterval(tickRef.current);
       tickRef.current = null;
     }
+    if (safetyRestartRef.current) {
+      clearInterval(safetyRestartRef.current);
+      safetyRestartRef.current = null;
+    }
     startedAtRef.current = null;
+    restartAttemptsRef.current = 0;
     setIsListening(false);
     setInterim('');
   };
