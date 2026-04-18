@@ -58,7 +58,7 @@ const Index = () => {
   const { notes, setNotes, notesMeta, notesMap, counts, isLoading: notesLoading } = useNotes();
   
   // Note type visibility
-  const { requireFeature, isPro, openPaywall, isNewFreeUser, softRequireCreate } = useSubscription();
+  const { requireFeature, canCreateWithinSoftLimit, softRequireCreate } = useSubscription();
   const { visibleTypes, isTypeVisible, filterNotesByVisibility } = useNoteTypeVisibility();
   const [showNoteTypeVisibilitySheet, setShowNoteTypeVisibilitySheet] = useState(false);
   const [showNoteTemplates, setShowNoteTemplates] = useState(true);
@@ -396,8 +396,8 @@ const Index = () => {
   };
 
   const handleCreateNote = (type: NoteType) => {
-    if (!isPro && notes.length >= FREE_LIMITS.maxNotes) {
-      openPaywall('extra_notes');
+    if (!canCreateWithinSoftLimit('notes', notes.length)) {
+      softRequireCreate('notes', notes.length);
       return;
     }
     setDefaultType(type);

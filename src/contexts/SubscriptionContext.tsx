@@ -1312,6 +1312,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         // Soft paywall
         isNewFreeUser,
         markAsNewFreeUser,
+        canCreateWithinSoftLimit,
         softRequireCreate,
         softRequireMutate,
         // RevenueCat
@@ -1358,6 +1359,7 @@ const FALLBACK_CONTEXT: UnifiedBillingContextType = {
   unlockPro: async () => {},
   isNewFreeUser: false,
   markAsNewFreeUser: async () => {},
+  canCreateWithinSoftLimit: () => true,
   softRequireCreate: () => true,
   softRequireMutate: () => true,
   isInitialized: false,

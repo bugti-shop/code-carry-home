@@ -14,14 +14,14 @@ import { NoteCard } from '@/components/NoteCard';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { saveNoteToDBSingle, deleteNoteFromDB } from '@/utils/noteStorage';
 import { useNotes } from '@/contexts/NotesContext';
-import { useSubscription, FREE_LIMITS } from '@/contexts/SubscriptionContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CalendarBackgroundSheet } from '@/components/CalendarBackgroundSheet';
 import { getSetting } from '@/utils/settingsStorage';
 
 const NotesCalendar = () => {
   const { t } = useTranslation();
-  const { isPro, openPaywall, softRequireCreate, softRequireMutate } = useSubscription();
+  const { isPro, canCreateWithinSoftLimit, softRequireCreate, softRequireMutate } = useSubscription();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   
@@ -122,15 +122,15 @@ const NotesCalendar = () => {
   }, []);
 
   const handleCreateNote = useCallback((type: NoteType) => {
-    if (!isPro && notes.length >= FREE_LIMITS.maxNotes) {
-      openPaywall('extra_notes');
+    if (!canCreateWithinSoftLimit('notes', notes.length)) {
+      softRequireCreate('notes', notes.length);
       return;
     }
     setDefaultType(type);
     editingNoteIdRef.current = null;
     setEditingNote(null);
     setIsEditorOpen(true);
-  }, [isPro, notes.length, openPaywall]);
+  }, [canCreateWithinSoftLimit, notes.length, softRequireCreate]);
 
   const handleDeleteNote = useCallback(async (noteId: string) => {
     const updatedNotes = notes.filter(n => n.id !== noteId);
