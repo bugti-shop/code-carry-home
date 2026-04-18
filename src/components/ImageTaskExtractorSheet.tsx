@@ -64,6 +64,7 @@ export const ImageTaskExtractorSheet = ({
   currentSectionId,
 }: Props) => {
   const { t, i18n } = useTranslation();
+  const { isPro } = useSubscription();
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const [items, setItems] = useState<ReviewItem[]>([]);
