@@ -500,6 +500,8 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
           sections: sections.map((s) => ({ id: s.id, name: s.name })),
           nowIso: new Date().toISOString(),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          languageCode: (i18n.language || 'en').split('-')[0],
+          languageName: LANG_NAMES[(i18n.language || 'en').split('-')[0]] || 'English',
         },
       });
       if (error) throw error;
@@ -533,7 +535,11 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       const recognition = new SR();
       recognition.continuous = false;
       recognition.interimResults = false;
-      recognition.lang = (typeof navigator !== 'undefined' && navigator.language) || 'en-US';
+      const shortLang = (i18n.language || 'en').split('-')[0];
+      recognition.lang =
+        SPEECH_LANG_MAP[shortLang] ||
+        (typeof navigator !== 'undefined' && navigator.language) ||
+        'en-US';
       aiTranscriptRef.current = '';
 
       recognition.onresult = (event: any) => {
