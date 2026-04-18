@@ -118,6 +118,8 @@ interface UnifiedBillingContextType {
   graceExpired: boolean;
   /** True when the user unlocked Pro via the BUGTI admin access code. */
   isAdminBypass: boolean;
+  /** True when RevenueCat reports the active entitlement is in its free-trial period (Android/iOS native trial — card on file). */
+  isRevenueCatTrial: boolean;
   checkStripeByEmail: (email: string) => Promise<boolean>;
   
   // Feature gating
@@ -1441,6 +1443,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         localTrialExpired,
         graceExpired,
         isAdminBypass,
+        isRevenueCatTrial: (() => {
+          const ent = customerInfo?.entitlements?.active?.[ENTITLEMENT_ID] as any;
+          return ent?.periodType === 'TRIAL';
+        })(),
         checkStripeByEmail,
         // Feature gating
         showPaywall,
@@ -1491,6 +1497,7 @@ const FALLBACK_CONTEXT: UnifiedBillingContextType = {
   localTrialExpired: false,
   graceExpired: false,
   isAdminBypass: false,
+  isRevenueCatTrial: false,
   checkStripeByEmail: async () => false,
   showPaywall: false,
   isVerifyingCheckout: false,
