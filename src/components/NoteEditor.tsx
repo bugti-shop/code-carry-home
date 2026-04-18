@@ -73,7 +73,8 @@ interface NoteEditorProps {
   note: Note | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (note: Note) => void;
+  /** Return false (or resolve to false) to block persistence — e.g. when a soft paywall rejects the save. */
+  onSave: (note: Note) => boolean | void | Promise<boolean | void>;
   defaultType?: NoteType;
   defaultFolderId?: string;
   allNotes?: Note[];
@@ -546,6 +547,16 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
   const commitNote = useCallback(async ({ full }: { full: boolean }) => {
     const savedNote = buildCurrentNote();
 
+    // Ask the parent first — if they reject (e.g. soft paywall), do NOT persist.
+    let accepted: boolean | void = true;
+    try {
+      accepted = await onSave(savedNote);
+    } catch (e) {
+      console.warn('[NoteEditor] onSave threw, treating as rejected', e);
+      accepted = false;
+    }
+    if (accepted === false) return;
+
     if (full) {
       // Schedule or cancel note reminder in background
       if (savedNote.reminderEnabled && savedNote.reminderTime) {
@@ -562,7 +573,6 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
       saveNoteVersion(savedNote, note ? 'edit' : 'create');
     }
 
-    onSave(savedNote);
     persistNoteToIndexedDB(savedNote);
   }, [buildCurrentNote, note, onSave, persistNoteToIndexedDB]);
 
