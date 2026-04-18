@@ -71,6 +71,7 @@ export const PREMIUM_FEATURES = [
   'sketch_collab',
   'urgent_reminder',
   'team_collaboration',
+  'ai_dictation',
 ] as const;
 
 // No features are restricted to specific plan types - all premium features available to all plans
