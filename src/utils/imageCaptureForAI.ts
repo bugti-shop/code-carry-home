@@ -29,7 +29,11 @@ const captureWeb = (source: CaptureSource): Promise<string | null> =>
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    if (source === 'camera') input.setAttribute('capture', 'environment');
+    // On web we intentionally do NOT set `capture` so desktop users get the
+    // standard file picker (which lets them pick an existing photo OR take
+    // one with their webcam if the browser/OS supports it). The "camera"
+    // source on web therefore behaves the same as "gallery" — both open
+    // the native picker and let the user choose.
     input.style.display = 'none';
     let resolved = false;
     input.onchange = async () => {
