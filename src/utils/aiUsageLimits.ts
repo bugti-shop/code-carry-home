@@ -1,14 +1,21 @@
-// Client-side soft daily caps for AI features used by FREE (non-Pro) users.
-// Pro users are unaffected — callers should skip these checks when entitled.
+// Client-side soft daily caps for AI features.
+//
+// Tier rules:
+//  - Pro (paid, non-trial)  → unlimited (callers should skip checks)
+//  - Free trial users       → 3 uses/day per feature (scan, voice)
+//  - Free (post-trial/none) → 3 uses/day per feature (same cap)
 //
 // Counters live in localStorage and reset at local midnight (per device).
 // This is intentionally a soft cap to discourage abuse, not a security boundary.
 
 export type AiFeature = 'scan' | 'voice';
 
+// Daily cap for non-Pro users (free + free-trial).
+const DAILY_LIMIT = 3;
+
 const LIMITS: Record<AiFeature, number> = {
-  scan: 20,
-  voice: 50,
+  scan: DAILY_LIMIT,
+  voice: DAILY_LIMIT,
 };
 
 const LABELS: Record<AiFeature, string> = {
@@ -57,4 +64,4 @@ export const recordAiUsage = (f: AiFeature) => {
 
 /** Friendly message for a toast when the cap is hit. */
 export const getLimitReachedMessage = (f: AiFeature) =>
-  `Daily free limit reached (${LIMITS[f]} ${LABELS[f]}/day). Upgrade to Pro for unlimited use, or try again tomorrow.`;
+  `Daily limit reached (${LIMITS[f]} ${LABELS[f]}/day on Free & Trial). Upgrade to Pro for unlimited use, or try again tomorrow.`;
