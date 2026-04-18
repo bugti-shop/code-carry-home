@@ -59,6 +59,7 @@ export const ImageTaskExtractorSheet = ({
   const [isExtracting, setIsExtracting] = useState(false);
   const [items, setItems] = useState<ReviewItem[]>([]);
   const [hasRun, setHasRun] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
   const captureLockRef = useRef(false);
 
   // Reset on close
