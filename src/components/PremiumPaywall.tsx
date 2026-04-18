@@ -210,11 +210,20 @@ function usePaywallLogic() {
     }
   };
 
+  // Soft-limit info derived from paywallFeature like "soft_limit_notes" / "soft_limit_tasks"
+  const SOFT_LIMIT_COUNTS: Record<string, number> = {
+    notes: 2, tasks: 1, noteFolders: 1, taskFolders: 1, taskSections: 1,
+  };
+  const softLimitKind = paywallFeature?.startsWith('soft_limit_') ? paywallFeature.replace('soft_limit_', '') : null;
+  const softLimitMessage = softLimitKind && SOFT_LIMIT_COUNTS[softLimitKind] != null
+    ? t(`onboarding.paywall.softLimit.${softLimitKind}`, { count: SOFT_LIMIT_COUNTS[softLimitKind] })
+    : null;
+
   return {
     t, showPaywall, closePaywall, isNewFreeUser, isPro, selectedPlan, setSelectedPlan, isPurchasing, isRestoring,
     adminCode, setAdminCode, showAdminInput, setShowAdminInput, adminError,
     PLANS, currentPlan, handlePurchase, handleRestore, handleAccessCode, hasUsedTrial,
-    restoreEmail, setRestoreEmail, showRestoreEmail,
+    restoreEmail, setRestoreEmail, showRestoreEmail, softLimitMessage,
   };
 }
 
