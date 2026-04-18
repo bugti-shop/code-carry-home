@@ -227,7 +227,8 @@ export const ImageTaskExtractorSheet = ({
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="bottom"
-        className="rounded-t-3xl max-h-[92vh] overflow-y-auto p-0"
+        className="rounded-t-3xl max-h-[92vh] overflow-y-auto p-0 z-[80]"
+        style={{ zIndex: 80 }}
       >
         <SheetHeader className="px-4 pt-4 pb-2">
           <SheetTitle className="flex items-center gap-2 text-left">
