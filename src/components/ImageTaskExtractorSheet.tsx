@@ -85,6 +85,10 @@ export const ImageTaskExtractorSheet = ({
 
   const runCapture = async (source: 'camera' | 'gallery') => {
     if (captureLockRef.current) return;
+    if (!isPro && !canUseAiFeature('scan')) {
+      toast.error(getLimitReachedMessage('scan'));
+      return;
+    }
     captureLockRef.current = true;
     try {
       const dataUrl = await captureImageForAI(source);
