@@ -149,10 +149,12 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     priority: 'sheet',
   });
 
-  const { requireFeature, isRecurringSubscriber, isPro, isLocalTrial } = useSubscription();
+  const { requireFeature, isRecurringSubscriber, isPro, isLocalTrial, isAdminBypass } = useSubscription();
   const isStripeTrialing = typeof window !== 'undefined' && Boolean((window as any).__stripeIsTrialing);
   const isOnTrial = isLocalTrial || isStripeTrialing;
   const isPaidPro = isPro && !isOnTrial;
+  // Unlimited AI for: paid Pro, admin (BUGTI), and Stripe trial users (card on file).
+  const hasUnlimitedAi = isPaidPro || isAdminBypass || isStripeTrialing;
   const [taskText, setTaskText] = useState('');
   const [priority, setPriority] = useState<Priority>('none');
   const [dueDate, setDueDate] = useState<Date | undefined>();
