@@ -252,12 +252,23 @@ serve(async (req) => {
 
     const allSubs = [...activeSubs.data, ...trialingSubs.data];
     
-    // Check past_due with grace period
+    // Check past_due with grace period — cancel if expired so retries stop
     if (allSubs.length === 0 && pastDueSubs.data.length > 0) {
       const pdSub = pastDueSubs.data[0];
       const periodEnd = pdSub.current_period_end * 1000;
       if (Date.now() < periodEnd + GRACE_PERIOD_MS) {
         allSubs.push(pdSub);
+      } else {
+        logStep("Stripe past-due grace expired — cancelling subscription");
+        try {
+          await stripe.subscriptions.cancel(pdSub.id);
+        } catch (e) {
+          logStep("Warning: failed to cancel past-due subscription", { error: String(e) });
+        }
+        await supabaseAdmin
+          .from("subscriptions")
+          .update({ status: "canceled", cancel_at_period_end: false, updated_at: new Date().toISOString() })
+          .eq("stripe_subscription_id", pdSub.id);
       }
     }
 
