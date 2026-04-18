@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { genId } from '@/utils/genId';
 import { useTranslation } from 'react-i18next';
 import { useSubscription, FREE_LIMITS } from '@/contexts/SubscriptionContext';
 import { cn } from '@/lib/utils';
@@ -295,7 +296,7 @@ const Index = () => {
     
     const duplicatedNote: Note = {
       ...noteToDuplicate,
-      id: Date.now().toString(),
+      id: genId(),
       title: `${noteToDuplicate.title || 'Untitled'} (Copy)`,
       isPinned: false,
       pinnedOrder: undefined,

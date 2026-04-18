@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { genId } from '@/utils/genId';
 import { useTranslation } from 'react-i18next';
 import { TaskComment } from '@/types/note';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,7 @@ export const TaskCommentsSection = ({
     try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
 
     const comment: TaskComment = {
-      id: Date.now().toString(),
+      id: genId(),
       text: text.trim(),
       imageUrl: imagePreview || undefined,
       createdAt: new Date(),

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { genId } from '@/utils/genId';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Check, Trash2, Calendar, MoreVertical, Target, Zap, Brain, Sparkles, Timer, Focus, Plus } from 'lucide-react';
@@ -198,7 +199,7 @@ const CustomToolDetail = () => {
     
     const newTask: TodoItem = {
       ...taskData,
-      id: Date.now().toString(),
+      id: genId(),
       completed: false,
     };
     
@@ -237,7 +238,7 @@ const CustomToolDetail = () => {
     if (!quickTaskText.trim() || !tool) return;
     
     const newTask: TodoItem = {
-      id: Date.now().toString(),
+      id: genId(),
       text: quickTaskText.trim(),
       completed: false,
     };
@@ -279,7 +280,7 @@ const CustomToolDetail = () => {
     }
     
     const newFolder: Folder = {
-      id: Date.now().toString(),
+      id: genId(),
       name,
       color,
       isDefault: false,

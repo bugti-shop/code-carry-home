@@ -87,7 +87,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
       requireFeature('extra_folders');
       return;
     }
-    const newFolder: Folder = { id: Date.now().toString(), name, color, isDefault: false, createdAt: new Date() };
+    const newFolder: Folder = { id: genId(), name, color, isDefault: false, createdAt: new Date() };
     setFolders(prev => [...prev, newFolder]);
   }, [folders.length, isPro, isNewFreeUser, softRequireCreate, requireFeature, setFolders]);
 
@@ -149,7 +149,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
       }
     }
     const newSection: TaskSection = {
-      id: Date.now().toString(), name: t('todayPage.newSection'), color: '#3b82f6', isCollapsed: false, order: newOrder,
+      id: genId(), name: t('todayPage.newSection'), color: '#3b82f6', isCollapsed: false, order: newOrder,
     };
     const updatedSections = [...sections, newSection].sort((a, b) => a.order - b.order).map((s, idx) => ({ ...s, order: idx }));
     setSections(updatedSections);
@@ -201,7 +201,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     const section = sections.find(s => s.id === sectionId);
     if (!section) return;
     const maxOrder = Math.max(...sections.map(s => s.order), 0);
-    const newSection: TaskSection = { ...section, id: Date.now().toString(), name: `${section.name} (Copy)`, order: maxOrder + 1 };
+    const newSection: TaskSection = { ...section, id: genId(), name: `${section.name} (Copy)`, order: maxOrder + 1 };
     const sectionTasks = items.filter(i => i.sectionId === sectionId && !i.completed);
     const duplicatedTasks = sectionTasks.map((task, idx) => ({ ...task, id: `${Date.now()}-${idx}`, sectionId: newSection.id }));
     setSections(prev => [...prev, newSection]);
@@ -392,7 +392,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
 
   const duplicateTask = useCallback(async (task: TodoItem) => {
     try { await Haptics.impact({ style: ImpactStyle.Heavy }); } catch {}
-    const duplicatedTask: TodoItem = { ...task, id: Date.now().toString(), completed: false, text: `${task.text} (Copy)` };
+    const duplicatedTask: TodoItem = { ...task, id: genId(), completed: false, text: `${task.text} (Copy)` };
     setItems(prev => [duplicatedTask, ...prev]);
   }, [setItems]);
 

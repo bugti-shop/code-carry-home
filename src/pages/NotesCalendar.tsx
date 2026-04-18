@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { genId } from '@/utils/genId';
 import { useTranslation } from 'react-i18next';
 import { NotesCalendarView } from '@/components/NotesCalendarView';
 
@@ -94,7 +95,7 @@ const NotesCalendar = () => {
     } else {
       const newNote: Note = {
         ...noteData,
-        id: Date.now().toString(),
+        id: genId(),
         title: noteData.title || `Note - ${format(date || new Date(), 'MMM dd, yyyy')}`,
         createdAt: date || new Date(),
         updatedAt: date || new Date(),

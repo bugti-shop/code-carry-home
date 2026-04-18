@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { genId } from '@/utils/genId';
 import { useTranslation } from 'react-i18next';
 import { TodoItem, Priority, RepeatType, Folder, VoiceRecording, LocationReminder, TaskAttachment } from '@/types/note';
 import { TagManagementSheet } from '@/components/TagManagementSheet';
@@ -743,7 +744,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
           const audioBase64 = reader.result as string;
           // Use ref value for accurate duration (state may be stale in callback)
           const recording: VoiceRecording = {
-            id: Date.now().toString(),
+            id: genId(),
             audioUrl: audioBase64,
             duration: recordingTimeRef.current,
             timestamp: new Date(),
