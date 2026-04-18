@@ -77,6 +77,7 @@ const FlatView = lazy(flatFactory);
 
 const Today = () => {
   const { t } = useTranslation();
+  const { softRequireCreate, canCreateWithinSoftLimit } = useSubscription();
 
   // ── All state from extracted hook ──
   const state = useTodayState();
