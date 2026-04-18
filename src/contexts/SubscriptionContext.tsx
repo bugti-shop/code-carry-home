@@ -326,18 +326,12 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       const now = Date.now();
       const elapsed = now - trialStart;
       const trialMs = FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000;
-      const graceMs = GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000;
+      // No grace period — trial ends exactly at FREE_TRIAL_DAYS. No silent extension.
       if (elapsed < trialMs) {
         setIsLocalTrial(true);
         setLocalTrialExpired(false);
         setGraceExpired(false);
         return true;
-      } else if (elapsed < trialMs + graceMs) {
-        // In grace period — trial expired but still within grace
-        setIsLocalTrial(false);
-        setLocalTrialExpired(true);
-        setGraceExpired(false);
-        return true; // still grant access during grace
       } else {
         setIsLocalTrial(false);
         setLocalTrialExpired(true);
