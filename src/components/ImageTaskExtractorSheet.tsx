@@ -24,6 +24,8 @@ import { captureImageForAI } from '@/utils/imageCaptureForAI';
 import { supabase } from '@/integrations/supabase/client';
 import { TodoItem, Folder, Priority, RepeatType } from '@/types/note';
 import { cn } from '@/lib/utils';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
 
 interface TaskSection { id: string; name: string }
 
@@ -62,6 +64,7 @@ export const ImageTaskExtractorSheet = ({
   currentSectionId,
 }: Props) => {
   const { t, i18n } = useTranslation();
+  const { isPro } = useSubscription();
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const [items, setItems] = useState<ReviewItem[]>([]);
@@ -82,6 +85,10 @@ export const ImageTaskExtractorSheet = ({
 
   const runCapture = async (source: 'camera' | 'gallery') => {
     if (captureLockRef.current) return;
+    if (!isPro && !canUseAiFeature('scan')) {
+      toast.error(getLimitReachedMessage('scan'));
+      return;
+    }
     captureLockRef.current = true;
     try {
       const dataUrl = await captureImageForAI(source);
@@ -135,6 +142,7 @@ export const ImageTaskExtractorSheet = ({
 
       setItems(reviewItems);
       setHasRun(true);
+      if (!isPro) recordAiUsage('scan');
 
       if (reviewItems.length === 0) {
         toast.info(t('imageExtract.noTasks', 'No tasks detected in this image'));
