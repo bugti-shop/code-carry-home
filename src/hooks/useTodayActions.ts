@@ -204,7 +204,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     const maxOrder = Math.max(...sections.map(s => s.order), 0);
     const newSection: TaskSection = { ...section, id: genId(), name: `${section.name} (Copy)`, order: maxOrder + 1 };
     const sectionTasks = items.filter(i => i.sectionId === sectionId && !i.completed);
-    const duplicatedTasks = sectionTasks.map((task, idx) => ({ ...task, id: `${Date.now()}-${idx}`, sectionId: newSection.id }));
+    const duplicatedTasks = sectionTasks.map((task) => ({ ...task, id: genId(), sectionId: newSection.id }));
     setSections(prev => [...prev, newSection]);
     setItems(prev => [...duplicatedTasks, ...prev]);
     toast.success(t('todayPage.sectionDuplicated'));
