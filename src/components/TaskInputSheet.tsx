@@ -63,6 +63,7 @@ import { parseNaturalLanguageTask, hasNaturalLanguagePatterns } from '@/utils/na
 import { supabase } from '@/integrations/supabase/client';
 import { Sparkles as SparklesIcon, Loader2, ScanLine } from 'lucide-react';
 import { ImageTaskExtractorSheet } from './ImageTaskExtractorSheet';
+import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
 
 interface TaskSection {
   id: string;
