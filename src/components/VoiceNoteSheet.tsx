@@ -28,7 +28,10 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [interim, setInterim] = useState('');
+  const [elapsedMs, setElapsedMs] = useState(0);
   const recognitionRef = useRef<any>(null);
+  const startedAtRef = useRef<number | null>(null);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // True only when the user explicitly tapped Stop. Used so that when the
   // browser auto-ends the SpeechRecognition session (silence / timeout), we
   // transparently restart it instead of finalizing the transcript.
@@ -53,6 +56,11 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
       recognitionRef.current?.stop?.();
     } catch {}
     recognitionRef.current = null;
+    if (tickRef.current) {
+      clearInterval(tickRef.current);
+      tickRef.current = null;
+    }
+    startedAtRef.current = null;
     setIsListening(false);
     setInterim('');
   };
@@ -111,12 +119,29 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
     userStoppedRef.current = false;
     recognitionRef.current = rec;
     setIsListening(true);
+    // Start elapsed-time counter (only when user begins, not on auto-restarts).
+    startedAtRef.current = Date.now();
+    setElapsedMs(0);
+    if (tickRef.current) clearInterval(tickRef.current);
+    tickRef.current = setInterval(() => {
+      if (startedAtRef.current != null) {
+        setElapsedMs(Date.now() - startedAtRef.current);
+      }
+    }, 250);
     try {
       rec.start();
     } catch (e) {
       console.error('[voice note] start failed', e);
       stopListening();
     }
+  };
+
+  // Format ms → MM:SS for the on-screen timer.
+  const formatElapsed = (ms: number) => {
+    const total = Math.floor(ms / 1000);
+    const m = Math.floor(total / 60).toString().padStart(2, '0');
+    const s = (total % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
   };
 
   const handleInsert = () => {
@@ -169,6 +194,16 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
                 ? t('voiceNote.listening', 'Listening… tap to stop')
                 : t('voiceNote.tapToSpeak', 'Tap to speak')}
             </span>
+            {isListening && (
+              <div
+                className="flex items-center gap-1.5 text-sm font-mono tabular-nums text-destructive"
+                aria-live="polite"
+                aria-label={t('voiceNote.elapsed', 'Recording time')}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+                {formatElapsed(elapsedMs)}
+              </div>
+            )}
           </div>
 
           {/* Editable transcript */}
