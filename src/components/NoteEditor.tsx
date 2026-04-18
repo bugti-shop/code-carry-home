@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { genId } from '@/utils/genId';
 import { getSetting, setSetting } from '@/utils/settingsStorage';
 import { compressImage, isCompressibleImage } from '@/utils/imageCompression';
 import { useNavigate } from 'react-router-dom';
@@ -439,7 +440,7 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
     if (!newFolderName.trim()) return;
 
     const newFolder: Folder = {
-      id: Date.now().toString(),
+      id: genId(),
       name: newFolderName,
       isDefault: false,
       createdAt: new Date(),

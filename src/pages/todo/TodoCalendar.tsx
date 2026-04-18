@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { genId } from '@/utils/genId';
 import { recordCompletion, TASK_STREAK_KEY } from '@/utils/streakStorage';
 
 import { NotesCalendarView } from '@/components/NotesCalendarView';
@@ -269,7 +270,7 @@ const TodoCalendar = () => {
         return;
       case 'duplicate':
         for (const task of selectedTasks) {
-          const duplicatedTask: TodoItem = { ...task, id: Date.now().toString() + Math.random(), completed: false };
+          const duplicatedTask: TodoItem = { ...task, id: genId(), completed: false };
           const updatedItems = [...items, duplicatedTask];
           setItems(updatedItems);
           await saveTodoItems(updatedItems);
@@ -367,7 +368,7 @@ const TodoCalendar = () => {
       await scheduleEventNotification(updatedEvent);
       setEditingEvent(null);
     } else {
-      const newEvent: CalendarEvent = { ...eventData, id: Date.now().toString(), createdAt: new Date(), updatedAt: new Date() };
+      const newEvent: CalendarEvent = { ...eventData, id: genId(), createdAt: new Date(), updatedAt: new Date() };
       const updatedEvents = [...events, newEvent];
       setEvents(updatedEvents);
       await setSetting('calendarEvents', updatedEvents);
@@ -382,7 +383,7 @@ const TodoCalendar = () => {
   };
 
   const handleAddTask = async (task: Omit<TodoItem, 'id' | 'completed'>) => {
-    const newItem: TodoItem = { id: Date.now().toString(), completed: false, ...task };
+    const newItem: TodoItem = { id: genId(), completed: false, ...task };
     // Add task to storage FIRST, then schedule notifications in background
     const allItems = await loadTodoItems();
     allItems.unshift(newItem);
@@ -399,7 +400,7 @@ const TodoCalendar = () => {
       requireFeature('extra_folders');
       return;
     }
-    const newFolder: Folder = { id: Date.now().toString(), name, color, isDefault: false, createdAt: new Date() };
+    const newFolder: Folder = { id: genId(), name, color, isDefault: false, createdAt: new Date() };
     const updatedFolders = [...folders, newFolder];
     setFolders(updatedFolders);
     await setSetting('todoFolders', updatedFolders);
@@ -1312,7 +1313,7 @@ const TodoCalendar = () => {
         onUpdate={(updatedTask) => { handleUpdateTask(updatedTask.id, updatedTask); setSelectedTask(updatedTask); }}
         onDelete={handleDeleteTask}
         onDuplicate={async (task) => {
-          const duplicatedTask: TodoItem = { ...task, id: Date.now().toString(), completed: false };
+          const duplicatedTask: TodoItem = { ...task, id: genId(), completed: false };
           const updatedItems = [...items, duplicatedTask];
           setItems(updatedItems);
           await saveTodoItems(updatedItems);

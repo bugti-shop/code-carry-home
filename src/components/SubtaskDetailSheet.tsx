@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { genId } from '@/utils/genId';
 import { useTranslation } from 'react-i18next';
 import { TodoItem, Priority, LocationReminder, Folder } from '@/types/note';
 import { useGlobalTags } from '@/hooks/useGlobalTags';
@@ -193,7 +194,7 @@ export const SubtaskDetailSheet = ({
     
     const now = new Date();
     const nested: TodoItem = {
-      id: Date.now().toString(),
+      id: genId(),
       text: newSubtaskText.trim(),
       completed: false,
       createdAt: now,
@@ -603,7 +604,7 @@ export const SubtaskDetailSheet = ({
         onClose={() => setIsNestedSubtaskInputOpen(false)}
         onAddTask={(task) => {
           const nested: TodoItem = {
-            id: Date.now().toString(),
+            id: genId(),
             completed: false,
             ...task,
           };

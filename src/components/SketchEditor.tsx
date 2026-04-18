@@ -6530,7 +6530,7 @@ export const SketchEditor = memo(({ initialData, onChange, onImageExport, classN
                 const bx = rects.length > 0 ? Math.min(...rects.map(r => r.x)) : 0;
                 const by = rects.length > 0 ? Math.max(...rects.map(r => r.y + r.h)) + 8 : 0;
                 const newAnnotation: TextAnnotation = {
-                  id: Date.now(),
+                  id: Date.now() + Math.floor(Math.random() * 1000),
                   x: bx,
                   y: by,
                   text: pdfSelectedText,

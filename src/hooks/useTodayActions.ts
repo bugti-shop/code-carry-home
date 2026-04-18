@@ -3,6 +3,7 @@
  * Extracted from Today.tsx to reduce file size.
  */
 import { useCallback, useRef } from 'react';
+import { genId } from '@/utils/genId';
 import { TodoItem, Folder, Priority, Note, TaskSection } from '@/types/note';
 import { loadNotesFromDB, saveNotesToDB } from '@/utils/noteStorage';
 import { useTranslation } from 'react-i18next';
@@ -87,7 +88,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
       requireFeature('extra_folders');
       return;
     }
-    const newFolder: Folder = { id: Date.now().toString(), name, color, isDefault: false, createdAt: new Date() };
+    const newFolder: Folder = { id: genId(), name, color, isDefault: false, createdAt: new Date() };
     setFolders(prev => [...prev, newFolder]);
   }, [folders.length, isPro, isNewFreeUser, softRequireCreate, requireFeature, setFolders]);
 
@@ -149,7 +150,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
       }
     }
     const newSection: TaskSection = {
-      id: Date.now().toString(), name: t('todayPage.newSection'), color: '#3b82f6', isCollapsed: false, order: newOrder,
+      id: genId(), name: t('todayPage.newSection'), color: '#3b82f6', isCollapsed: false, order: newOrder,
     };
     const updatedSections = [...sections, newSection].sort((a, b) => a.order - b.order).map((s, idx) => ({ ...s, order: idx }));
     setSections(updatedSections);
@@ -201,9 +202,9 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     const section = sections.find(s => s.id === sectionId);
     if (!section) return;
     const maxOrder = Math.max(...sections.map(s => s.order), 0);
-    const newSection: TaskSection = { ...section, id: Date.now().toString(), name: `${section.name} (Copy)`, order: maxOrder + 1 };
+    const newSection: TaskSection = { ...section, id: genId(), name: `${section.name} (Copy)`, order: maxOrder + 1 };
     const sectionTasks = items.filter(i => i.sectionId === sectionId && !i.completed);
-    const duplicatedTasks = sectionTasks.map((task, idx) => ({ ...task, id: `${Date.now()}-${idx}`, sectionId: newSection.id }));
+    const duplicatedTasks = sectionTasks.map((task) => ({ ...task, id: genId(), sectionId: newSection.id }));
     setSections(prev => [...prev, newSection]);
     setItems(prev => [...duplicatedTasks, ...prev]);
     toast.success(t('todayPage.sectionDuplicated'));
@@ -256,7 +257,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     // multiple tasks are added in the same tick (e.g. AI image extraction
     // forEach loop), causing all of them to share one id and toggle together.
     const newItem: TodoItem = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, completed: false, ...task,
+      id: genId(), completed: false, ...task,
       sectionId: task.sectionId || inputSectionId || defaultSectionId || sections[0]?.id,
       dueDate: task.dueDate || new Date(),
       createdAt: now, modifiedAt: now,
@@ -278,7 +279,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     if (!isPro && isNewFreeUser && !softRequireCreate('tasks', itemsRef.current.length)) return;
     const now = new Date();
     const newItems: TodoItem[] = taskTexts.map((text, idx) => ({
-      id: `${Date.now()}-${idx}`, text, completed: false,
+      id: genId(), text, completed: false,
       folderId: folderId || selectedFolderId || undefined,
       sectionId: sectionId || inputSectionId || sections[0]?.id,
       priority, dueDate: dueDate || new Date(), createdAt: now, modifiedAt: now,
@@ -392,7 +393,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
 
   const duplicateTask = useCallback(async (task: TodoItem) => {
     try { await Haptics.impact({ style: ImpactStyle.Heavy }); } catch {}
-    const duplicatedTask: TodoItem = { ...task, id: Date.now().toString(), completed: false, text: `${task.text} (Copy)` };
+    const duplicatedTask: TodoItem = { ...task, id: genId(), completed: false, text: `${task.text} (Copy)` };
     setItems(prev => [duplicatedTask, ...prev]);
   }, [setItems]);
 
@@ -410,7 +411,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
     const filteredItems = selectedFolderId ? items.filter(i => i.folderId === selectedFolderId) : items;
     let toDuplicate: TodoItem[] = option === 'uncompleted' ? filteredItems.filter(i => !i.completed) : filteredItems;
     const duplicated = toDuplicate.map((item, idx) => ({
-      ...item, id: `${Date.now()}-${idx}`, completed: option === 'all-reset' ? false : item.completed, text: `${item.text} (Copy)`
+      ...item, id: genId(), completed: option === 'all-reset' ? false : item.completed, text: `${item.text} (Copy)`
     }));
     setItems(prev => [...duplicated, ...prev]);
     toast.success(t('todayPage.duplicatedTasks', { count: duplicated.length }));
@@ -419,7 +420,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
   const convertToNotes = useCallback(async (tasksToConvert: TodoItem[]) => {
     const existingNotes = await loadNotesFromDB();
     const newNotes: Note[] = tasksToConvert.map((task, idx) => ({
-      id: `${Date.now()}-${idx}`, type: 'regular' as const, title: task.text,
+      id: genId(), type: 'regular' as const, title: task.text,
       content: task.description || '', voiceRecordings: [],
       images: task.imageUrl ? [task.imageUrl] : [],
       createdAt: new Date(), updatedAt: new Date(),
@@ -468,7 +469,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
         break;
       case 'priority': setIsPrioritySheetOpen(true); break;
       case 'duplicate':
-        const duplicated = selectedItems.map((item, idx) => ({ ...item, id: `${Date.now()}-${idx}`, completed: false, text: `${item.text} (Copy)` }));
+        const duplicated = selectedItems.map((item, idx) => ({ ...item, id: genId(), completed: false, text: `${item.text} (Copy)` }));
         setItems(prev => [...duplicated, ...prev]);
         setSelectedTaskIds(new Set()); setIsSelectionMode(false);
         toast.success(t('todayPage.duplicatedTasks', { count: selectedItems.length }));

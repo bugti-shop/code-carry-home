@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue } from 'react';
+import { genId } from '@/utils/genId';
 import { getSetting, setSetting } from '@/utils/settingsStorage';
 import { useTaskWorker } from '@/hooks/useTaskWorker';
 import { recordCompletion, TASK_STREAK_KEY } from '@/utils/streakStorage';
@@ -128,14 +129,14 @@ const Upcoming = () => {
       return;
     }
     
-    const newFolder: Folder = { id: Date.now().toString(), name, color, isDefault: false, createdAt: new Date() };
+    const newFolder: Folder = { id: genId(), name, color, isDefault: false, createdAt: new Date() };
     const updatedFolders = [...folders, newFolder];
     setFolders(updatedFolders);
     await setSetting('todoFolders', updatedFolders);
   };
 
   const handleAddTask = async (task: Omit<TodoItem, 'id' | 'completed'>) => {
-    const newItem: TodoItem = { id: Date.now().toString(), completed: false, ...task };
+    const newItem: TodoItem = { id: genId(), completed: false, ...task };
     const updatedAllItems = [newItem, ...allItems];
     setAllItems(updatedAllItems);
     await saveTodoItems(updatedAllItems);
@@ -211,7 +212,7 @@ const Upcoming = () => {
 
   const duplicateTask = async (task: TodoItem) => {
     try { await Haptics.impact({ style: ImpactStyle.Heavy }); } catch {}
-    const duplicatedTask: TodoItem = { ...task, id: Date.now().toString(), completed: false, text: `${task.text} (Copy)` };
+    const duplicatedTask: TodoItem = { ...task, id: genId(), completed: false, text: `${task.text} (Copy)` };
     const updatedAllItems = [duplicatedTask, ...allItems];
     setAllItems(updatedAllItems);
     await saveTodoItems(updatedAllItems);

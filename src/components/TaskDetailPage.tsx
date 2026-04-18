@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { genId } from '@/utils/genId';
 import { saveTaskMedia, makeTaskMediaRef, deleteTaskMedia, parseTaskMediaRef } from '@/utils/taskMediaStorage';
 import { useTranslation } from 'react-i18next';
 import { TodoItem, Priority, Folder, Note, RepeatType, ColoredTag, TimeTracking, TaskStatus, LocationReminder, TaskAttachment, EscalationTiming } from '@/types/note';
@@ -235,7 +236,7 @@ export const TaskDetailPage = ({
     try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
     
     const newSubtask: TodoItem = {
-      id: Date.now().toString(),
+      id: genId(),
       text: newSubtaskText.trim(),
       completed: false,
     };
@@ -253,7 +254,7 @@ export const TaskDetailPage = ({
     try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
     
     const newSubtask: TodoItem = {
-      id: Date.now().toString(),
+      id: genId(),
       completed: false,
       ...subtask,
     };
@@ -317,7 +318,7 @@ export const TaskDetailPage = ({
     // Create as main task (handled by parent component via onDuplicate with modifications)
     const newTask: TodoItem = {
       ...subtask,
-      id: Date.now().toString(),
+      id: genId(),
       folderId: task.folderId,
     };
     onDuplicate(newTask);

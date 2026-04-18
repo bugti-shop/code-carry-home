@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { genId } from '@/utils/genId';
 import { useTranslation } from 'react-i18next';
 import { TodoItem } from '@/types/note';
 import { Input } from '@/components/ui/input';
@@ -20,7 +21,7 @@ export const TodoEditor = ({ items, onChange }: TodoEditorProps) => {
 
   const addItem = () => {
     if (currentTask.trim()) {
-      onChange([...items, { id: Date.now().toString(), text: currentTask, completed: false }]);
+      onChange([...items, { id: genId(), text: currentTask, completed: false }]);
       setCurrentTask('');
       setIsDialogOpen(false);
     }
@@ -95,7 +96,7 @@ export const TodoEditor = ({ items, onChange }: TodoEditorProps) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     if (currentTask.trim()) {
-                      onChange([...items, { id: Date.now().toString(), text: currentTask, completed: false }]);
+                      onChange([...items, { id: genId(), text: currentTask, completed: false }]);
                       setCurrentTask('');
                     }
                   }
@@ -109,7 +110,7 @@ export const TodoEditor = ({ items, onChange }: TodoEditorProps) => {
                   variant="ghost"
                   onClick={() => {
                     if (currentTask.trim()) {
-                      onChange([...items, { id: Date.now().toString(), text: currentTask, completed: false }]);
+                      onChange([...items, { id: genId(), text: currentTask, completed: false }]);
                       setCurrentTask('');
                     }
                   }}
