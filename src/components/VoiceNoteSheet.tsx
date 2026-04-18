@@ -36,6 +36,13 @@ export const VoiceNoteSheet = ({ isOpen, onClose, onInsertText }: Props) => {
   // browser auto-ends the SpeechRecognition session (silence / timeout), we
   // transparently restart it instead of finalizing the transcript.
   const userStoppedRef = useRef(false);
+  // Buffer for interim text so we can commit it if the user stops mid-utterance.
+  const interimRef = useRef('');
+  // Backoff counter for restart failures (resets on successful start).
+  const restartAttemptsRef = useRef(0);
+  // Periodic safety restart (Chrome can silently stall recognition after
+  // several minutes of continuous dictation). We cycle the session every ~50s.
+  const safetyRestartRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const supportsSpeech =
     typeof window !== 'undefined' &&
     !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
