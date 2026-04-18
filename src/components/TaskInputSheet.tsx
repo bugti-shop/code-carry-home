@@ -561,6 +561,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
       applyAIParsed((data as any)?.parsed);
+      if (!isPaidPro) recordAiUsage('voice');
       try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
       toast.success(t('tasks.aiParsedSuccess', 'AI filled the task'));
     } catch (e: any) {
