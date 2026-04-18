@@ -640,6 +640,7 @@ const Upcoming = () => {
 
       <Button
         onClick={async () => {
+          if (!isPro && !canCreateWithinSoftLimit('tasks', allItems.length)) { softRequireCreate('tasks', allItems.length); return; }
           try { await Haptics.impact({ style: ImpactStyle.Heavy }); } catch {}
           setIsInputOpen(true);
         }}
