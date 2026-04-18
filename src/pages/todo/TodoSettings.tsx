@@ -346,19 +346,19 @@ const TodoSettings = () => {
               onClick={() => setShowLanguageDialog(true)} 
             />
             <SettingsRow 
-              label={<>{t('settings.noteTypeVisibility', 'Note Type Visibility')} {!isPro && <Crown className="h-3.5 w-3.5 inline ml-1" style={{ color: '#3c78f0' }} />}</>}
+              label={t('settings.noteTypeVisibility', 'Note Type Visibility')}
               onClick={() => { if (requireFeature('notes_type_visibility')) setShowNoteTypeVisibilitySheet(true); }} 
             />
             <SettingsRow 
-              label={<>{t('settings.notesSettings', 'Notes Settings')} {!isPro && <Crown className="h-3.5 w-3.5 inline ml-1" style={{ color: '#3c78f0' }} />}</>}
+              label={t('settings.notesSettings', 'Notes Settings')}
               onClick={() => { if (requireFeature('notes_settings')) setShowNotesSettingsSheet(true); }} 
             />
             <SettingsRow 
-              label={<>{t('settings.tasksSettings', 'Task Defaults & Display')} {!isPro && <Crown className="h-3.5 w-3.5 inline ml-1" style={{ color: '#3c78f0' }} />}</>}
+              label={t('settings.tasksSettings', 'Task Defaults & Display')}
               onClick={() => { if (requireFeature('tasks_settings')) setShowTasksSettingsSheet(true); }} 
             />
             <SettingsRow 
-              label={<>{t('settings.customizeNavigation', 'Customize Navigation')} {!isPro && <Crown className="h-3.5 w-3.5 inline ml-1" style={{ color: '#3c78f0' }} />}</>}
+              label={t('settings.customizeNavigation', 'Customize Navigation')}
               onClick={() => { if (requireFeature('customize_navigation')) setShowCustomizeNavigationSheet(true); }} 
             />
           </div>
@@ -420,7 +420,7 @@ const TodoSettings = () => {
           <div className="border border-border rounded-lg overflow-hidden">
             <SectionHeading title={t('settings.security', 'Security')} />
             <SettingsRow 
-              label={<>{t('settings.appLock', 'App Lock')} {!isPro && <Crown className="h-3.5 w-3.5 inline ml-1" style={{ color: '#3c78f0' }} />}</>}
+              label={t('settings.appLock', 'App Lock')}
               onClick={() => { if (requireFeature('app_lock')) setShowAppLockSettingsSheet(true); }} 
             />
           </div>
@@ -435,7 +435,6 @@ const TodoSettings = () => {
             >
               <span className="text-foreground text-sm flex items-center gap-1">
                 {isBackingUp ? t('settings.backingUp', 'Backing up...') : t('settings.backupData')}
-                {!isPro && <Crown className="h-3.5 w-3.5" style={{ color: '#3c78f0' }} />}
               </span>
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </button>
