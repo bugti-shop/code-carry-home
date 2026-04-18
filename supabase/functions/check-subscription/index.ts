@@ -220,7 +220,17 @@ serve(async (req) => {
           customer_email: normalizedEmail,
         });
       }
-      logStep("Past-due subscription grace period expired");
+      logStep("Past-due grace expired — cancelling Stripe subscription to stop retries");
+      try {
+        await stripe.subscriptions.cancel(pastDueSub.stripe_subscription_id);
+      } catch (e) {
+        logStep("Warning: failed to cancel past-due subscription", { error: String(e) });
+      }
+      await supabaseAdmin
+        .from("subscriptions")
+        .update({ status: "canceled", cancel_at_period_end: false, updated_at: new Date().toISOString() })
+        .eq("stripe_subscription_id", pastDueSub.stripe_subscription_id);
+      return jsonResponse({ subscribed: false, subscription_status: "canceled", customer_email: normalizedEmail });
     }
 
     // 2. Fallback: check Stripe API directly (for cases where webhook hasn't fired yet)
