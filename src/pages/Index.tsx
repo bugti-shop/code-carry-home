@@ -58,7 +58,7 @@ const Index = () => {
   const { notes, setNotes, notesMeta, notesMap, counts, isLoading: notesLoading } = useNotes();
   
   // Note type visibility
-  const { requireFeature, canCreateWithinSoftLimit, softRequireCreate } = useSubscription();
+  const { requireFeature, isPro, openPaywall, canCreateWithinSoftLimit, softRequireCreate } = useSubscription();
   const { visibleTypes, isTypeVisible, filterNotesByVisibility } = useNoteTypeVisibility();
   const [showNoteTypeVisibilitySheet, setShowNoteTypeVisibilitySheet] = useState(false);
   const [showNoteTemplates, setShowNoteTemplates] = useState(true);
