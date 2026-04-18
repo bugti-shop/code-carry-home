@@ -583,13 +583,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     await actuallyStartDictation(SR);
   };
   const actuallyStartDictation = async (SR: any) => {
-    const SR: any =
-      (typeof window !== 'undefined' &&
-        ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
-    if (!SR) {
-      toast.error(t('tasks.aiNoSpeech', 'Speech recognition not supported on this device'));
-      return;
-    }
     try {
       const recognition = new SR();
       recognition.continuous = false;
