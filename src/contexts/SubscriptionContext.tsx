@@ -644,6 +644,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setCustomerInfo(result.customerInfo);
       const hasEntitlement = result.customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
       setRcIsPro(hasEntitlement);
+      try { localStorage.setItem('flowist_rc_entitled', hasEntitlement ? 'true' : 'false'); localStorage.setItem('flowist_rc_verified_at', String(Date.now())); } catch {}
       return hasEntitlement;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Purchase failed';
