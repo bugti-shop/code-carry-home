@@ -32,11 +32,13 @@ interface Props {
 
 export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
   const { t, i18n } = useTranslation();
-  const { isPro, isLocalTrial, requireFeature } = useSubscription();
+  const { isPro, isLocalTrial, isAdminBypass, requireFeature } = useSubscription();
   const isStripeTrialing = typeof window !== 'undefined' && Boolean((window as any).__stripeIsTrialing);
   const isOnTrial = isLocalTrial || isStripeTrialing;
   // Only fully-paid Pro (not on free trial) gets unlimited AI use.
   const isPaidPro = isPro && !isOnTrial;
+  // Unlimited AI for: paid Pro, admin (BUGTI), and Stripe trial users (card on file).
+  const hasUnlimitedAi = isPaidPro || isAdminBypass || isStripeTrialing;
   const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -71,13 +73,13 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
 
   const runExtraction = async (dataUrl: string) => {
     // Free users (no Pro, no trial) → block & open paywall.
-    if (!isPaidPro && !isOnTrial) {
+    if (!hasUnlimitedAi && !isOnTrial) {
       onClose();
       requireFeature('ai_scan' as any);
       return;
     }
-    // Trial users → soft daily cap.
-    if (!isPaidPro && !canUseAiFeature('scan')) {
+    // Local-trial users → soft daily cap (admin & Stripe-trial bypass it).
+    if (!hasUnlimitedAi && !canUseAiFeature('scan')) {
       toast.error(getLimitReachedMessage('scan'));
       return;
     }
@@ -104,7 +106,7 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
       setHtml(rawHtml);
       setSuggestedTitle(title);
       setHasRun(true);
-      if (!isPaidPro) recordAiUsage('scan');
+      if (!hasUnlimitedAi) recordAiUsage('scan');
 
       if (!rawHtml) {
         toast.info(t('scanNote.noText', 'No readable text found in this image'));

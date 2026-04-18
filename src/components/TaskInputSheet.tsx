@@ -149,10 +149,12 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     priority: 'sheet',
   });
 
-  const { requireFeature, isRecurringSubscriber, isPro, isLocalTrial } = useSubscription();
+  const { requireFeature, isRecurringSubscriber, isPro, isLocalTrial, isAdminBypass } = useSubscription();
   const isStripeTrialing = typeof window !== 'undefined' && Boolean((window as any).__stripeIsTrialing);
   const isOnTrial = isLocalTrial || isStripeTrialing;
   const isPaidPro = isPro && !isOnTrial;
+  // Unlimited AI for: paid Pro, admin (BUGTI), and Stripe trial users (card on file).
+  const hasUnlimitedAi = isPaidPro || isAdminBypass || isStripeTrialing;
   const [taskText, setTaskText] = useState('');
   const [priority, setPriority] = useState<Priority>('none');
   const [dueDate, setDueDate] = useState<Date | undefined>();
@@ -570,7 +572,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
       applyAIParsed((data as any)?.parsed);
-      if (!isPaidPro) recordAiUsage('voice');
+      if (!hasUnlimitedAi) recordAiUsage('voice');
       try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
       toast.success(t('tasks.aiParsedSuccess', 'AI filled the task'));
     } catch (e: any) {

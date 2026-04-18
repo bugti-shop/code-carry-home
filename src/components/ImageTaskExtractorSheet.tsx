@@ -66,10 +66,13 @@ export const ImageTaskExtractorSheet = ({
   currentSectionId,
 }: Props) => {
   const { t, i18n } = useTranslation();
-  const { isPro, isLocalTrial, requireFeature } = useSubscription();
+  const { isPro, isLocalTrial, isAdminBypass, requireFeature } = useSubscription();
   const isStripeTrialing = typeof window !== 'undefined' && Boolean((window as any).__stripeIsTrialing);
   const isOnTrial = isLocalTrial || isStripeTrialing;
   const isPaidPro = isPro && !isOnTrial;
+  // Unlimited AI for: paid Pro, admin (BUGTI code), and Stripe trial users (card on file).
+  // Only the local no-card trial gets the daily cap.
+  const hasUnlimitedAi = isPaidPro || isAdminBypass || isStripeTrialing;
   const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -103,12 +106,12 @@ export const ImageTaskExtractorSheet = ({
   };
 
   const runExtraction = async (dataUrl: string) => {
-    if (!isPaidPro && !isOnTrial) {
+    if (!hasUnlimitedAi && !isOnTrial) {
       onClose();
       requireFeature('ai_scan' as any);
       return;
     }
-    if (!isPaidPro && !canUseAiFeature('scan')) {
+    if (!hasUnlimitedAi && !canUseAiFeature('scan')) {
       toast.error(getLimitReachedMessage('scan'));
       return;
     }
@@ -153,7 +156,7 @@ export const ImageTaskExtractorSheet = ({
 
       setItems(reviewItems);
       setHasRun(true);
-      if (!isPaidPro) recordAiUsage('scan');
+      if (!hasUnlimitedAi) recordAiUsage('scan');
 
       if (reviewItems.length === 0) {
         toast.info(t('imageExtract.noTasks', 'No tasks detected in this image'));
