@@ -292,7 +292,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     if (cleanup) void cleanup();
   }, []);
 
-  const finishNativeAiDictation = useCallback(() => {
+  const finishNativeAiDictation = () => {
     if (nativeSpeechEndingRef.current) return;
     nativeSpeechEndingRef.current = true;
     const text = nativeSpeechTranscriptRef.current.trim();
@@ -304,7 +304,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     clearAiElapsedTimer();
     if (cleanup) void cleanup();
     if (text) void processAITranscript(text);
-  }, [processAITranscript]);
+  };
 
   // AI vision: scan tasks from a paper / sticky-note image (Pro-gated)
   const [showImageExtractor, setShowImageExtractor] = useState(false);
