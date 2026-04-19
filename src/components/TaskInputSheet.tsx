@@ -68,6 +68,7 @@ import { ImageTaskExtractorSheet } from './ImageTaskExtractorSheet';
 import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
 import { acquireAiLock, getAiBusyMessage, releaseAllAiLocks } from '@/utils/aiConcurrencyLock';
 import { getRecentDictationLangs, recordRecentDictationLang } from '@/utils/dictationLangRecent';
+import { startNativeSpeechSession, shouldUseNativeSpeechRecognition } from '@/utils/nativeSpeechRecognition';
 
 interface TaskSection {
   id: string;
@@ -250,11 +251,60 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   });
   const speechRecognitionRef = useRef<any>(null);
   const aiTranscriptRef = useRef<string>('');
+  const nativeSpeechStopRef = useRef<null | (() => Promise<void>)>(null);
+  const nativeSpeechCleanupRef = useRef<null | (() => Promise<void>)>(null);
+  const nativeSpeechTranscriptRef = useRef('');
+  const nativeSpeechEndingRef = useRef(false);
   // True only when user explicitly tapped Stop. Lets us silently restart
   // SpeechRecognition when the browser auto-ends on silence/timeout.
   const userStoppedDictationRef = useRef(false);
   const aiStartedAtRef = useRef<number | null>(null);
   const aiTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearAiElapsedTimer = () => {
+    if (aiTickRef.current) {
+      clearInterval(aiTickRef.current);
+      aiTickRef.current = null;
+    }
+    aiStartedAtRef.current = null;
+    setAiElapsedMs(0);
+  };
+
+  const startAiElapsedTimer = () => {
+    aiStartedAtRef.current = Date.now();
+    setAiElapsedMs(0);
+    if (aiTickRef.current) clearInterval(aiTickRef.current);
+    aiTickRef.current = setInterval(() => {
+      if (aiStartedAtRef.current != null) {
+        setAiElapsedMs(Date.now() - aiStartedAtRef.current);
+      }
+    }, 250);
+  };
+
+  const cleanupNativeSpeechSession = useCallback(() => {
+    const stop = nativeSpeechStopRef.current;
+    const cleanup = nativeSpeechCleanupRef.current;
+    nativeSpeechStopRef.current = null;
+    nativeSpeechCleanupRef.current = null;
+    nativeSpeechTranscriptRef.current = '';
+    nativeSpeechEndingRef.current = false;
+    if (stop) void stop();
+    if (cleanup) void cleanup();
+  }, []);
+
+  const finishNativeAiDictation = useCallback(() => {
+    if (nativeSpeechEndingRef.current) return;
+    nativeSpeechEndingRef.current = true;
+    const text = nativeSpeechTranscriptRef.current.trim();
+    const cleanup = nativeSpeechCleanupRef.current;
+    nativeSpeechStopRef.current = null;
+    nativeSpeechCleanupRef.current = null;
+    nativeSpeechTranscriptRef.current = '';
+    setIsAIListening(false);
+    clearAiElapsedTimer();
+    if (cleanup) void cleanup();
+    if (text) void processAITranscript(text);
+  }, [processAITranscript]);
 
   // AI vision: scan tasks from a paper / sticky-note image (Pro-gated)
   const [showImageExtractor, setShowImageExtractor] = useState(false);
@@ -334,6 +384,10 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       setPlaybackProgress(0);
       setPlaybackCurrentTime(0);
       setShowTrimmer(false);
+      clearAiElapsedTimer();
+      speechRecognitionRef.current = null;
+      aiTranscriptRef.current = '';
+      cleanupNativeSpeechSession();
       if (timerRef.current) clearInterval(timerRef.current);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       if (audioContextRef.current) {
@@ -610,6 +664,10 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     runAIDictation();
   };
   const runAIDictation = async () => {
+    if (shouldUseNativeSpeechRecognition()) {
+      await actuallyStartNativeDictation();
+      return;
+    }
     const SR: any =
       (typeof window !== 'undefined' &&
         ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
@@ -627,6 +685,10 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       try { localStorage.setItem(MIC_COACHMARK_KEY, '1'); } catch {}
       return;
     }
+    if (shouldUseNativeSpeechRecognition()) {
+      await actuallyStartNativeDictation();
+      return;
+    }
     const SR: any =
       (typeof window !== 'undefined' &&
         ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
@@ -635,6 +697,44 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       return;
     }
     await actuallyStartDictation(SR);
+  };
+  const actuallyStartNativeDictation = async () => {
+    try {
+      cleanupNativeSpeechSession();
+      nativeSpeechTranscriptRef.current = '';
+      nativeSpeechEndingRef.current = false;
+      userStoppedDictationRef.current = false;
+
+      const session = await startNativeSpeechSession({
+        language:
+          dictationLang ||
+          (typeof navigator !== 'undefined' && navigator.language) ||
+          'en-US',
+        onPartial: (text) => {
+          nativeSpeechTranscriptRef.current = text;
+        },
+        onStart: () => {
+          setIsAIListening(true);
+          startAiElapsedTimer();
+        },
+        onStop: () => {
+          if (!userStoppedDictationRef.current) return;
+          finishNativeAiDictation();
+        },
+      });
+
+      nativeSpeechStopRef.current = session.stop;
+      nativeSpeechCleanupRef.current = session.cleanup;
+      setIsAIListening(true);
+      startAiElapsedTimer();
+      try { await Haptics.impact({ style: ImpactStyle.Medium }); } catch {}
+    } catch (err) {
+      console.error('[AI dictation][native] start failed', err);
+      cleanupNativeSpeechSession();
+      setIsAIListening(false);
+      clearAiElapsedTimer();
+      toast.error(t('errors.microphoneFailed'));
+    }
   };
   const actuallyStartDictation = async (SR: any) => {
     try {
@@ -694,15 +794,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       speechRecognitionRef.current = recognition;
       recognition.start();
       setIsAIListening(true);
-      // Start elapsed-time counter (MM:SS feedback while dictating).
-      aiStartedAtRef.current = Date.now();
-      setAiElapsedMs(0);
-      if (aiTickRef.current) clearInterval(aiTickRef.current);
-      aiTickRef.current = setInterval(() => {
-        if (aiStartedAtRef.current != null) {
-          setAiElapsedMs(Date.now() - aiStartedAtRef.current);
-        }
-      }, 250);
+      startAiElapsedTimer();
       try { await Haptics.impact({ style: ImpactStyle.Medium }); } catch {}
     } catch (err) {
       console.error('[AI dictation] start failed', err);
@@ -713,16 +805,24 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
   const stopAIDictation = () => {
     userStoppedDictationRef.current = true;
+    if (shouldUseNativeSpeechRecognition()) {
+      const stop = nativeSpeechStopRef.current;
+      setIsAIListening(false);
+      clearAiElapsedTimer();
+      if (stop) {
+        void stop().finally(() => {
+          finishNativeAiDictation();
+        });
+      } else {
+        finishNativeAiDictation();
+      }
+      return;
+    }
     try {
       speechRecognitionRef.current?.stop();
     } catch {}
     setIsAIListening(false);
-    if (aiTickRef.current) {
-      clearInterval(aiTickRef.current);
-      aiTickRef.current = null;
-    }
-    aiStartedAtRef.current = null;
-    setAiElapsedMs(0);
+    clearAiElapsedTimer();
   };
 
   // Format ms → MM:SS for the on-screen dictation timer.
