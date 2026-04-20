@@ -289,11 +289,7 @@ export default function Profile() {
       {/* Profile Info Section */}
       <div className="relative px-5 -mt-14">
         {/* Profile Avatar */}
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="relative inline-block"
-        >
+        <div className="relative inline-block">
           <div className="w-28 h-28 rounded-full border-4 border-background overflow-hidden shadow-lg bg-muted">
             {profile.avatarUrl ? (
               <img
@@ -329,7 +325,7 @@ export default function Profile() {
               e.target.value = '';
             }}
           />
-        </motion.div>
+        </div>
 
         {/* Name & Info */}
         <div className="mt-3">

@@ -5,7 +5,6 @@ import { TodoLayout } from './TodoLayout';
 import { useStreak } from '@/hooks/useStreak';
 import { cn } from '@/lib/utils';
 import { Flame, Check, Snowflake, Trophy, Zap, TrendingUp, Calendar, Gift, Clock, Award } from 'lucide-react';
-import { m as motion, AnimatePresence } from 'framer-motion';
 import { loadTodoItems } from '@/utils/todoItemsStorage';
 import { startOfWeek, endOfWeek } from 'date-fns';
 import { checkDailyReward, loadDailyRewardData } from '@/utils/dailyRewardStorage';
@@ -126,10 +125,9 @@ const Progress = () => {
         
         {/* Tappable Streak Counter Widget */}
         <SafeComponent fallback={null}>
-          <motion.button
+          <button
             onClick={() => setShowStreakDetail(true)}
-            whileTap={{ scale: 0.97 }}
-            className="w-full bg-card rounded-2xl p-6 border shadow-sm text-left active:bg-muted/50 transition-colors"
+            className="w-full bg-card rounded-2xl p-6 border shadow-sm text-left active:bg-muted/50 active:scale-[0.99] transition-colors"
           >
             <div className="relative bg-muted rounded-xl p-4 mb-6">
               <p className="text-sm text-foreground">{getMessage()}</p>
@@ -137,20 +135,9 @@ const Progress = () => {
             </div>
             
             <div className="flex flex-col items-center py-6">
-              <motion.div
-                className="relative"
-                animate={{
-                  scale: completedToday ? [1, 1.12, 1] : [1, 1.04, 1],
-                  rotate: completedToday ? [0, -2, 2, 0] : 0,
-                }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              >
+              <div className="relative">
                 {completedToday && (
-                  <motion.div
-                    className="absolute inset-0 rounded-full blur-xl bg-streak/30"
-                    animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.6, 0.3] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                  />
+                  <div className="absolute inset-0 rounded-full blur-xl bg-streak/30" />
                 )}
                 <Flame 
                   className={cn(
@@ -158,14 +145,9 @@ const Progress = () => {
                     completedToday ? "text-streak fill-streak/80" : "text-muted-foreground/30"
                   )} 
                 />
-              </motion.div>
+              </div>
               
-              <motion.div 
-                initial={{ scale: 0.9, opacity: 0, y: 8 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                transition={{ delay: 0.15, type: 'spring', stiffness: 180 }}
-                className="text-center mt-5"
-              >
+              <div className="text-center mt-5">
                 <p className={cn(
                   "text-2xl font-extrabold tracking-tight uppercase",
                   completedToday 
@@ -174,34 +156,27 @@ const Progress = () => {
                 )}>
                   {t('streak.dayStreak', 'day streak')}
                 </p>
-                <motion.div 
+                <div
                   className={cn(
                     "mx-auto mt-1.5 h-0.5 rounded-full",
                     completedToday ? "bg-gradient-to-r from-transparent via-streak to-transparent w-24" : "bg-muted-foreground/20 w-16"
                   )}
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
                 />
                 <div className="flex justify-center mt-2">
                   <StreakSocietyBadge streak={data?.currentStreak || 0} compact />
                 </div>
                 {(data?.currentStreak || 0) > 0 && (data?.currentStreak || 0) >= (data?.longestStreak || 0) ? (
-                  <motion.p
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="text-xs font-bold text-warning mt-1"
-                  >
+                  <p className="text-xs font-bold text-warning mt-1">
                     New Personal Best! 🎉
-                  </motion.p>
+                  </p>
                 ) : (
                   <p className="text-xs text-muted-foreground mt-1">
                     {t('streak.tapForDetails', 'Tap for details')}
                   </p>
                 )}
-              </motion.div>
+              </div>
             </div>
-          </motion.button>
+          </button>
         </SafeComponent>
 
         {/* Week Progress & Freeze Info Card */}
@@ -216,10 +191,7 @@ const Progress = () => {
                   )}>
                     {day.day}
                   </span>
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: index * 0.05 }}
+                  <div
                     className={cn(
                       "w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border-2 transition-all flex-shrink-0",
                       day.completed 
@@ -230,22 +202,18 @@ const Progress = () => {
                     )}
                   >
                     {day.completed && <Check className="h-4 w-4 sm:h-5 sm:w-5" />}
-                  </motion.div>
+                  </div>
                 </div>
               ))}
             </div>
             
             {status === 'grace_period' && gracePeriodRemaining > 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex items-center justify-center gap-2 mt-6 pt-4 border-t bg-warning/10 -mx-6 -mb-6 px-6 py-4 rounded-b-2xl"
-              >
+              <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t bg-warning/10 -mx-6 -mb-6 px-6 py-4 rounded-b-2xl">
                 <Clock className="h-5 w-5 text-warning" />
                 <span className="text-sm text-warning font-medium">
                   {t('streak.gracePeriodActive', '{{hours}}h grace period remaining - complete a task to save your streak!', { hours: gracePeriodRemaining })}
                 </span>
-              </motion.div>
+              </div>
             )}
             
             {status !== 'grace_period' && data?.streakFreezes !== undefined && data.streakFreezes > 0 && (
@@ -266,10 +234,9 @@ const Progress = () => {
                   </span>
                 </div>
                 <div className="w-full bg-muted rounded-full h-2">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${freezeProgressPercent}%` }}
-                    className="bg-info h-2 rounded-full"
+                  <div
+                    className="bg-info h-2 rounded-full transition-all"
+                    style={{ width: `${freezeProgressPercent}%` }}
                   />
                 </div>
                 <div className="flex justify-between mt-1">
@@ -365,9 +332,7 @@ const Progress = () => {
 
         {/* Certificates Button */}
         <div>
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+          <button
             onClick={() => setShowCertificates(true)}
             className="relative w-full bg-warning/10 border border-warning/20 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 text-warning font-semibold text-[10px] active:scale-[0.98] transition-transform"
           >
@@ -376,7 +341,7 @@ const Progress = () => {
             )}
             <Award className="h-4 w-4" />
             Certificates
-          </motion.button>
+          </button>
         </div>
 
         {/* Virtual Journey */}
@@ -385,21 +350,14 @@ const Progress = () => {
         </SafeComponent>
 
         {/* At Risk Warning */}
-        <AnimatePresence>
-          {atRisk && !completedToday && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="bg-streak/10 border border-streak/30 rounded-xl p-4 flex items-center gap-3"
-            >
-              <Flame className="h-5 w-5 text-streak flex-shrink-0" />
-              <p className="text-sm text-streak">
-                {t('streak.atRiskWarning', 'Complete one task today to keep your streak going!')}
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {atRisk && !completedToday && (
+          <div className="bg-streak/10 border border-streak/30 rounded-xl p-4 flex items-center gap-3">
+            <Flame className="h-5 w-5 text-streak flex-shrink-0" />
+            <p className="text-sm text-streak">
+              {t('streak.atRiskWarning', 'Complete one task today to keep your streak going!')}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Certificates Modal */}

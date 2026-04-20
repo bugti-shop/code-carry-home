@@ -1100,7 +1100,7 @@ const TodoCalendar = () => {
 
         {/* Events and Tasks for selected date */}
         {date && hasItemsForDate && (
-          <div className="px-4 space-y-4 animate-fade-in">
+          <div className="px-4 space-y-4">
             {/* Events for selected date */}
             {eventsForSelectedDate.length > 0 && (
               <div className="space-y-3">
