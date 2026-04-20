@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { getSetting, setSetting } from '@/utils/settingsStorage';
 
@@ -12,18 +13,21 @@ const EXPIRY_NOTIFIED_KEY = 'flowist_expiry_notified';
  */
 export const useSubscriptionExpiry = () => {
   const { isPro, customerInfo, isLoading } = useSubscription();
+  const isNative = Capacitor.isNativePlatform();
   const prevIsProRef = useRef<boolean | null>(null);
   const hasCheckedRef = useRef(false);
 
   // Request notification permission early (lazy loaded to avoid crashes)
   useEffect(() => {
+    if (isNative) return;
     import('@/utils/webNotifications')
       .then(({ requestNotificationPermission }) => requestNotificationPermission())
       .catch(() => {});
-  }, []);
+  }, [isNative]);
 
   // Detect Pro → Free transition (subscription expired)
   useEffect(() => {
+    if (isNative) return;
     if (isLoading) return;
 
     // First load: just record current state
@@ -38,10 +42,11 @@ export const useSubscriptionExpiry = () => {
     }
 
     prevIsProRef.current = isPro;
-  }, [isPro, isLoading]);
+  }, [isNative, isPro, isLoading]);
 
   // Check for upcoming expiry (1 day warning)
   useEffect(() => {
+    if (isNative) return;
     if (isLoading || hasCheckedRef.current || !isPro || !customerInfo) return;
     hasCheckedRef.current = true;
 
@@ -56,7 +61,7 @@ export const useSubscriptionExpiry = () => {
     if (hoursRemaining > 0 && hoursRemaining <= 24) {
       handleExpiryWarning(hoursRemaining, entitlement.periodType);
     }
-  }, [isPro, customerInfo, isLoading]);
+  }, [isNative, isPro, customerInfo, isLoading]);
 
   const handleExpiryWarning = async (hoursRemaining: number, periodType?: string | null) => {
     const today = new Date().toDateString();

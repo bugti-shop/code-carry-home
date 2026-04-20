@@ -1160,6 +1160,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     let isMounted = true;
+    let currentListenerHandle: PurchasesCallbackId | null = null;
 
     const setupListener = async () => {
       try {
@@ -1175,6 +1176,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
             } catch {}
           }
         });
+        currentListenerHandle = handle;
         if (isMounted) setListenerHandle(handle);
       } catch (err) {
         console.error('RevenueCat: Error setting up listener', err);
@@ -1185,8 +1187,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
     return () => {
       isMounted = false;
-      if (listenerHandle) {
-        Purchases.removeCustomerInfoUpdateListener({ listenerToRemove: listenerHandle }).catch(console.error);
+      const handleToRemove = currentListenerHandle ?? listenerHandle;
+      if (handleToRemove) {
+        Purchases.removeCustomerInfoUpdateListener({ listenerToRemove: handleToRemove }).catch(console.error);
       }
     };
   }, []);
