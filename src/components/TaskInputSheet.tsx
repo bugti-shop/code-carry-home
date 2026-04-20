@@ -433,6 +433,11 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
         audioRef.current = null;
       }
     } else {
+      // Pre-warm native speech recognition permissions on Android in the background
+      // so the user's mic-tap doesn't get blocked by a permission prompt mid-gesture.
+      if (shouldUseNativeSpeechRecognition()) {
+        void ensureSpeechRecognitionReady();
+      }
       // Apply default settings when sheet opens
       if (tasksSettings) {
         // Apply default priority
