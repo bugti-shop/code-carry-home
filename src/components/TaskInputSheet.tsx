@@ -68,7 +68,11 @@ import { ImageTaskExtractorSheet } from './ImageTaskExtractorSheet';
 import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
 import { acquireAiLock, getAiBusyMessage, releaseAllAiLocks } from '@/utils/aiConcurrencyLock';
 import { getRecentDictationLangs, recordRecentDictationLang } from '@/utils/dictationLangRecent';
-import { startNativeSpeechSession, shouldUseNativeSpeechRecognition } from '@/utils/nativeSpeechRecognition';
+import {
+  startNativeSpeechSession,
+  shouldUseNativeSpeechRecognition,
+  ensureSpeechRecognitionReady,
+} from '@/utils/nativeSpeechRecognition';
 
 interface TaskSection {
   id: string;
