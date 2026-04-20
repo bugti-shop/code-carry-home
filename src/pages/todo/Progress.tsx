@@ -5,7 +5,6 @@ import { TodoLayout } from './TodoLayout';
 import { useStreak } from '@/hooks/useStreak';
 import { cn } from '@/lib/utils';
 import { Flame, Check, Snowflake, Trophy, Zap, TrendingUp, Calendar, Gift, Clock, Award } from 'lucide-react';
-import { m as motion, AnimatePresence } from 'framer-motion';
 import { loadTodoItems } from '@/utils/todoItemsStorage';
 import { startOfWeek, endOfWeek } from 'date-fns';
 import { checkDailyReward, loadDailyRewardData } from '@/utils/dailyRewardStorage';
@@ -126,10 +125,9 @@ const Progress = () => {
         
         {/* Tappable Streak Counter Widget */}
         <SafeComponent fallback={null}>
-          <motion.button
+          <button
             onClick={() => setShowStreakDetail(true)}
-            whileTap={{ scale: 0.97 }}
-            className="w-full bg-card rounded-2xl p-6 border shadow-sm text-left active:bg-muted/50 transition-colors"
+            className="w-full bg-card rounded-2xl p-6 border shadow-sm text-left active:bg-muted/50 active:scale-[0.99] transition-colors"
           >
             <div className="relative bg-muted rounded-xl p-4 mb-6">
               <p className="text-sm text-foreground">{getMessage()}</p>
@@ -137,20 +135,9 @@ const Progress = () => {
             </div>
             
             <div className="flex flex-col items-center py-6">
-              <motion.div
-                className="relative"
-                animate={{
-                  scale: completedToday ? [1, 1.12, 1] : [1, 1.04, 1],
-                  rotate: completedToday ? [0, -2, 2, 0] : 0,
-                }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              >
+              <div className="relative">
                 {completedToday && (
-                  <motion.div
-                    className="absolute inset-0 rounded-full blur-xl bg-streak/30"
-                    animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.6, 0.3] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                  />
+                  <div className="absolute inset-0 rounded-full blur-xl bg-streak/30" />
                 )}
                 <Flame 
                   className={cn(
@@ -158,14 +145,9 @@ const Progress = () => {
                     completedToday ? "text-streak fill-streak/80" : "text-muted-foreground/30"
                   )} 
                 />
-              </motion.div>
+              </div>
               
-              <motion.div 
-                initial={{ scale: 0.9, opacity: 0, y: 8 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                transition={{ delay: 0.15, type: 'spring', stiffness: 180 }}
-                className="text-center mt-5"
-              >
+              <div className="text-center mt-5">
                 <p className={cn(
                   "text-2xl font-extrabold tracking-tight uppercase",
                   completedToday 
@@ -174,34 +156,27 @@ const Progress = () => {
                 )}>
                   {t('streak.dayStreak', 'day streak')}
                 </p>
-                <motion.div 
+                <div
                   className={cn(
                     "mx-auto mt-1.5 h-0.5 rounded-full",
                     completedToday ? "bg-gradient-to-r from-transparent via-streak to-transparent w-24" : "bg-muted-foreground/20 w-16"
                   )}
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
                 />
                 <div className="flex justify-center mt-2">
                   <StreakSocietyBadge streak={data?.currentStreak || 0} compact />
                 </div>
                 {(data?.currentStreak || 0) > 0 && (data?.currentStreak || 0) >= (data?.longestStreak || 0) ? (
-                  <motion.p
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="text-xs font-bold text-warning mt-1"
-                  >
+                  <p className="text-xs font-bold text-warning mt-1">
                     New Personal Best! 🎉
-                  </motion.p>
+                  </p>
                 ) : (
                   <p className="text-xs text-muted-foreground mt-1">
                     {t('streak.tapForDetails', 'Tap for details')}
                   </p>
                 )}
-              </motion.div>
+              </div>
             </div>
-          </motion.button>
+          </button>
         </SafeComponent>
 
         {/* Week Progress & Freeze Info Card */}
