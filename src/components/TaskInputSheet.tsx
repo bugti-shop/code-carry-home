@@ -255,6 +255,8 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const nativeSpeechCleanupRef = useRef<null | (() => Promise<void>)>(null);
   const nativeSpeechTranscriptRef = useRef('');
   const nativeSpeechEndingRef = useRef(false);
+  const nativeSpeechStartedRef = useRef(false);
+  const nativeSpeechStartFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // True only when user explicitly tapped Stop. Lets us silently restart
   // SpeechRecognition when the browser auto-ends on silence/timeout.
   const userStoppedDictationRef = useRef(false);
@@ -288,8 +290,36 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     nativeSpeechCleanupRef.current = null;
     nativeSpeechTranscriptRef.current = '';
     nativeSpeechEndingRef.current = false;
+    nativeSpeechStartedRef.current = false;
+    if (nativeSpeechStartFallbackRef.current) {
+      clearTimeout(nativeSpeechStartFallbackRef.current);
+      nativeSpeechStartFallbackRef.current = null;
+    }
     if (stop) void stop();
     if (cleanup) void cleanup();
+  }, []);
+
+  const markNativeSpeechStarted = useCallback(() => {
+    if (nativeSpeechStartedRef.current) return;
+    nativeSpeechStartedRef.current = true;
+    setIsAIListening(true);
+    startAiElapsedTimer();
+  }, []);
+
+  const mergeNativeSpeechTranscript = useCallback((incomingText: string) => {
+    const next = incomingText.trim();
+    if (!next) return;
+    const current = nativeSpeechTranscriptRef.current.trim();
+    if (!current) {
+      nativeSpeechTranscriptRef.current = next;
+      return;
+    }
+    if (next === current || next.startsWith(current) || current.startsWith(next)) {
+      nativeSpeechTranscriptRef.current = next.length >= current.length ? next : current;
+      return;
+    }
+    if (current.includes(next)) return;
+    nativeSpeechTranscriptRef.current = `${current} ${next}`.trim();
   }, []);
 
   const finishNativeAiDictation = () => {
@@ -703,6 +733,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       cleanupNativeSpeechSession();
       nativeSpeechTranscriptRef.current = '';
       nativeSpeechEndingRef.current = false;
+      nativeSpeechStartedRef.current = false;
       userStoppedDictationRef.current = false;
 
       const session = await startNativeSpeechSession({
@@ -711,11 +742,10 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
           (typeof navigator !== 'undefined' && navigator.language) ||
           'en-US',
         onPartial: (text) => {
-          nativeSpeechTranscriptRef.current = text;
+          mergeNativeSpeechTranscript(text);
         },
         onStart: () => {
-          setIsAIListening(true);
-          startAiElapsedTimer();
+          markNativeSpeechStarted();
         },
         onStop: () => {
           if (!userStoppedDictationRef.current) return;
@@ -725,8 +755,10 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
       nativeSpeechStopRef.current = session.stop;
       nativeSpeechCleanupRef.current = session.cleanup;
-      setIsAIListening(true);
-      startAiElapsedTimer();
+      nativeSpeechStartFallbackRef.current = setTimeout(() => {
+        nativeSpeechStartFallbackRef.current = null;
+        markNativeSpeechStarted();
+      }, 400);
       try { await Haptics.impact({ style: ImpactStyle.Medium }); } catch {}
     } catch (err) {
       console.error('[AI dictation][native] start failed', err);
