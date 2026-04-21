@@ -772,26 +772,30 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       const recognition = new SR();
       recognition.continuous = true;
       recognition.interimResults = true;
-      // Use user-picked dictation language (persisted) instead of i18n locale.
       recognition.lang =
         dictationLang ||
         (typeof navigator !== 'undefined' && navigator.language) ||
         'en-US';
       aiTranscriptRef.current = '';
+      webSpeechCommittedRef.current = [];
       userStoppedDictationRef.current = false;
 
       recognition.onresult = (event: any) => {
-        // Build the full transcript by concatenating ALL final results
-        // accumulated in this session (interim chunks are ignored to avoid
-        // duplication when partials get re-emitted).
-        let finalText = '';
+        // Collect all final results from the current recognition session
+        let sessionFinal = '';
+        let hasInterim = false;
         for (let i = 0; i < event.results.length; i++) {
           const res = event.results[i];
           if (res.isFinal) {
-            finalText += (finalText ? ' ' : '') + res[0].transcript.trim();
+            sessionFinal += (sessionFinal ? ' ' : '') + res[0].transcript.trim();
+          } else {
+            hasInterim = true;
           }
         }
-        if (finalText) aiTranscriptRef.current = finalText;
+        // Full transcript = committed segments from previous restarts + current session finals
+        const committed = webSpeechCommittedRef.current.join(' ');
+        const full = [committed, sessionFinal].filter(Boolean).join(' ').trim();
+        if (full) aiTranscriptRef.current = full;
       };
       recognition.onerror = (e: any) => {
         console.warn('[AI dictation] error', e?.error);
@@ -800,15 +804,16 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
           setIsAIListening(false);
           toast.error(t('errors.microphoneFailed'));
         } else if (e?.error !== 'no-speech' && e?.error !== 'aborted') {
-          // Non-recoverable: stop and surface error.
           userStoppedDictationRef.current = true;
           setIsAIListening(false);
           toast.error(t('tasks.aiSpeechFailed', 'Could not capture speech'));
         }
-        // 'no-speech' / 'aborted' → let onend restart silently.
       };
       recognition.onend = () => {
-        // If user hasn't tapped Stop, browser auto-ended on silence — restart.
+        // Commit whatever we have from this session before restarting
+        if (aiTranscriptRef.current) {
+          webSpeechCommittedRef.current = [aiTranscriptRef.current];
+        }
         if (!userStoppedDictationRef.current && speechRecognitionRef.current === recognition) {
           try {
             recognition.start();
