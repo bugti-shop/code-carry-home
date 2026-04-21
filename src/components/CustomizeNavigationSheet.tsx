@@ -150,7 +150,7 @@ export const CustomizeNavigationSheet = ({ isOpen, onClose }: CustomizeNavigatio
 
   const startEditing = (item: NavItem) => {
     setEditingId(item.id);
-    setEditValue(item.customLabel || item.label);
+    setEditValue(getDisplayLabel(item));
   };
 
   const saveEdit = async () => {
@@ -162,11 +162,17 @@ export const CustomizeNavigationSheet = ({ isOpen, onClose }: CustomizeNavigatio
       return;
     }
 
-    const newItems = navItems.map(item => 
-      item.id === editingId 
-        ? { ...item, customLabel: trimmedValue === item.label ? undefined : trimmedValue }
-        : item
-    );
+    const newItems = navItems.map(item => {
+      if (item.id !== editingId) return item;
+      const defaultTranslatedLabel = t(`nav.${item.id}`, item.label);
+      return {
+        ...item,
+        customLabel:
+          trimmedValue === item.label || trimmedValue === defaultTranslatedLabel
+            ? undefined
+            : trimmedValue,
+      };
+    });
     await saveNavItems(newItems);
     setEditingId(null);
     setEditValue('');
