@@ -106,10 +106,14 @@ Return only via the tool call.`;
                     sectionId: { type: ["string", "null"] },
                     repeatType: {
                       type: "string",
-                      enum: ["none", "daily", "weekly", "monthly", "yearly"],
+                      enum: ["none", "hourly", "daily", "weekly", "weekdays", "monthly", "yearly"],
                     },
                     location: { type: ["string", "null"] },
                     description: { type: ["string", "null"] },
+                    subtasks: {
+                      type: ["array", "null"],
+                      items: { type: "string" },
+                    },
                   },
                   required: ["title", "priority", "repeatType"],
                   additionalProperties: false,
