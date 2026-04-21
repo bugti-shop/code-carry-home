@@ -621,6 +621,14 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       setDescription(String(parsed.description));
       setShowDescriptionInput(true);
     }
+    // AI-extracted subtasks
+    if (Array.isArray(parsed.subtasks) && parsed.subtasks.length > 0) {
+      pendingSubtasksRef.current = parsed.subtasks.map((text: string, idx: number) => ({
+        id: `subtask-${Date.now()}-${idx}`,
+        text: String(text),
+        completed: false,
+      })) as TodoItem[];
+    }
   };
 
   const processAITranscript = async (transcript: string) => {
