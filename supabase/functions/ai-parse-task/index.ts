@@ -47,28 +47,29 @@ Deno.serve(async (req) => {
     const langCode = body.languageCode || "en";
     const langName = body.languageName || "English";
 
-    const systemPrompt = `You are a multilingual task parser. The user's transcript is in ${langName} (${langCode}) but may mix in other languages. Convert the spoken task description into structured JSON.
+    const systemPrompt = `You are a multilingual task parser with excellent understanding of diverse English accents (South Asian, African, Middle Eastern, Russian, East Asian, Latin American etc.) and non-native speakers. The user's transcript is in ${langName} (${langCode}) but may mix in other languages, contain filler words, hesitations, or pronunciation artifacts from speech recognition. You must be tolerant of misspellings and phonetic approximations.
 Current datetime (ISO): ${now}
 User timezone: ${tz}
 User language: ${langName} (${langCode})
 
-Available folders (match by name, case-insensitive, fuzzy ok):
+Available folders (match by name, case-insensitive, fuzzy ok — also match phonetic/accent variations):
 ${folders.length ? folders.map((f) => `- ${f.name} (id: ${f.id})`).join("\n") : "(none)"}
 
 Available sections:
 ${sections.length ? sections.map((s) => `- ${s.name} (id: ${s.id})`).join("\n") : "(none)"}
 
 Rules:
-- "title": short, action-oriented, no time/date/folder words. Write the title in the SAME language as the transcript (${langName}). Do NOT translate to English.
+- "title": short, action-oriented, no time/date/folder words. Write the title in the SAME language as the transcript (${langName}). Do NOT translate to English. Clean up speech artifacts (filler words like "um", "uh", "like", stutters) but preserve the user's intent.
 - Recognize date/time words in ${langName} as well as English (e.g. Hindi "kal" = tomorrow, Urdu "kal/parson", Spanish "mañana", French "demain", Arabic "غداً", etc.).
-- "dueDateIso": ISO 8601 with timezone offset. Resolve relative words ("tomorrow", "next Monday", "at 5pm", and their ${langName} equivalents) relative to current datetime in the user's timezone.
+- "dueDateIso": ISO 8601 with timezone offset. Resolve relative words ("tomorrow", "next Monday", "at 5pm", "in 2 hours", and their ${langName} equivalents) relative to current datetime in the user's timezone.
 - "deadlineIso": only if user explicitly says "deadline", "due by", "must finish by" (or ${langName} equivalent).
 - "priority": "high" | "medium" | "low" | "none". Map "urgent/asap/important" (and ${langName} equivalents) -> high.
-- "folderId": id of the folder if user mentions one matching the available list (case-insensitive, fuzzy). Otherwise null.
+- "folderId": id of the folder if user mentions one matching the available list (case-insensitive, fuzzy, phonetic match). Otherwise null.
 - "sectionId": same logic.
-- "repeatType": "none" | "daily" | "weekly" | "monthly" | "yearly".
+- "repeatType": "none" | "hourly" | "daily" | "weekly" | "weekdays" | "monthly" | "yearly". Match phrases like "every hour", "each day", "every week", "on weekdays", "every month", "every year/annually" (and ${langName} equivalents).
 - "location": physical place mentioned, kept in original language.
-- "description": extra detail beyond the title, kept in original language.
+- "description": extra detail beyond the title, kept in original language. Include any context, notes, or details the user mentioned.
+- "subtasks": an array of strings if the user mentions sub-items, steps, or a list within the task (e.g. "first do X, then Y, then Z" or "buy milk, eggs, and bread").
 Return only via the tool call.`;
 
     const aiResponse = await fetch(
