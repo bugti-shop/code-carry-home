@@ -728,7 +728,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const actuallyStartNativeDictation = async () => {
     try {
       cleanupNativeSpeechSession();
-      nativeSpeechTranscriptRef.current = '';
       nativeSpeechEndingRef.current = false;
       nativeSpeechStartedRef.current = false;
       userStoppedDictationRef.current = false;
@@ -738,8 +737,10 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
           dictationLang ||
           (typeof navigator !== 'undefined' && navigator.language) ||
           'en-US',
-        onPartial: (text) => {
-          mergeNativeSpeechTranscript(text);
+        onPartial: (_text) => {
+          // The native session now accumulates internally; onPartial gives
+          // us the full transcript so far — we don't need to merge manually.
+          // We could show a live preview here in the future.
         },
         onStart: () => {
           markNativeSpeechStarted();
@@ -752,6 +753,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
       nativeSpeechStopRef.current = session.stop;
       nativeSpeechCleanupRef.current = session.cleanup;
+      nativeSpeechGetTranscriptRef.current = session.getTranscript;
       nativeSpeechStartFallbackRef.current = setTimeout(() => {
         nativeSpeechStartFallbackRef.current = null;
         markNativeSpeechStarted();
