@@ -860,14 +860,37 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     userStoppedDictationRef.current = true;
     if (shouldUseNativeSpeechRecognition()) {
       const stop = nativeSpeechStopRef.current;
+      // Grab transcript BEFORE stopping — some Android devices clear
+      // internal buffers on stop(), so we read first.
+      const getText = nativeSpeechGetTranscriptRef.current;
+      const earlyTranscript = getText ? getText() : '';
+
       setIsAIListening(false);
       clearAiElapsedTimer();
       if (stop) {
         void stop().finally(() => {
+          // Try again after stop in case more data arrived
+          const getTextAfter = nativeSpeechGetTranscriptRef.current;
+          const afterTranscript = getTextAfter ? getTextAfter() : '';
+          const best = afterTranscript.length >= earlyTranscript.length ? afterTranscript : earlyTranscript;
+          // Manually set the transcript so finishNativeAiDictation can read it
+          if (best && nativeSpeechGetTranscriptRef.current) {
+            // getTranscript already returns accumulated; finishNativeAiDictation will call it
+          }
           finishNativeAiDictation();
         });
       } else {
-        finishNativeAiDictation();
+        // No stop handle — use whatever we captured early
+        if (earlyTranscript) {
+          const cleanup = nativeSpeechCleanupRef.current;
+          nativeSpeechStopRef.current = null;
+          nativeSpeechCleanupRef.current = null;
+          nativeSpeechGetTranscriptRef.current = null;
+          if (cleanup) void cleanup();
+          void processAITranscript(earlyTranscript);
+        } else {
+          finishNativeAiDictation();
+        }
       }
       return;
     }
@@ -876,6 +899,11 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     } catch {}
     setIsAIListening(false);
     clearAiElapsedTimer();
+    // For web: if auto-restart committed text but onend hasn't fired yet
+    const webText = aiTranscriptRef.current;
+    if (webText) {
+      void processAITranscript(webText);
+    }
   };
 
   // Format ms → MM:SS for the on-screen dictation timer.
