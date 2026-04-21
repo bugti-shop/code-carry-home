@@ -637,17 +637,25 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       setIsAIProcessing(false);
       return;
     }
+
+    // Always show the captured speech somewhere immediately so native Android
+    // never feels like it listened but produced nothing.
+    if (!taskText.trim()) {
+      setTaskText(text);
+    } else if (!description.trim()) {
+      setDescription(text);
+      setShowDescriptionInput(true);
+    }
+
     // Free users → block & open paywall.
     if (!isPaidPro && !isOnTrial) {
       setIsAIProcessing(false);
-      if (!taskText.trim()) setTaskText(text);
       requireFeature('ai_dictation' as any);
       return;
     }
     // Trial users → soft daily cap.
     if (!isPaidPro && !canUseAiFeature('voice')) {
       setIsAIProcessing(false);
-      if (!taskText.trim()) setTaskText(text);
       toast.error(getLimitReachedMessage('voice'));
       return;
     }
@@ -655,7 +663,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     const release = acquireAiLock();
     if (!release) {
       setIsAIProcessing(false);
-      if (!taskText.trim()) setTaskText(text);
       toast.error(getAiBusyMessage());
       return;
     }
@@ -674,14 +681,16 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      applyAIParsed((data as any)?.parsed);
+      const parsed = (data as any)?.parsed;
+      applyAIParsed(parsed);
+      if (!parsed?.title && !parsed?.description && !parsed?.subtasks?.length) {
+        if (!taskText.trim()) setTaskText(text);
+      }
       if (!hasUnlimitedAi) recordAiUsage('voice');
       try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
       toast.success(t('tasks.aiParsedSuccess', 'AI filled the task'));
     } catch (e: any) {
       console.error('[AI parse] error', e);
-      // Fallback: at least set the transcript as the title
-      if (!taskText.trim()) setTaskText(text);
       const msg = e?.message || '';
       if (msg.includes('429')) toast.error(t('tasks.aiRateLimit', 'AI is busy, try again shortly'));
       else if (msg.includes('402')) toast.error(t('tasks.aiCredits', 'AI credits exhausted'));

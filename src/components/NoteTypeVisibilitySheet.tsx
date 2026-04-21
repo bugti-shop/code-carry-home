@@ -32,12 +32,12 @@ const noteTypeIcons: Partial<Record<NoteType, React.ReactNode>> = {
 };
 
 const noteTypeColors: Partial<Record<NoteType, string>> = {
-  regular: 'text-blue-500',
-  lined: 'text-purple-500',
-  sticky: 'text-yellow-500',
-  code: 'text-green-500',
-  sketch: 'text-teal-500',
-  linkedin: 'text-sky-500',
+  regular: 'text-foreground',
+  lined: 'text-foreground',
+  sticky: 'text-foreground',
+  code: 'text-foreground',
+  sketch: 'text-foreground',
+  linkedin: 'text-foreground',
 };
 
 const featureIcons: Record<ToggleableFeature, React.ReactNode> = {
@@ -45,7 +45,7 @@ const featureIcons: Record<ToggleableFeature, React.ReactNode> = {
 };
 
 const featureColors: Record<ToggleableFeature, string> = {
-  noteTemplates: 'text-primary',
+  noteTemplates: 'text-foreground',
 };
 
 const getFeatureTranslationKey = (feature: ToggleableFeature): string => {
@@ -61,6 +61,8 @@ export const NoteTypeVisibilitySheet = ({ isOpen, onClose }: NoteTypeVisibilityS
   const [visibleTypes, setVisibleTypes] = useState<NoteType[]>([]);
   const [visibleFeatures, setVisibleFeatures] = useState<ToggleableFeature[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const getTranslatedNoteTypeName = (type: NoteType) =>
+    t(`notes.noteTypes.${type}`, getNoteTypeDisplayName(type));
 
   useEffect(() => {
     if (isOpen) {
@@ -94,10 +96,11 @@ export const NoteTypeVisibilitySheet = ({ isOpen, onClose }: NoteTypeVisibilityS
     setVisibleTypes(result.visible);
     
     const isNowVisible = result.visible.includes(type);
+    const translatedTypeName = getTranslatedNoteTypeName(type);
     toast({
       title: isNowVisible 
-        ? t('settings.noteTypeShown', '{{type}} is now visible', { type: getNoteTypeDisplayName(type) })
-        : t('settings.noteTypeHidden', '{{type}} is now hidden', { type: getNoteTypeDisplayName(type) }),
+        ? t('settings.noteTypeShown', '{{type}} is now visible', { type: translatedTypeName })
+        : t('settings.noteTypeHidden', '{{type}} is now hidden', { type: translatedTypeName }),
     });
   };
 
@@ -152,10 +155,10 @@ export const NoteTypeVisibilitySheet = ({ isOpen, onClose }: NoteTypeVisibilityS
                         {noteTypeIcons[type]}
                       </div>
                       <span className={cn(
-                        "font-medium",
-                        !isVisible && "text-muted-foreground"
+                        'font-medium text-foreground',
+                        !isVisible && 'text-muted-foreground'
                       )}>
-                        {t(`notes.noteTypes.${type}`, getNoteTypeDisplayName(type))}
+                        {getTranslatedNoteTypeName(type)}
                       </span>
                     </div>
                     <Switch
