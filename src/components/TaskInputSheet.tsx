@@ -255,15 +255,17 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   });
   const speechRecognitionRef = useRef<any>(null);
   const aiTranscriptRef = useRef<string>('');
+  // Native speech session refs — simplified: accumulation now lives inside
+  // nativeSpeechRecognition.ts via committed-segments model.
   const nativeSpeechStopRef = useRef<null | (() => Promise<void>)>(null);
   const nativeSpeechCleanupRef = useRef<null | (() => Promise<void>)>(null);
-  const nativeSpeechTranscriptRef = useRef('');
+  const nativeSpeechGetTranscriptRef = useRef<null | (() => string)>(null);
   const nativeSpeechEndingRef = useRef(false);
   const nativeSpeechStartedRef = useRef(false);
   const nativeSpeechStartFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // True only when user explicitly tapped Stop. Lets us silently restart
-  // SpeechRecognition when the browser auto-ends on silence/timeout.
   const userStoppedDictationRef = useRef(false);
+  // Web Speech API: accumulate final results across auto-restarts
+  const webSpeechCommittedRef = useRef<string[]>([]);
   const aiStartedAtRef = useRef<number | null>(null);
   const aiTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -292,7 +294,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     const cleanup = nativeSpeechCleanupRef.current;
     nativeSpeechStopRef.current = null;
     nativeSpeechCleanupRef.current = null;
-    nativeSpeechTranscriptRef.current = '';
+    nativeSpeechGetTranscriptRef.current = null;
     nativeSpeechEndingRef.current = false;
     nativeSpeechStartedRef.current = false;
     if (nativeSpeechStartFallbackRef.current) {
@@ -310,30 +312,16 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     startAiElapsedTimer();
   }, []);
 
-  const mergeNativeSpeechTranscript = useCallback((incomingText: string) => {
-    const next = incomingText.trim();
-    if (!next) return;
-    const current = nativeSpeechTranscriptRef.current.trim();
-    if (!current) {
-      nativeSpeechTranscriptRef.current = next;
-      return;
-    }
-    if (next === current || next.startsWith(current) || current.startsWith(next)) {
-      nativeSpeechTranscriptRef.current = next.length >= current.length ? next : current;
-      return;
-    }
-    if (current.includes(next)) return;
-    nativeSpeechTranscriptRef.current = `${current} ${next}`.trim();
-  }, []);
-
   const finishNativeAiDictation = () => {
     if (nativeSpeechEndingRef.current) return;
     nativeSpeechEndingRef.current = true;
-    const text = nativeSpeechTranscriptRef.current.trim();
+    // Get the full accumulated transcript from the native session
+    const getText = nativeSpeechGetTranscriptRef.current;
+    const text = getText ? getText() : '';
     const cleanup = nativeSpeechCleanupRef.current;
     nativeSpeechStopRef.current = null;
     nativeSpeechCleanupRef.current = null;
-    nativeSpeechTranscriptRef.current = '';
+    nativeSpeechGetTranscriptRef.current = null;
     setIsAIListening(false);
     clearAiElapsedTimer();
     if (cleanup) void cleanup();
