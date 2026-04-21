@@ -66,6 +66,10 @@ export const startNativeSpeechSession = async (
   let userRequestedStop = false;
   let cleaned = false;
   let restarting = false;
+  let restartFailCount = 0;
+  const MAX_RESTART_FAILS = 3;
+  // Delay between restart attempts (increases on failure)
+  const RESTART_DELAY_MS = 250;
 
   const getFullTranscript = () => {
     const parts = [...committedSegments];
@@ -82,7 +86,6 @@ export const startNativeSpeechSession = async (
     }
     if (best) {
       currentBest = best;
-      // Emit the FULL accumulated transcript so the caller always sees everything
       options.onPartial(getFullTranscript());
     }
   });
@@ -95,9 +98,35 @@ export const startNativeSpeechSession = async (
       popup: false,
     });
 
+  const attemptRestart = () => {
+    if (userRequestedStop || cleaned || restarting || restartFailCount >= MAX_RESTART_FAILS) {
+      if (restartFailCount >= MAX_RESTART_FAILS) {
+        console.warn('[nativeSpeech] max restart attempts reached — stopping');
+      }
+      options.onStop?.();
+      return;
+    }
+    restarting = true;
+    const delay = RESTART_DELAY_MS * (restartFailCount + 1);
+    setTimeout(() => {
+      if (userRequestedStop || cleaned) {
+        options.onStop?.();
+        return;
+      }
+      startRecognizer().catch((err) => {
+        console.warn('[nativeSpeech] auto-restart failed', err);
+        restarting = false;
+        restartFailCount++;
+        // Retry recursively with back-off
+        attemptRestart();
+      });
+    }, delay);
+  };
+
   const stateListener = await SpeechRecognition.addListener('listeningState', (data) => {
     if (data.status === 'started') {
       restarting = false;
+      restartFailCount = 0;
       options.onStart?.();
       return;
     }
@@ -108,13 +137,8 @@ export const startNativeSpeechSession = async (
         currentBest = '';
       }
 
-      if (!userRequestedStop && !cleaned && !restarting) {
-        restarting = true;
-        startRecognizer().catch((err) => {
-          console.warn('[nativeSpeech] auto-restart failed', err);
-          restarting = false;
-          options.onStop?.();
-        });
+      if (!userRequestedStop && !cleaned) {
+        attemptRestart();
         return;
       }
       options.onStop?.();
