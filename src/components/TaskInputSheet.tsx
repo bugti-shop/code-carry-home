@@ -255,15 +255,17 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   });
   const speechRecognitionRef = useRef<any>(null);
   const aiTranscriptRef = useRef<string>('');
+  // Native speech session refs — simplified: accumulation now lives inside
+  // nativeSpeechRecognition.ts via committed-segments model.
   const nativeSpeechStopRef = useRef<null | (() => Promise<void>)>(null);
   const nativeSpeechCleanupRef = useRef<null | (() => Promise<void>)>(null);
-  const nativeSpeechTranscriptRef = useRef('');
+  const nativeSpeechGetTranscriptRef = useRef<null | (() => string)>(null);
   const nativeSpeechEndingRef = useRef(false);
   const nativeSpeechStartedRef = useRef(false);
   const nativeSpeechStartFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // True only when user explicitly tapped Stop. Lets us silently restart
-  // SpeechRecognition when the browser auto-ends on silence/timeout.
   const userStoppedDictationRef = useRef(false);
+  // Web Speech API: accumulate final results across auto-restarts
+  const webSpeechCommittedRef = useRef<string[]>([]);
   const aiStartedAtRef = useRef<number | null>(null);
   const aiTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -292,7 +294,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     const cleanup = nativeSpeechCleanupRef.current;
     nativeSpeechStopRef.current = null;
     nativeSpeechCleanupRef.current = null;
-    nativeSpeechTranscriptRef.current = '';
+    nativeSpeechGetTranscriptRef.current = null;
     nativeSpeechEndingRef.current = false;
     nativeSpeechStartedRef.current = false;
     if (nativeSpeechStartFallbackRef.current) {
@@ -310,30 +312,16 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     startAiElapsedTimer();
   }, []);
 
-  const mergeNativeSpeechTranscript = useCallback((incomingText: string) => {
-    const next = incomingText.trim();
-    if (!next) return;
-    const current = nativeSpeechTranscriptRef.current.trim();
-    if (!current) {
-      nativeSpeechTranscriptRef.current = next;
-      return;
-    }
-    if (next === current || next.startsWith(current) || current.startsWith(next)) {
-      nativeSpeechTranscriptRef.current = next.length >= current.length ? next : current;
-      return;
-    }
-    if (current.includes(next)) return;
-    nativeSpeechTranscriptRef.current = `${current} ${next}`.trim();
-  }, []);
-
   const finishNativeAiDictation = () => {
     if (nativeSpeechEndingRef.current) return;
     nativeSpeechEndingRef.current = true;
-    const text = nativeSpeechTranscriptRef.current.trim();
+    // Get the full accumulated transcript from the native session
+    const getText = nativeSpeechGetTranscriptRef.current;
+    const text = getText ? getText() : '';
     const cleanup = nativeSpeechCleanupRef.current;
     nativeSpeechStopRef.current = null;
     nativeSpeechCleanupRef.current = null;
-    nativeSpeechTranscriptRef.current = '';
+    nativeSpeechGetTranscriptRef.current = null;
     setIsAIListening(false);
     clearAiElapsedTimer();
     if (cleanup) void cleanup();
@@ -633,6 +621,14 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       setDescription(String(parsed.description));
       setShowDescriptionInput(true);
     }
+    // AI-extracted subtasks
+    if (Array.isArray(parsed.subtasks) && parsed.subtasks.length > 0) {
+      pendingSubtasksRef.current = parsed.subtasks.map((text: string, idx: number) => ({
+        id: `subtask-${Date.now()}-${idx}`,
+        text: String(text),
+        completed: false,
+      })) as TodoItem[];
+    }
   };
 
   const processAITranscript = async (transcript: string) => {
@@ -740,7 +736,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const actuallyStartNativeDictation = async () => {
     try {
       cleanupNativeSpeechSession();
-      nativeSpeechTranscriptRef.current = '';
       nativeSpeechEndingRef.current = false;
       nativeSpeechStartedRef.current = false;
       userStoppedDictationRef.current = false;
@@ -750,8 +745,10 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
           dictationLang ||
           (typeof navigator !== 'undefined' && navigator.language) ||
           'en-US',
-        onPartial: (text) => {
-          mergeNativeSpeechTranscript(text);
+        onPartial: (_text) => {
+          // The native session now accumulates internally; onPartial gives
+          // us the full transcript so far — we don't need to merge manually.
+          // We could show a live preview here in the future.
         },
         onStart: () => {
           markNativeSpeechStarted();
@@ -764,6 +761,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
       nativeSpeechStopRef.current = session.stop;
       nativeSpeechCleanupRef.current = session.cleanup;
+      nativeSpeechGetTranscriptRef.current = session.getTranscript;
       nativeSpeechStartFallbackRef.current = setTimeout(() => {
         nativeSpeechStartFallbackRef.current = null;
         markNativeSpeechStarted();
@@ -782,26 +780,30 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       const recognition = new SR();
       recognition.continuous = true;
       recognition.interimResults = true;
-      // Use user-picked dictation language (persisted) instead of i18n locale.
       recognition.lang =
         dictationLang ||
         (typeof navigator !== 'undefined' && navigator.language) ||
         'en-US';
       aiTranscriptRef.current = '';
+      webSpeechCommittedRef.current = [];
       userStoppedDictationRef.current = false;
 
       recognition.onresult = (event: any) => {
-        // Build the full transcript by concatenating ALL final results
-        // accumulated in this session (interim chunks are ignored to avoid
-        // duplication when partials get re-emitted).
-        let finalText = '';
+        // Collect all final results from the current recognition session
+        let sessionFinal = '';
+        let hasInterim = false;
         for (let i = 0; i < event.results.length; i++) {
           const res = event.results[i];
           if (res.isFinal) {
-            finalText += (finalText ? ' ' : '') + res[0].transcript.trim();
+            sessionFinal += (sessionFinal ? ' ' : '') + res[0].transcript.trim();
+          } else {
+            hasInterim = true;
           }
         }
-        if (finalText) aiTranscriptRef.current = finalText;
+        // Full transcript = committed segments from previous restarts + current session finals
+        const committed = webSpeechCommittedRef.current.join(' ');
+        const full = [committed, sessionFinal].filter(Boolean).join(' ').trim();
+        if (full) aiTranscriptRef.current = full;
       };
       recognition.onerror = (e: any) => {
         console.warn('[AI dictation] error', e?.error);
@@ -810,15 +812,16 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
           setIsAIListening(false);
           toast.error(t('errors.microphoneFailed'));
         } else if (e?.error !== 'no-speech' && e?.error !== 'aborted') {
-          // Non-recoverable: stop and surface error.
           userStoppedDictationRef.current = true;
           setIsAIListening(false);
           toast.error(t('tasks.aiSpeechFailed', 'Could not capture speech'));
         }
-        // 'no-speech' / 'aborted' → let onend restart silently.
       };
       recognition.onend = () => {
-        // If user hasn't tapped Stop, browser auto-ended on silence — restart.
+        // Commit whatever we have from this session before restarting
+        if (aiTranscriptRef.current) {
+          webSpeechCommittedRef.current = [aiTranscriptRef.current];
+        }
         if (!userStoppedDictationRef.current && speechRecognitionRef.current === recognition) {
           try {
             recognition.start();

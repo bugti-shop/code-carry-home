@@ -3,6 +3,7 @@ import { SpeechRecognition } from '@capacitor-community/speech-recognition';
 
 interface NativeSpeechSessionOptions {
   language: string;
+  /** Called with the FULL accumulated transcript so far (committed + current partial). */
   onPartial: (text: string) => void;
   onStart?: () => void;
   onStop?: () => void;
@@ -11,15 +12,14 @@ interface NativeSpeechSessionOptions {
 interface NativeSpeechSessionController {
   stop: () => Promise<void>;
   cleanup: () => Promise<void>;
+  /** Returns the full accumulated transcript at any point. */
+  getTranscript: () => string;
 }
 
 export const shouldUseNativeSpeechRecognition = () => Capacitor.isNativePlatform();
 
 /**
- * Pre-warm permissions BEFORE the user taps mic. This avoids breaking the
- * gesture chain on Android — `SpeechRecognition.start()` works much more
- * reliably when called synchronously from a user tap (no await beforehand).
- * Safe to call multiple times; resolves to true once permission is granted.
+ * Pre-warm permissions BEFORE the user taps mic.
  */
 export const ensureSpeechRecognitionReady = async (): Promise<boolean> => {
   if (!Capacitor.isNativePlatform()) return false;
@@ -56,22 +56,44 @@ export const startNativeSpeechSession = async (
     throw new Error('Speech recognition permission denied');
   }
 
-  // State for the session — needs to be in scope for restart logic below.
+  // ── Accumulation state ──
+  // committedSegments holds finalized text from previous recognition cycles.
+  // currentBest holds the longest partial from the current cycle.
+  // On auto-restart we commit currentBest → committedSegments and reset.
+  let committedSegments: string[] = [];
+  let currentBest = '';
+
   let userRequestedStop = false;
   let cleaned = false;
   let restarting = false;
 
+  const getFullTranscript = () => {
+    const parts = [...committedSegments];
+    if (currentBest) parts.push(currentBest);
+    return parts.join(' ').trim();
+  };
+
   const partialListener = await SpeechRecognition.addListener('partialResults', (data) => {
-    // Android emits BOTH partial transcripts AND the final transcript through
-    // this same event. Pick the longest match — that's the most complete one.
     const matches = (data?.matches ?? []) as string[];
     let best = '';
     for (const m of matches) {
       const trimmed = (m || '').trim();
       if (trimmed.length > best.length) best = trimmed;
     }
-    if (best) options.onPartial(best);
+    if (best) {
+      currentBest = best;
+      // Emit the FULL accumulated transcript so the caller always sees everything
+      options.onPartial(getFullTranscript());
+    }
   });
+
+  const startRecognizer = () =>
+    SpeechRecognition.start({
+      language: options.language,
+      maxResults: 5,
+      partialResults: true,
+      popup: false,
+    });
 
   const stateListener = await SpeechRecognition.addListener('listeningState', (data) => {
     if (data.status === 'started') {
@@ -80,16 +102,15 @@ export const startNativeSpeechSession = async (
       return;
     }
     if (data.status === 'stopped') {
-      // Android's recognizer auto-stops on silence. If the user hasn't tapped
-      // Stop yet, silently restart so dictation feels continuous (web-like).
+      // Commit the current segment before restarting
+      if (currentBest) {
+        committedSegments.push(currentBest);
+        currentBest = '';
+      }
+
       if (!userRequestedStop && !cleaned && !restarting) {
         restarting = true;
-        SpeechRecognition.start({
-          language: options.language,
-          maxResults: 5,
-          partialResults: true,
-          popup: false,
-        }).catch((err) => {
+        startRecognizer().catch((err) => {
           console.warn('[nativeSpeech] auto-restart failed', err);
           restarting = false;
           options.onStop?.();
@@ -101,14 +122,7 @@ export const startNativeSpeechSession = async (
   });
 
   try {
-    await SpeechRecognition.start({
-      language: options.language,
-      // Request multiple alternatives so we get the best transcript even
-      // when Android's recognizer is uncertain (improves accuracy).
-      maxResults: 5,
-      partialResults: true,
-      popup: false,
-    });
+    await startRecognizer();
   } catch (error) {
     await partialListener.remove().catch(() => {});
     await stateListener.remove().catch(() => {});
@@ -122,23 +136,16 @@ export const startNativeSpeechSession = async (
       try {
         await SpeechRecognition.stop();
       } catch {
-        // Ignore: we'll still clean up local listeners.
+        // Ignore
       }
     },
     cleanup: async () => {
       if (cleaned) return;
       cleaned = true;
       userRequestedStop = true;
-      try {
-        await partialListener.remove();
-      } catch {
-        // Ignore listener cleanup failures.
-      }
-      try {
-        await stateListener.remove();
-      } catch {
-        // Ignore listener cleanup failures.
-      }
+      try { await partialListener.remove(); } catch {}
+      try { await stateListener.remove(); } catch {}
     },
+    getTranscript: getFullTranscript,
   };
 };
