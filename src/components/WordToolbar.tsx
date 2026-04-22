@@ -813,6 +813,12 @@ export const WordToolbar = ({
           </div>
         )}
 
+        {onScan && (
+          <IconBtn onClick={onScan} title={t('scanNote.scan', 'Scan')}>
+            <Camera className="h-[18px] w-[18px]" strokeWidth={2.5} />
+          </IconBtn>
+        )}
+
         {isToolbarItemVisible('zoom') && (
           <div className="flex items-center gap-0 flex-shrink-0">
             <IconBtn onClick={() => onZoomChange(Math.max(50, zoom - 10))} disabled={zoom <= 50} title={t('wordToolbar.zoomOut')}><ZoomOut className="h-[18px] w-[18px]" strokeWidth={2.5} /></IconBtn>
