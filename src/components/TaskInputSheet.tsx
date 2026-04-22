@@ -244,6 +244,9 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const [isAIListening, setIsAIListening] = useState(false);
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const [aiElapsedMs, setAiElapsedMs] = useState(0);
+  const [liveTranscript, setLiveTranscript] = useState('');
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const SILENCE_TIMEOUT_MS = 20_000; // auto-stop after 20s silence
   // Persisted dictation language (BCP-47). Synced with VoiceNoteSheet via the
   // same `flowist_dictation_lang` key so user picks language once app-wide.
   const [dictationLang, setDictationLang] = useState<string>(() => {
