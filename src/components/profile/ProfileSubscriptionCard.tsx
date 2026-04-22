@@ -189,6 +189,6 @@ export const ProfileSubscriptionCard = () => {
           </button>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
