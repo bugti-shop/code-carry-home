@@ -809,19 +809,30 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       recognition.onresult = (event: any) => {
         // Collect all final results from the current recognition session
         let sessionFinal = '';
-        let hasInterim = false;
+        let interim = '';
         for (let i = 0; i < event.results.length; i++) {
           const res = event.results[i];
           if (res.isFinal) {
             sessionFinal += (sessionFinal ? ' ' : '') + res[0].transcript.trim();
           } else {
-            hasInterim = true;
+            interim += (interim ? ' ' : '') + res[0].transcript.trim();
           }
         }
         // Full transcript = committed segments from previous restarts + current session finals
         const committed = webSpeechCommittedRef.current.join(' ');
         const full = [committed, sessionFinal].filter(Boolean).join(' ').trim();
         if (full) aiTranscriptRef.current = full;
+        // Show live preview (finals + interim)
+        const preview = [full || committed, interim].filter(Boolean).join(' ').trim();
+        if (preview) setLiveTranscript(preview);
+        // Reset silence timer
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+          if (!userStoppedDictationRef.current) {
+            userStoppedDictationRef.current = true;
+            stopAIDictation();
+          }
+        }, SILENCE_TIMEOUT_MS);
       };
       recognition.onerror = (e: any) => {
         console.warn('[AI dictation] error', e?.error);
