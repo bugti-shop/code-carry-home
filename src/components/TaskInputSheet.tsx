@@ -878,6 +878,8 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
   const stopAIDictation = () => {
     userStoppedDictationRef.current = true;
+    if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
+    setLiveTranscript('');
     if (shouldUseNativeSpeechRecognition()) {
       const stop = nativeSpeechStopRef.current;
       // Grab transcript BEFORE stopping — some Android devices clear
