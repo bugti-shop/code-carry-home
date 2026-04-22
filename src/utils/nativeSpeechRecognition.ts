@@ -97,6 +97,13 @@ export const startNativeSpeechSession = async (
     }
   });
 
+  let userRequestedStop = false;
+  let cleaned = false;
+  let restarting = false;
+  let restartFailCount = 0;
+  const MAX_RESTART_FAILS = 3;
+  const RESTART_DELAY_MS = 250;
+
   const startRecognizer = () =>
     SpeechRecognition.start({
       language: options.language,
