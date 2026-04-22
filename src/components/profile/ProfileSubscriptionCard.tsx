@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { m as motion } from 'framer-motion';
+
 import { Crown, Gift, Calendar, Clock, ChevronRight, Shield } from 'lucide-react';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 
@@ -53,9 +53,7 @@ export const ProfileSubscriptionCard = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       className="w-full rounded-2xl border border-border/50 overflow-hidden bg-card"
     >
       {/* Header */}
@@ -102,18 +100,16 @@ export const ProfileSubscriptionCard = () => {
               </span>
             </div>
             <div className="h-2 rounded-full bg-muted overflow-hidden">
-              <motion.div
-                className="h-full rounded-full"
+              <div
+                className="h-full rounded-full transition-all duration-700 ease-out"
                 style={{
                   background: daysRemaining <= 3
                     ? 'hsl(0 84.2% 60.2%)'
                     : daysRemaining <= 7
                       ? 'hsl(38 92% 50%)'
                       : 'hsl(var(--primary))',
+                  width: `${trialProgress * 100}%`,
                 }}
-                initial={{ width: '0%' }}
-                animate={{ width: `${trialProgress * 100}%` }}
-                transition={{ duration: 1, ease: 'easeOut' }}
               />
             </div>
           </div>
@@ -193,6 +189,6 @@ export const ProfileSubscriptionCard = () => {
           </button>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };

@@ -37,6 +37,7 @@ import {
   ChevronDown,
   Indent,
   Outdent,
+  Camera,
 } from 'lucide-react';
 import { EmojiPicker } from './EmojiPicker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -100,6 +101,7 @@ interface WordToolbarProps {
   onOutdent?: () => void;
   onChecklist?: () => void;
   isChecklist?: boolean;
+  onScan?: () => void;
 }
 
 // Toolbar order types
@@ -397,6 +399,7 @@ export const WordToolbar = ({
   onOutdent,
   onChecklist,
   isChecklist = false,
+  onScan,
 }: WordToolbarProps) => {
   const { t } = useTranslation();
   const [fontSizeOpen, setFontSizeOpen] = useState(false);
@@ -485,7 +488,7 @@ export const WordToolbar = ({
       <div
         className={cn(
           "rounded-full flex items-center gap-0.5 px-3 overflow-x-auto scrollbar-hide h-[48px]",
-          isStickyNote ? "bg-card" : "bg-white dark:bg-card"
+          isStickyNote ? "bg-card" : "bg-card"
         )}
         style={{
           boxShadow: '0 -3px 12px -2px rgba(0,0,0,0.06), 0 4px 16px -2px rgba(0,0,0,0.12), 0 2px 6px -1px rgba(0,0,0,0.08)',
@@ -808,6 +811,12 @@ export const WordToolbar = ({
               <Plus className="h-4 w-4" strokeWidth={2.5} />
             </button>
           </div>
+        )}
+
+        {onScan && (
+          <IconBtn onClick={onScan} title={t('scanNote.scan', 'Scan')}>
+            <Camera className="h-[18px] w-[18px]" strokeWidth={2.5} />
+          </IconBtn>
         )}
 
         {isToolbarItemVisible('zoom') && (

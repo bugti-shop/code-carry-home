@@ -1888,6 +1888,7 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
                 onLineHeightChange={setLineHeight}
                 onInsertNoteLink={() => setIsNoteLinkingOpen(true)}
                 onVoiceRecord={() => setShowVoiceRecorder(true)}
+                onScan={() => { if (requireFeature('ai_dictation')) setShowScanNote(true); }}
                 externalEditorRef={editorRef}
                 isFindReplaceOpen={isFindReplaceOpen}
                 onFloatingImageUpload={(noteType === 'regular' || noteType === 'sticky' || noteType === 'textformat') ? () => floatingImageRef.current?.triggerAdd() : undefined}
@@ -1901,25 +1902,6 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
                 />
               )}
 
-              {/* AI mini-toolbar (Pro): scan handwritten/printed page → formatted note */}
-              {(noteType === 'regular' || noteType === 'sticky' || noteType === 'lined' || noteType === 'textformat') && (
-                <div className="absolute bottom-20 right-3 z-20 flex flex-col gap-2 items-end">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!requireFeature('ai_dictation')) return;
-                      setShowScanNote(true);
-                    }}
-                    className="group relative h-14 pl-4 pr-5 rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/30 flex items-center gap-2 hover:scale-105 active:scale-95 transition-transform ring-2 ring-primary/20"
-                    aria-label={t('scanNote.tooltip', 'Scan a handwritten or printed page — AI converts it into a formatted note')}
-                    title={t('scanNote.tooltip', 'Scan a handwritten or printed page — AI converts it into a formatted note')}
-                  >
-                    <span className="absolute inset-0 rounded-full bg-primary/40 animate-ping opacity-60 pointer-events-none" />
-                    <Camera className="h-5 w-5 relative z-10" />
-                    <span className="text-sm font-semibold relative z-10">{t('scanNote.scan', 'Scan')}</span>
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </ErrorBoundary>
@@ -1928,7 +1910,7 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
             rich-editor branch above renders its own toolbar inside the editor
             container; this one overlays the alternate editors so every note
             type can dictate (Mic) and scan images to text (Camera). */}
-        {(noteType === 'voice' || noteType === 'code' || noteType === 'sketch') && (
+        {(noteType === 'voice' || noteType === 'code') && (
           <div className="absolute bottom-20 right-3 z-30 flex flex-col gap-2 items-end pointer-events-auto">
             <button
               type="button"

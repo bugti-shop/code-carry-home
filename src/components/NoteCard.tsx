@@ -362,7 +362,7 @@ export const NoteCard = memo(({ note, onEdit, onDelete, onArchive, onTogglePin, 
               </div>
             )}
           {note.title && (
-              <h3 className="font-semibold text-base line-clamp-1 text-black flex-1">{note.title}</h3>
+              <h3 className="font-semibold text-base line-clamp-1 text-gray-900 flex-1">{note.title}</h3>
             )}
             {note.isPinned && (
               <Pin className="h-4 w-4 text-warning fill-warning shrink-0" />
@@ -378,17 +378,17 @@ export const NoteCard = memo(({ note, onEdit, onDelete, onArchive, onTogglePin, 
           {/* Show metaDescription if available, otherwise show content preview */}
           {note.type === 'sketch' ? (
             note.metaDescription ? (
-              <p className="text-sm text-black/70 mb-3 line-clamp-2">
+              <p className="text-sm text-gray-700 mb-3 line-clamp-2">
                 {note.metaDescription}
               </p>
             ) : (
-              <div className="flex items-center gap-2 text-sm text-black/50 mb-3 italic">
+              <div className="flex items-center gap-2 text-sm text-gray-500 mb-3 italic">
                 <Pen className="h-4 w-4" />
                 <span>{t('notes.sketchDrawing')}</span>
               </div>
             )
           ) : (note.metaDescription || note.content) && (
-            <p className="text-sm text-black/70 mb-3 line-clamp-2 transition-all duration-300">
+            <p className="text-sm text-gray-700 mb-3 line-clamp-2 transition-all duration-300">
               {note.metaDescription || note.content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()}
             </p>
           )}
@@ -407,12 +407,12 @@ export const NoteCard = memo(({ note, onEdit, onDelete, onArchive, onTogglePin, 
                 </span>
               ))}
               {noteTags.length > 3 && (
-                <span className="text-[10px] text-black/50">+{noteTags.length - 3}</span>
+                <span className="text-[10px] text-gray-500">+{noteTags.length - 3}</span>
               )}
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-2 text-xs text-black/60">
+          <div className="flex items-center justify-between gap-2 text-xs text-gray-600">
             <span>
               {new Date(note.updatedAt).toLocaleDateString('en-US', {
                 month: 'short',
@@ -423,7 +423,7 @@ export const NoteCard = memo(({ note, onEdit, onDelete, onArchive, onTogglePin, 
                 hour12: true
               })}
             </span>
-            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white text-xs font-medium text-black">
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/80 text-xs font-medium text-gray-800">
               <BadgeIcon className="h-3 w-3" />
               <span>{badge.label}</span>
             </div>

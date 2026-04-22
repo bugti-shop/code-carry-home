@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { m as motion } from 'framer-motion';
+
 import { FileText, CheckCircle2, FolderOpen, Layers, CalendarDays } from 'lucide-react';
 import { loadNotesFromDB } from '@/utils/noteStorage';
 import { loadTodoItems } from '@/utils/todoItemsStorage';
@@ -76,18 +76,15 @@ export const ProfileStatsBanner = () => {
 
   return (
     <div className="grid grid-cols-5 gap-2">
-      {items.map((item, i) => (
-        <motion.div
+      {items.map((item) => (
+        <div
           key={item.label}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.06 }}
           className="flex flex-col items-center p-2.5 bg-card rounded-xl border border-border/50"
         >
           <item.icon className={`h-4 w-4 ${item.color} mb-1`} />
           <span className="text-lg font-bold text-foreground">{item.value}</span>
           <span className="text-[9px] text-muted-foreground leading-tight">{item.label}</span>
-        </motion.div>
+        </div>
       ))}
     </div>
   );
