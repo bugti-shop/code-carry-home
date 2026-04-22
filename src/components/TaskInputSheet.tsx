@@ -757,10 +757,16 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
           dictationLang ||
           (typeof navigator !== 'undefined' && navigator.language) ||
           'en-US',
-        onPartial: (_text) => {
-          // The native session now accumulates internally; onPartial gives
-          // us the full transcript so far — we don't need to merge manually.
-          // We could show a live preview here in the future.
+        onPartial: (text) => {
+          setLiveTranscript(text);
+          // Reset silence timer on every partial result
+          if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = setTimeout(() => {
+            if (!userStoppedDictationRef.current) {
+              userStoppedDictationRef.current = true;
+              stopAIDictation();
+            }
+          }, SILENCE_TIMEOUT_MS);
         },
         onStart: () => {
           markNativeSpeechStarted();
