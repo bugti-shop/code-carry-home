@@ -485,7 +485,7 @@ export const WordToolbar = ({
       <div
         className={cn(
           "rounded-full flex items-center gap-0.5 px-3 overflow-x-auto scrollbar-hide h-[48px]",
-          isStickyNote ? "bg-card" : "bg-white dark:bg-card"
+          isStickyNote ? "bg-card" : "bg-card"
         )}
         style={{
           boxShadow: '0 -3px 12px -2px rgba(0,0,0,0.06), 0 4px 16px -2px rgba(0,0,0,0.12), 0 2px 6px -1px rgba(0,0,0,0.08)',

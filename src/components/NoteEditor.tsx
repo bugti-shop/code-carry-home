@@ -1928,7 +1928,7 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
             rich-editor branch above renders its own toolbar inside the editor
             container; this one overlays the alternate editors so every note
             type can dictate (Mic) and scan images to text (Camera). */}
-        {(noteType === 'voice' || noteType === 'code' || noteType === 'sketch') && (
+        {(noteType === 'voice' || noteType === 'code') && (
           <div className="absolute bottom-20 right-3 z-30 flex flex-col gap-2 items-end pointer-events-auto">
             <button
               type="button"
