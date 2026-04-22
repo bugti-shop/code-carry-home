@@ -1314,6 +1314,15 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
               autoFocus
             />
 
+            {/* Live transcript preview while AI is listening */}
+            {isAIListening && liveTranscript && (
+              <div className="absolute left-0 right-12 top-full mt-1 px-1">
+                <p className="text-xs text-muted-foreground italic line-clamp-2 animate-pulse">
+                  {liveTranscript}
+                </p>
+              </div>
+            )}
+
             {taskText.trim() || voiceRecording ? (
               <button
                 onMouseDown={(e) => e.preventDefault()}
