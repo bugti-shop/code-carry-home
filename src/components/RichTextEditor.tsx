@@ -85,6 +85,7 @@ interface RichTextEditorProps {
   onLineHeightChange?: (lineHeight: string) => void;
   onInsertNoteLink?: () => void;
   onVoiceRecord?: () => void;
+  onScan?: () => void;
   externalEditorRef?: React.RefObject<HTMLDivElement>;
   /**
    * When Find/Replace is open, the editor DOM may contain temporary highlight marks.
@@ -124,6 +125,7 @@ export const RichTextEditor = ({
   onLineHeightChange,
   onInsertNoteLink,
   onVoiceRecord,
+  onScan,
   externalEditorRef,
   isFindReplaceOpen,
   voiceRecordings = [],
@@ -1830,6 +1832,7 @@ export const RichTextEditor = ({
       onVoiceRecord={onVoiceRecord}
       onChecklist={handleChecklist}
       isChecklist={activeStates.isChecklist}
+      onScan={onScan}
     />
   );
 
