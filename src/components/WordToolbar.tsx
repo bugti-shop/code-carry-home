@@ -399,6 +399,7 @@ export const WordToolbar = ({
   onOutdent,
   onChecklist,
   isChecklist = false,
+  onScan,
 }: WordToolbarProps) => {
   const { t } = useTranslation();
   const [fontSizeOpen, setFontSizeOpen] = useState(false);
