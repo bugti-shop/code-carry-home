@@ -1888,6 +1888,7 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
                 onLineHeightChange={setLineHeight}
                 onInsertNoteLink={() => setIsNoteLinkingOpen(true)}
                 onVoiceRecord={() => setShowVoiceRecorder(true)}
+                onScan={() => { if (requireFeature('ai_dictation')) setShowScanNote(true); }}
                 externalEditorRef={editorRef}
                 isFindReplaceOpen={isFindReplaceOpen}
                 onFloatingImageUpload={(noteType === 'regular' || noteType === 'sticky' || noteType === 'textformat') ? () => floatingImageRef.current?.triggerAdd() : undefined}
