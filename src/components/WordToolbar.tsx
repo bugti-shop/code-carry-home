@@ -37,6 +37,7 @@ import {
   ChevronDown,
   Indent,
   Outdent,
+  Camera,
 } from 'lucide-react';
 import { EmojiPicker } from './EmojiPicker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -100,6 +101,7 @@ interface WordToolbarProps {
   onOutdent?: () => void;
   onChecklist?: () => void;
   isChecklist?: boolean;
+  onScan?: () => void;
 }
 
 // Toolbar order types
