@@ -58,18 +58,27 @@ export const startNativeSpeechSession = async (
 
   // ── Accumulation state ──
   // committedSegments holds finalized text from previous recognition cycles.
-  // currentBest holds the longest partial from the current cycle.
+  // currentBest holds the best partial from the current cycle (first/highest-confidence match).
   // On auto-restart we commit currentBest → committedSegments and reset.
   let committedSegments: string[] = [];
   let currentBest = '';
 
-  let userRequestedStop = false;
-  let cleaned = false;
-  let restarting = false;
-  let restartFailCount = 0;
-  const MAX_RESTART_FAILS = 3;
-  // Delay between restart attempts (increases on failure)
-  const RESTART_DELAY_MS = 250;
+  // Remove overlapping prefix between the last committed segment and new text
+  const deduplicateOverlap = (committed: string, incoming: string): string => {
+    if (!committed || !incoming) return incoming;
+    const cWords = committed.toLowerCase().split(/\s+/);
+    const iWords = incoming.toLowerCase().split(/\s+/);
+    const iWordsOrig = incoming.split(/\s+/);
+    // Find the longest suffix of committed that matches a prefix of incoming
+    let overlapLen = 0;
+    const maxCheck = Math.min(cWords.length, iWords.length);
+    for (let len = 1; len <= maxCheck; len++) {
+      const suffix = cWords.slice(-len).join(' ');
+      const prefix = iWords.slice(0, len).join(' ');
+      if (suffix === prefix) overlapLen = len;
+    }
+    return overlapLen > 0 ? iWordsOrig.slice(overlapLen).join(' ') : incoming;
+  };
 
   const getFullTranscript = () => {
     const parts = [...committedSegments];
@@ -79,16 +88,21 @@ export const startNativeSpeechSession = async (
 
   const partialListener = await SpeechRecognition.addListener('partialResults', (data) => {
     const matches = (data?.matches ?? []) as string[];
-    let best = '';
-    for (const m of matches) {
-      const trimmed = (m || '').trim();
-      if (trimmed.length > best.length) best = trimmed;
-    }
+    // Use first match (highest confidence) instead of longest — avoids
+    // picking up garbled alternatives that are longer but wrong.
+    const best = (matches[0] || '').trim();
     if (best) {
       currentBest = best;
       options.onPartial(getFullTranscript());
     }
   });
+
+  let userRequestedStop = false;
+  let cleaned = false;
+  let restarting = false;
+  let restartFailCount = 0;
+  const MAX_RESTART_FAILS = 3;
+  const RESTART_DELAY_MS = 250;
 
   const startRecognizer = () =>
     SpeechRecognition.start({
@@ -131,9 +145,13 @@ export const startNativeSpeechSession = async (
       return;
     }
     if (data.status === 'stopped') {
-      // Commit the current segment before restarting
+      // Commit the current segment before restarting, deduplicating overlap
       if (currentBest) {
-        committedSegments.push(currentBest);
+        const lastCommitted = committedSegments.length > 0 ? committedSegments.join(' ') : '';
+        const deduped = deduplicateOverlap(lastCommitted, currentBest);
+        if (deduped) {
+          committedSegments.push(deduped);
+        }
         currentBest = '';
       }
 
