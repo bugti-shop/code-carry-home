@@ -244,6 +244,9 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const [isAIListening, setIsAIListening] = useState(false);
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const [aiElapsedMs, setAiElapsedMs] = useState(0);
+  const [liveTranscript, setLiveTranscript] = useState('');
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const SILENCE_TIMEOUT_MS = 20_000; // auto-stop after 20s silence
   // Persisted dictation language (BCP-47). Synced with VoiceNoteSheet via the
   // same `flowist_dictation_lang` key so user picks language once app-wide.
   const [dictationLang, setDictationLang] = useState<string>(() => {
@@ -754,10 +757,16 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
           dictationLang ||
           (typeof navigator !== 'undefined' && navigator.language) ||
           'en-US',
-        onPartial: (_text) => {
-          // The native session now accumulates internally; onPartial gives
-          // us the full transcript so far — we don't need to merge manually.
-          // We could show a live preview here in the future.
+        onPartial: (text) => {
+          setLiveTranscript(text);
+          // Reset silence timer on every partial result
+          if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = setTimeout(() => {
+            if (!userStoppedDictationRef.current) {
+              userStoppedDictationRef.current = true;
+              stopAIDictation();
+            }
+          }, SILENCE_TIMEOUT_MS);
         },
         onStart: () => {
           markNativeSpeechStarted();
@@ -800,19 +809,30 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       recognition.onresult = (event: any) => {
         // Collect all final results from the current recognition session
         let sessionFinal = '';
-        let hasInterim = false;
+        let interim = '';
         for (let i = 0; i < event.results.length; i++) {
           const res = event.results[i];
           if (res.isFinal) {
             sessionFinal += (sessionFinal ? ' ' : '') + res[0].transcript.trim();
           } else {
-            hasInterim = true;
+            interim += (interim ? ' ' : '') + res[0].transcript.trim();
           }
         }
         // Full transcript = committed segments from previous restarts + current session finals
         const committed = webSpeechCommittedRef.current.join(' ');
         const full = [committed, sessionFinal].filter(Boolean).join(' ').trim();
         if (full) aiTranscriptRef.current = full;
+        // Show live preview (finals + interim)
+        const preview = [full || committed, interim].filter(Boolean).join(' ').trim();
+        if (preview) setLiveTranscript(preview);
+        // Reset silence timer
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+          if (!userStoppedDictationRef.current) {
+            userStoppedDictationRef.current = true;
+            stopAIDictation();
+          }
+        }, SILENCE_TIMEOUT_MS);
       };
       recognition.onerror = (e: any) => {
         console.warn('[AI dictation] error', e?.error);
@@ -858,6 +878,8 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
   const stopAIDictation = () => {
     userStoppedDictationRef.current = true;
+    if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
+    setLiveTranscript('');
     if (shouldUseNativeSpeechRecognition()) {
       const stop = nativeSpeechStopRef.current;
       // Grab transcript BEFORE stopping — some Android devices clear
@@ -1291,6 +1313,15 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
               className="text-[17px] border-0 px-0 py-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none bg-transparent placeholder:text-muted-foreground/40"
               autoFocus
             />
+
+            {/* Live transcript preview while AI is listening */}
+            {isAIListening && liveTranscript && (
+              <div className="absolute left-0 right-12 top-full mt-1 px-1">
+                <p className="text-xs text-muted-foreground italic line-clamp-2 animate-pulse">
+                  {liveTranscript}
+                </p>
+              </div>
+            )}
 
             {taskText.trim() || voiceRecording ? (
               <button

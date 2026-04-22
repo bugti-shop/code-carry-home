@@ -63,7 +63,8 @@ export const startNativeSpeechSession = async (
   let committedSegments: string[] = [];
   let currentBest = '';
 
-  // Remove overlapping prefix between the last committed segment and new text
+  // Remove overlapping prefix between the last committed segment and new text.
+  // Also handles stuttered duplicates like "buy some buy some groceries".
   const deduplicateOverlap = (committed: string, incoming: string): string => {
     if (!committed || !incoming) return incoming;
     const cWords = committed.toLowerCase().split(/\s+/);
@@ -80,10 +81,36 @@ export const startNativeSpeechSession = async (
     return overlapLen > 0 ? iWordsOrig.slice(overlapLen).join(' ') : incoming;
   };
 
+  // Remove stuttered repetitions within a single phrase
+  // e.g. "buy some buy some buy some groceries" → "buy some groceries"
+  const removeStutter = (text: string): string => {
+    const words = text.split(/\s+/);
+    if (words.length <= 2) return text;
+    // Try patterns of length 1..4 words repeating at the start
+    for (let patLen = 1; patLen <= Math.min(4, Math.floor(words.length / 2)); patLen++) {
+      const pattern = words.slice(0, patLen).join(' ').toLowerCase();
+      let i = patLen;
+      while (i + patLen <= words.length) {
+        const nextChunk = words.slice(i, i + patLen).join(' ').toLowerCase();
+        if (nextChunk === pattern) {
+          i += patLen; // skip duplicate
+        } else {
+          break;
+        }
+      }
+      if (i > patLen) {
+        // Found repeats — reconstruct with first occurrence + rest
+        return [...words.slice(0, patLen), ...words.slice(i)].join(' ');
+      }
+    }
+    return text;
+  };
+
   const getFullTranscript = () => {
     const parts = [...committedSegments];
     if (currentBest) parts.push(currentBest);
-    return parts.join(' ').trim();
+    const raw = parts.join(' ').trim();
+    return removeStutter(raw);
   };
 
   const partialListener = await SpeechRecognition.addListener('partialResults', (data) => {
