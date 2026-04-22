@@ -109,7 +109,8 @@ export const startNativeSpeechSession = async (
   const getFullTranscript = () => {
     const parts = [...committedSegments];
     if (currentBest) parts.push(currentBest);
-    return parts.join(' ').trim();
+    const raw = parts.join(' ').trim();
+    return removeStutter(raw);
   };
 
   const partialListener = await SpeechRecognition.addListener('partialResults', (data) => {
