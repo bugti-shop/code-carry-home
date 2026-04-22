@@ -145,9 +145,13 @@ export const startNativeSpeechSession = async (
       return;
     }
     if (data.status === 'stopped') {
-      // Commit the current segment before restarting
+      // Commit the current segment before restarting, deduplicating overlap
       if (currentBest) {
-        committedSegments.push(currentBest);
+        const lastCommitted = committedSegments.length > 0 ? committedSegments.join(' ') : '';
+        const deduped = deduplicateOverlap(lastCommitted, currentBest);
+        if (deduped) {
+          committedSegments.push(deduped);
+        }
         currentBest = '';
       }
 
