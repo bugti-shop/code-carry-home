@@ -1342,7 +1342,10 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
               ref={inputRef}
               placeholder={t('tasks.naturalLanguagePlaceholder')}
               value={taskText}
-              onChange={(e) => setTaskText(e.target.value)}
+              onChange={(e) => {
+                setTaskText(e.target.value);
+                setPreserveSpokenTranscript(false);
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -1551,69 +1554,69 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
           </div>
 
           {/* Natural Language Parsing Preview */}
-          {hasNLPPatterns && parsedTask && (parsedTask.dueDate || parsedTask.priority || parsedTask.repeatType || parsedTask.location || (parsedTask.tags && parsedTask.tags.length > 0) || parsedTask.folderName || parsedTask.description || parsedTask.estimatedHours || parsedTask.reminderOffset) && (
+          {detectedTaskPreview && (detectedTaskPreview.dueDate || detectedTaskPreview.priority || detectedTaskPreview.repeatType || detectedTaskPreview.location || (detectedTaskPreview.tags && detectedTaskPreview.tags.length > 0) || ('folderName' in detectedTaskPreview && detectedTaskPreview.folderName) || detectedTaskPreview.description || ('estimatedHours' in detectedTaskPreview && detectedTaskPreview.estimatedHours) || ('reminderOffset' in detectedTaskPreview && detectedTaskPreview.reminderOffset)) && (
             <div className="flex items-center gap-2 mb-3 px-1 flex-wrap">
               <Sparkles className="h-3.5 w-3.5 text-primary flex-shrink-0" />
               <span className="text-xs text-muted-foreground">{t('tasks.detected')}:</span>
-              {parsedTask.dueDate && (
+              {detectedTaskPreview.dueDate && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary">
                   <CalendarIcon className="h-3 w-3" />
-                  {format(parsedTask.dueDate, 'MMM d, h:mm a')}
+                  {format(detectedTaskPreview.dueDate, 'MMM d, h:mm a')}
                 </span>
               )}
-              {parsedTask.reminderOffset && (
+              {'reminderOffset' in detectedTaskPreview && detectedTaskPreview.reminderOffset && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-warning/10 text-warning">
-                  🔔 {parsedTask.reminderOffset === 'exact' ? t('taskInput.atTime') : parsedTask.reminderOffset}
+                  🔔 {detectedTaskPreview.reminderOffset === 'exact' ? t('taskInput.atTime') : detectedTaskPreview.reminderOffset}
                 </span>
               )}
-              {parsedTask.repeatType && (
+              {detectedTaskPreview.repeatType && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-accent-purple/10 text-accent-purple">
                   <Timer className="h-3 w-3" />
-                  {parsedTask.repeatType === 'custom' && parsedTask.repeatDays 
-                    ? `${t('dateTime.repeatEvery')} ${[t('dateTime.weekDays.sun'), t('dateTime.weekDays.mon'), t('dateTime.weekDays.tue'), t('dateTime.weekDays.wed'), t('dateTime.weekDays.thu'), t('dateTime.weekDays.fri'), t('dateTime.weekDays.sat')].filter((_, i) => parsedTask.repeatDays?.includes(i)).join(', ')}`
-                    : parsedTask.repeatType}
+                  {detectedTaskPreview.repeatType === 'custom' && 'repeatDays' in detectedTaskPreview && detectedTaskPreview.repeatDays
+                    ? `${t('dateTime.repeatEvery')} ${[t('dateTime.weekDays.sun'), t('dateTime.weekDays.mon'), t('dateTime.weekDays.tue'), t('dateTime.weekDays.wed'), t('dateTime.weekDays.thu'), t('dateTime.weekDays.fri'), t('dateTime.weekDays.sat')].filter((_, i) => detectedTaskPreview.repeatDays?.includes(i)).join(', ')}`
+                    : detectedTaskPreview.repeatType}
                 </span>
               )}
-              {parsedTask.location && (
+              {detectedTaskPreview.location && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-info/10 text-info">
                   <MapPin className="h-3 w-3" />
-                  {parsedTask.location}
+                  {detectedTaskPreview.location}
                 </span>
               )}
-              {parsedTask.priority && (
+              {detectedTaskPreview.priority && (
                 <span className={cn(
                   "inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full",
-                  parsedTask.priority === 'high' && "bg-destructive/10 text-destructive",
-                  parsedTask.priority === 'medium' && "bg-warning/10 text-warning",
-                  parsedTask.priority === 'low' && "bg-success/10 text-success",
+                  detectedTaskPreview.priority === 'high' && "bg-destructive/10 text-destructive",
+                  detectedTaskPreview.priority === 'medium' && "bg-warning/10 text-warning",
+                  detectedTaskPreview.priority === 'low' && "bg-success/10 text-success",
                 )}>
                   <Flag className="h-3 w-3" />
-                  {parsedTask.priority}
+                  {detectedTaskPreview.priority}
                 </span>
               )}
-              {parsedTask.tags && parsedTask.tags.length > 0 && parsedTask.tags.map(tag => (
+              {detectedTaskPreview.tags && detectedTaskPreview.tags.length > 0 && detectedTaskPreview.tags.map(tag => (
                 <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-accent-teal/10 text-accent-teal">
                   <Tag className="h-3 w-3" />
                   {tag}
                 </span>
               ))}
-              {parsedTask.folderName && (
+              {'folderName' in detectedTaskPreview && detectedTaskPreview.folderName && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-streak/10 text-streak">
                   <FolderIcon className="h-3 w-3" />
-                  {parsedTask.folderName}
+                  {detectedTaskPreview.folderName}
                 </span>
               )}
-              {parsedTask.estimatedHours && (
+              {'estimatedHours' in detectedTaskPreview && detectedTaskPreview.estimatedHours && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-accent-indigo/10 text-accent-indigo">
-                  ⏱ {parsedTask.estimatedHours >= 1 
-                    ? `${Math.floor(parsedTask.estimatedHours)}h${Math.round((parsedTask.estimatedHours % 1) * 60) > 0 ? `${Math.round((parsedTask.estimatedHours % 1) * 60)}m` : ''}`
-                    : `${Math.round(parsedTask.estimatedHours * 60)}m`}
+                  ⏱ {detectedTaskPreview.estimatedHours >= 1 
+                    ? `${Math.floor(detectedTaskPreview.estimatedHours)}h${Math.round((detectedTaskPreview.estimatedHours % 1) * 60) > 0 ? `${Math.round((detectedTaskPreview.estimatedHours % 1) * 60)}m` : ''}`
+                    : `${Math.round(detectedTaskPreview.estimatedHours * 60)}m`}
                 </span>
               )}
-              {parsedTask.description && (
+              {detectedTaskPreview.description && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-muted text-muted-foreground max-w-[200px] truncate">
                   <FileText className="h-3 w-3 flex-shrink-0" />
-                  {parsedTask.description}
+                  {detectedTaskPreview.description}
                 </span>
               )}
             </div>
