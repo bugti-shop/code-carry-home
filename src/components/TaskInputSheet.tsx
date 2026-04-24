@@ -613,10 +613,26 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const mergeDetectedTags = (spokenTags?: string[] | null) => {
+    if (!Array.isArray(spokenTags) || spokenTags.length === 0) return;
+    const normalized = spokenTags
+      .map((tag) => String(tag).trim())
+      .filter(Boolean)
+      .map((tag) => tag.replace(/^#/, '').trim().toLowerCase());
+    if (!normalized.length) return;
+
+    const matchedIds = globalTags
+      .filter((tag) => normalized.includes(tag.name.trim().toLowerCase()))
+      .map((tag) => tag.id);
+
+    if (matchedIds.length) {
+      setSelectedTagIds((prev) => Array.from(new Set([...prev, ...matchedIds])));
+    }
+  };
+
   // ── AI Dictation: Speech → AI parse → auto-fill task fields ──
-  const applyAIParsed = (parsed: any) => {
+  const applyAIParsed = (parsed: AIParsedTaskResult | null | undefined) => {
     if (!parsed) return;
-    if (parsed.title) setTaskText(String(parsed.title));
     if (parsed.dueDateIso) {
       const d = new Date(parsed.dueDateIso);
       if (!isNaN(d.getTime())) setDueDate(d);
@@ -628,6 +644,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     if (parsed.priority && parsed.priority !== 'none') {
       setPriority(parsed.priority as Priority);
     }
+    mergeDetectedTags(parsed.tags);
     if (parsed.folderId && folders.some((f) => f.id === parsed.folderId)) {
       setFolderId(parsed.folderId);
     }
