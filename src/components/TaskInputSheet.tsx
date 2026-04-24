@@ -425,6 +425,8 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       setPlaybackProgress(0);
       setPlaybackCurrentTime(0);
       setShowTrimmer(false);
+      setAiParsedTask(null);
+      setPreserveSpokenTranscript(false);
       clearAiElapsedTimer();
       speechRecognitionRef.current = null;
       aiTranscriptRef.current = '';
