@@ -49,13 +49,6 @@ Deno.serve(async (req) => {
 
     const systemPrompt = `You are a multilingual task parser with excellent understanding of diverse English accents (South Asian, African, Middle Eastern, Russian, East Asian, Latin American etc.) and non-native speakers. The user's transcript is in ${langName} (${langCode}) but may mix in other languages, contain filler words, hesitations, or pronunciation artifacts from speech recognition. You must be tolerant of misspellings and phonetic approximations.
 
-CRITICAL — STUTTERED / REPEATED INPUT:
-Speech recognition often produces stuttered or repeated fragments, e.g.:
-- "buy some buy some buy some groceries" → means "Buy some groceries"
-- "play play some play some cricket" → means "Play some cricket"
-- "go to go to the gym" → means "Go to the gym"
-You MUST deduplicate and clean these repetitions to produce a clean, natural title.
-
 Current datetime (ISO): ${now}
 User timezone: ${tz}
 User language: ${langName} (${langCode})
@@ -67,14 +60,17 @@ Available sections:
 ${sections.length ? sections.map((s) => `- ${s.name} (id: ${s.id})`).join("\n") : "(none)"}
 
 Rules:
-- "title": short, action-oriented, no time/date/folder/repeat words. Write the title in the SAME language as the transcript (${langName}). Do NOT translate to English. Clean up speech artifacts (filler words like "um", "uh", "like", stutters, repetitions) but preserve the user's intent.
+- The transcript is the source of truth. Never invent words, never add missing words, and never remove spoken words unless those exact words are being captured separately as structured metadata.
+- "title": preserve the user's spoken wording exactly as much as possible in the SAME language as the transcript (${langName}). Do NOT translate to English. Only remove words from title when those exact words are clearly represented in another field like dueDateIso, deadlineIso, priority, folderId, sectionId, repeatType, location, tags, description, or subtasks.
 - Recognize date/time words in ${langName} as well as English (e.g. Hindi "kal" = tomorrow, Urdu "kal/parson", Spanish "mañana", French "demain", Arabic "غداً", etc.).
 - TIME DETECTION — be aggressive: "at 5", "5 PM", "5 o'clock", "at five", "sham 5 baje", "subah 9 baje", "morning 9", "evening 7", "tonight", "tonight at 8", "3 baje", "dopahar ko" → all must produce a dueDateIso with the correct time. "tomorrow", "tomorrow morning", "next Monday", "in 2 hours", "aaj sham" must also set dueDateIso.
 - "dueDateIso": ISO 8601 with timezone offset. Resolve relative words ("tomorrow", "next Monday", "at 5pm", "in 2 hours", and their ${langName} equivalents) relative to current datetime in the user's timezone.
 - "deadlineIso": only if user explicitly says "deadline", "due by", "must finish by" (or ${langName} equivalent).
 - "priority": "high" | "medium" | "low" | "none". Map "urgent/asap/important" (and ${langName} equivalents) -> high.
+- "tags": detect tag-like labels spoken by the user and return them as plain strings without inventing new wording.
 - "folderId": id of the folder if user mentions one matching the available list (case-insensitive, fuzzy, phonetic match). Otherwise null.
 - "sectionId": same logic.
+- Detect folders, sections, dates, deadlines, priority, recurrence, tags, and location from the transcript, but keep the remaining spoken task wording intact.
 - REPEAT DETECTION — detect these phrases aggressively:
   "every hour" / "hourly" / "har ghanta" → "hourly"
   "every day" / "daily" / "har roz" / "roz" / "rozana" → "daily"
@@ -86,6 +82,7 @@ Rules:
 - "repeatType": "none" | "hourly" | "daily" | "weekly" | "weekdays" | "monthly" | "yearly".
 - "location": physical place mentioned, kept in original language.
 - "description": extra detail beyond the title, kept in original language. Include any context, notes, or details the user mentioned.
+- If extracting metadata would make the title too short, vague, or empty, keep the original spoken phrase as the title and still return the structured metadata separately.
 - "subtasks": an array of strings if the user mentions sub-items, steps, or a list within the task (e.g. "first do X, then Y, then Z" or "buy milk, eggs, and bread").
 Return only via the tool call.`;
 
@@ -118,6 +115,10 @@ Return only via the tool call.`;
                     priority: {
                       type: "string",
                       enum: ["high", "medium", "low", "none"],
+                    },
+                    tags: {
+                      type: ["array", "null"],
+                      items: { type: "string" },
                     },
                     folderId: { type: ["string", "null"] },
                     sectionId: { type: ["string", "null"] },

@@ -82,6 +82,20 @@ interface TaskSection {
   order: number;
 }
 
+interface AIParsedTaskResult {
+  title?: string;
+  dueDateIso?: string | null;
+  deadlineIso?: string | null;
+  priority?: Priority;
+  tags?: string[] | null;
+  folderId?: string | null;
+  sectionId?: string | null;
+  repeatType?: RepeatType;
+  location?: string | null;
+  description?: string | null;
+  subtasks?: string[] | null;
+}
+
 interface TaskInputSheetProps {
   isOpen: boolean;
   onClose: () => void;
@@ -245,6 +259,8 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const [aiElapsedMs, setAiElapsedMs] = useState(0);
   const [liveTranscript, setLiveTranscript] = useState('');
+  const [aiParsedTask, setAiParsedTask] = useState<AIParsedTaskResult | null>(null);
+  const [preserveSpokenTranscript, setPreserveSpokenTranscript] = useState(false);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const SILENCE_TIMEOUT_MS = 20_000; // auto-stop after 20s silence
   // Persisted dictation language (BCP-47). Synced with VoiceNoteSheet via the
@@ -361,13 +377,13 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
   // Natural language parsing - real-time preview
   const parsedTask = useMemo(() => {
-    if (!taskText.trim()) return null;
+    if (preserveSpokenTranscript || !taskText.trim()) return null;
     return parseNaturalLanguageTask(taskText);
-  }, [taskText]);
+  }, [preserveSpokenTranscript, taskText]);
 
   const hasNLPPatterns = useMemo(() => {
-    return hasNaturalLanguagePatterns(taskText);
-  }, [taskText]);
+    return preserveSpokenTranscript ? false : hasNaturalLanguagePatterns(taskText);
+  }, [preserveSpokenTranscript, taskText]);
 
   const handleSaveActions = async (actions: ActionItem[]) => {
     setActionItems(actions);
@@ -409,6 +425,8 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       setPlaybackProgress(0);
       setPlaybackCurrentTime(0);
       setShowTrimmer(false);
+      setAiParsedTask(null);
+      setPreserveSpokenTranscript(false);
       clearAiElapsedTimer();
       speechRecognitionRef.current = null;
       aiTranscriptRef.current = '';
@@ -479,10 +497,10 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
 
     // Use natural language parsing to extract date/time/priority/repeat/location/tags/folder from text
-    const parsed = taskText.trim() ? parseNaturalLanguageTask(taskText) : null;
+    const parsed = preserveSpokenTranscript ? null : (taskText.trim() ? parseNaturalLanguageTask(taskText) : null);
     
     // Use parsed values if available, otherwise use manually set values
-    const finalText = parsed?.text || taskText || (voiceRecording ? 'Voice Task' : '');
+    const finalText = taskText || (voiceRecording ? 'Voice Task' : '');
     const finalDueDate = dueDate || parsed?.dueDate;
     const finalPriority = priority !== 'none' ? priority : parsed?.priority;
     const finalRepeatType = repeatType !== 'none' ? repeatType : parsed?.repeatType;
@@ -595,10 +613,26 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const mergeDetectedTags = (spokenTags?: string[] | null) => {
+    if (!Array.isArray(spokenTags) || spokenTags.length === 0) return;
+    const normalized = spokenTags
+      .map((tag) => String(tag).trim())
+      .filter(Boolean)
+      .map((tag) => tag.replace(/^#/, '').trim().toLowerCase());
+    if (!normalized.length) return;
+
+    const matchedIds = globalTags
+      .filter((tag) => normalized.includes(tag.name.trim().toLowerCase()))
+      .map((tag) => tag.id);
+
+    if (matchedIds.length) {
+      setSelectedTagIds((prev) => Array.from(new Set([...prev, ...matchedIds])));
+    }
+  };
+
   // ── AI Dictation: Speech → AI parse → auto-fill task fields ──
-  const applyAIParsed = (parsed: any) => {
+  const applyAIParsed = (parsed: AIParsedTaskResult | null | undefined) => {
     if (!parsed) return;
-    if (parsed.title) setTaskText(String(parsed.title));
     if (parsed.dueDateIso) {
       const d = new Date(parsed.dueDateIso);
       if (!isNaN(d.getTime())) setDueDate(d);
@@ -610,6 +644,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     if (parsed.priority && parsed.priority !== 'none') {
       setPriority(parsed.priority as Priority);
     }
+    mergeDetectedTags(parsed.tags);
     if (parsed.folderId && folders.some((f) => f.id === parsed.folderId)) {
       setFolderId(parsed.folderId);
     }
@@ -641,14 +676,9 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       return;
     }
 
-    // Always show the captured speech somewhere immediately so native Android
-    // never feels like it listened but produced nothing.
-    if (!taskText.trim()) {
-      setTaskText(text);
-    } else if (!description.trim()) {
-      setDescription(text);
-      setShowDescriptionInput(true);
-    }
+    setPreserveSpokenTranscript(true);
+    setAiParsedTask(null);
+    setTaskText(text);
 
     // Free users → block & open paywall.
     if (!isPaidPro && !isOnTrial) {
@@ -684,16 +714,15 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      const parsed = (data as any)?.parsed;
+      const parsed = ((data as any)?.parsed || null) as AIParsedTaskResult | null;
+      setAiParsedTask(parsed);
       applyAIParsed(parsed);
-      if (!parsed?.title && !parsed?.description && !parsed?.subtasks?.length) {
-        if (!taskText.trim()) setTaskText(text);
-      }
       if (!hasUnlimitedAi) recordAiUsage('voice');
       try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
       toast.success(t('tasks.aiParsedSuccess', 'AI filled the task'));
     } catch (e: any) {
       console.error('[AI parse] error', e);
+      setAiParsedTask(null);
       const msg = e?.message || '';
       if (msg.includes('429')) toast.error(t('tasks.aiRateLimit', 'AI is busy, try again shortly'));
       else if (msg.includes('402')) toast.error(t('tasks.aiCredits', 'AI credits exhausted'));
@@ -1268,6 +1297,17 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   };
 
   const resolvedSelectedTags = resolveTagIds(selectedTagIds);
+  const detectedTaskPreview = useMemo(() => {
+    if (!preserveSpokenTranscript || !aiParsedTask) return parsedTask;
+    return {
+      dueDate: aiParsedTask.dueDateIso ? new Date(aiParsedTask.dueDateIso) : undefined,
+      priority: aiParsedTask.priority,
+      repeatType: aiParsedTask.repeatType,
+      location: aiParsedTask.location ?? undefined,
+      description: aiParsedTask.description ?? undefined,
+      tags: aiParsedTask.tags ?? undefined,
+    };
+  }, [aiParsedTask, parsedTask, preserveSpokenTranscript]);
 
   if (!isOpen) return null;
 
@@ -1302,7 +1342,10 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
               ref={inputRef}
               placeholder={t('tasks.naturalLanguagePlaceholder')}
               value={taskText}
-              onChange={(e) => setTaskText(e.target.value)}
+              onChange={(e) => {
+                setTaskText(e.target.value);
+                setPreserveSpokenTranscript(false);
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -1511,69 +1554,69 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
           </div>
 
           {/* Natural Language Parsing Preview */}
-          {hasNLPPatterns && parsedTask && (parsedTask.dueDate || parsedTask.priority || parsedTask.repeatType || parsedTask.location || (parsedTask.tags && parsedTask.tags.length > 0) || parsedTask.folderName || parsedTask.description || parsedTask.estimatedHours || parsedTask.reminderOffset) && (
+          {detectedTaskPreview && (detectedTaskPreview.dueDate || detectedTaskPreview.priority || detectedTaskPreview.repeatType || detectedTaskPreview.location || (detectedTaskPreview.tags && detectedTaskPreview.tags.length > 0) || ('folderName' in detectedTaskPreview && detectedTaskPreview.folderName) || detectedTaskPreview.description || ('estimatedHours' in detectedTaskPreview && detectedTaskPreview.estimatedHours) || ('reminderOffset' in detectedTaskPreview && detectedTaskPreview.reminderOffset)) && (
             <div className="flex items-center gap-2 mb-3 px-1 flex-wrap">
               <Sparkles className="h-3.5 w-3.5 text-primary flex-shrink-0" />
               <span className="text-xs text-muted-foreground">{t('tasks.detected')}:</span>
-              {parsedTask.dueDate && (
+              {detectedTaskPreview.dueDate && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary">
                   <CalendarIcon className="h-3 w-3" />
-                  {format(parsedTask.dueDate, 'MMM d, h:mm a')}
+                  {format(detectedTaskPreview.dueDate, 'MMM d, h:mm a')}
                 </span>
               )}
-              {parsedTask.reminderOffset && (
+              {'reminderOffset' in detectedTaskPreview && detectedTaskPreview.reminderOffset && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-warning/10 text-warning">
-                  🔔 {parsedTask.reminderOffset === 'exact' ? t('taskInput.atTime') : parsedTask.reminderOffset}
+                  🔔 {detectedTaskPreview.reminderOffset === 'exact' ? t('taskInput.atTime') : detectedTaskPreview.reminderOffset}
                 </span>
               )}
-              {parsedTask.repeatType && (
+              {detectedTaskPreview.repeatType && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-accent-purple/10 text-accent-purple">
                   <Timer className="h-3 w-3" />
-                  {parsedTask.repeatType === 'custom' && parsedTask.repeatDays 
-                    ? `${t('dateTime.repeatEvery')} ${[t('dateTime.weekDays.sun'), t('dateTime.weekDays.mon'), t('dateTime.weekDays.tue'), t('dateTime.weekDays.wed'), t('dateTime.weekDays.thu'), t('dateTime.weekDays.fri'), t('dateTime.weekDays.sat')].filter((_, i) => parsedTask.repeatDays?.includes(i)).join(', ')}`
-                    : parsedTask.repeatType}
+                  {detectedTaskPreview.repeatType === 'custom' && 'repeatDays' in detectedTaskPreview && detectedTaskPreview.repeatDays
+                    ? `${t('dateTime.repeatEvery')} ${[t('dateTime.weekDays.sun'), t('dateTime.weekDays.mon'), t('dateTime.weekDays.tue'), t('dateTime.weekDays.wed'), t('dateTime.weekDays.thu'), t('dateTime.weekDays.fri'), t('dateTime.weekDays.sat')].filter((_, i) => detectedTaskPreview.repeatDays?.includes(i)).join(', ')}`
+                    : detectedTaskPreview.repeatType}
                 </span>
               )}
-              {parsedTask.location && (
+              {detectedTaskPreview.location && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-info/10 text-info">
                   <MapPin className="h-3 w-3" />
-                  {parsedTask.location}
+                  {detectedTaskPreview.location}
                 </span>
               )}
-              {parsedTask.priority && (
+              {detectedTaskPreview.priority && (
                 <span className={cn(
                   "inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full",
-                  parsedTask.priority === 'high' && "bg-destructive/10 text-destructive",
-                  parsedTask.priority === 'medium' && "bg-warning/10 text-warning",
-                  parsedTask.priority === 'low' && "bg-success/10 text-success",
+                  detectedTaskPreview.priority === 'high' && "bg-destructive/10 text-destructive",
+                  detectedTaskPreview.priority === 'medium' && "bg-warning/10 text-warning",
+                  detectedTaskPreview.priority === 'low' && "bg-success/10 text-success",
                 )}>
                   <Flag className="h-3 w-3" />
-                  {parsedTask.priority}
+                  {detectedTaskPreview.priority}
                 </span>
               )}
-              {parsedTask.tags && parsedTask.tags.length > 0 && parsedTask.tags.map(tag => (
+              {detectedTaskPreview.tags && detectedTaskPreview.tags.length > 0 && detectedTaskPreview.tags.map(tag => (
                 <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-accent-teal/10 text-accent-teal">
                   <Tag className="h-3 w-3" />
                   {tag}
                 </span>
               ))}
-              {parsedTask.folderName && (
+              {'folderName' in detectedTaskPreview && detectedTaskPreview.folderName && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-streak/10 text-streak">
                   <FolderIcon className="h-3 w-3" />
-                  {parsedTask.folderName}
+                  {detectedTaskPreview.folderName}
                 </span>
               )}
-              {parsedTask.estimatedHours && (
+              {'estimatedHours' in detectedTaskPreview && detectedTaskPreview.estimatedHours && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-accent-indigo/10 text-accent-indigo">
-                  ⏱ {parsedTask.estimatedHours >= 1 
-                    ? `${Math.floor(parsedTask.estimatedHours)}h${Math.round((parsedTask.estimatedHours % 1) * 60) > 0 ? `${Math.round((parsedTask.estimatedHours % 1) * 60)}m` : ''}`
-                    : `${Math.round(parsedTask.estimatedHours * 60)}m`}
+                  ⏱ {detectedTaskPreview.estimatedHours >= 1 
+                    ? `${Math.floor(detectedTaskPreview.estimatedHours)}h${Math.round((detectedTaskPreview.estimatedHours % 1) * 60) > 0 ? `${Math.round((detectedTaskPreview.estimatedHours % 1) * 60)}m` : ''}`
+                    : `${Math.round(detectedTaskPreview.estimatedHours * 60)}m`}
                 </span>
               )}
-              {parsedTask.description && (
+              {detectedTaskPreview.description && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-muted text-muted-foreground max-w-[200px] truncate">
                   <FileText className="h-3 w-3 flex-shrink-0" />
-                  {parsedTask.description}
+                  {detectedTaskPreview.description}
                 </span>
               )}
             </div>
