@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { captureImageForAI } from '@/utils/imageCaptureForAI';
+import { CustomCameraSheet } from './CustomCameraSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { TodoItem, Folder, Priority, RepeatType } from '@/types/note';
 import { cn } from '@/lib/utils';
@@ -83,6 +84,7 @@ export const ImageTaskExtractorSheet = ({
   const [hasRun, setHasRun] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const captureLockRef = useRef(false);
+  const [isCustomCameraOpen, setIsCustomCameraOpen] = useState(false);
 
   // Reset on close
   useEffect(() => {
@@ -91,6 +93,7 @@ export const ImageTaskExtractorSheet = ({
       setItems([]);
       setIsExtracting(false);
       setHasRun(false);
+      setIsCustomCameraOpen(false);
       captureLockRef.current = false;
       // Force-release any in-flight AI lock so the app never stays "busy"
       // if the user closed the sheet mid-request.
@@ -100,6 +103,12 @@ export const ImageTaskExtractorSheet = ({
 
   const runCapture = async (source: 'camera' | 'gallery') => {
     if (captureLockRef.current) return;
+    // Use the beautiful in-app camera for the "camera" source so users get
+    // a branded experience instead of the OS picker.
+    if (source === 'camera') {
+      setIsCustomCameraOpen(true);
+      return;
+    }
     captureLockRef.current = true;
     try {
       const dataUrl = await captureImageForAI(source);
@@ -109,6 +118,12 @@ export const ImageTaskExtractorSheet = ({
     } finally {
       captureLockRef.current = false;
     }
+  };
+
+  const handleCustomCameraCapture = async (dataUrl: string) => {
+    setIsCustomCameraOpen(false);
+    setImageDataUrl(dataUrl);
+    await runExtraction(dataUrl);
   };
 
   const runExtraction = async (dataUrl: string) => {
@@ -611,6 +626,19 @@ export const ImageTaskExtractorSheet = ({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Custom in-app camera */}
+      <CustomCameraSheet
+        isOpen={isCustomCameraOpen}
+        onClose={() => setIsCustomCameraOpen(false)}
+        onCapture={handleCustomCameraCapture}
+        onPickGallery={() => {
+          setIsCustomCameraOpen(false);
+          // Defer one tick so the camera unmount completes before opening the picker
+          setTimeout(() => { runCapture('gallery'); }, 50);
+        }}
+        title={t('imageExtract.title', 'Scan tasks from paper')}
+      />
     </Sheet>
   );
 };
