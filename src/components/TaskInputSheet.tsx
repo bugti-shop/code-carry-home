@@ -497,10 +497,10 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
 
     // Use natural language parsing to extract date/time/priority/repeat/location/tags/folder from text
-    const parsed = taskText.trim() ? parseNaturalLanguageTask(taskText) : null;
+    const parsed = preserveSpokenTranscript ? null : (taskText.trim() ? parseNaturalLanguageTask(taskText) : null);
     
     // Use parsed values if available, otherwise use manually set values
-    const finalText = parsed?.text || taskText || (voiceRecording ? 'Voice Task' : '');
+    const finalText = taskText || (voiceRecording ? 'Voice Task' : '');
     const finalDueDate = dueDate || parsed?.dueDate;
     const finalPriority = priority !== 'none' ? priority : parsed?.priority;
     const finalRepeatType = repeatType !== 'none' ? repeatType : parsed?.repeatType;
