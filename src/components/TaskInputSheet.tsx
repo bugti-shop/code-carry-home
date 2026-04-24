@@ -377,13 +377,13 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
   // Natural language parsing - real-time preview
   const parsedTask = useMemo(() => {
-    if (!taskText.trim()) return null;
+    if (preserveSpokenTranscript || !taskText.trim()) return null;
     return parseNaturalLanguageTask(taskText);
-  }, [taskText]);
+  }, [preserveSpokenTranscript, taskText]);
 
   const hasNLPPatterns = useMemo(() => {
-    return hasNaturalLanguagePatterns(taskText);
-  }, [taskText]);
+    return preserveSpokenTranscript ? false : hasNaturalLanguagePatterns(taskText);
+  }, [preserveSpokenTranscript, taskText]);
 
   const handleSaveActions = async (actions: ActionItem[]) => {
     setActionItems(actions);
