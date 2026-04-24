@@ -676,14 +676,9 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       return;
     }
 
-    // Always show the captured speech somewhere immediately so native Android
-    // never feels like it listened but produced nothing.
-    if (!taskText.trim()) {
-      setTaskText(text);
-    } else if (!description.trim()) {
-      setDescription(text);
-      setShowDescriptionInput(true);
-    }
+    setPreserveSpokenTranscript(true);
+    setAiParsedTask(null);
+    setTaskText(text);
 
     // Free users → block & open paywall.
     if (!isPaidPro && !isOnTrial) {
@@ -719,16 +714,15 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      const parsed = (data as any)?.parsed;
+      const parsed = ((data as any)?.parsed || null) as AIParsedTaskResult | null;
+      setAiParsedTask(parsed);
       applyAIParsed(parsed);
-      if (!parsed?.title && !parsed?.description && !parsed?.subtasks?.length) {
-        if (!taskText.trim()) setTaskText(text);
-      }
       if (!hasUnlimitedAi) recordAiUsage('voice');
       try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
       toast.success(t('tasks.aiParsedSuccess', 'AI filled the task'));
     } catch (e: any) {
       console.error('[AI parse] error', e);
+      setAiParsedTask(null);
       const msg = e?.message || '';
       if (msg.includes('429')) toast.error(t('tasks.aiRateLimit', 'AI is busy, try again shortly'));
       else if (msg.includes('402')) toast.error(t('tasks.aiCredits', 'AI credits exhausted'));
