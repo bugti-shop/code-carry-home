@@ -1297,6 +1297,17 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   };
 
   const resolvedSelectedTags = resolveTagIds(selectedTagIds);
+  const detectedTaskPreview = useMemo(() => {
+    if (!preserveSpokenTranscript || !aiParsedTask) return parsedTask;
+    return {
+      dueDate: aiParsedTask.dueDateIso ? new Date(aiParsedTask.dueDateIso) : undefined,
+      priority: aiParsedTask.priority,
+      repeatType: aiParsedTask.repeatType,
+      location: aiParsedTask.location ?? undefined,
+      description: aiParsedTask.description ?? undefined,
+      tags: aiParsedTask.tags ?? undefined,
+    };
+  }, [aiParsedTask, parsedTask, preserveSpokenTranscript]);
 
   if (!isOpen) return null;
 
