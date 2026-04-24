@@ -626,6 +626,19 @@ export const ImageTaskExtractorSheet = ({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Custom in-app camera */}
+      <CustomCameraSheet
+        isOpen={isCustomCameraOpen}
+        onClose={() => setIsCustomCameraOpen(false)}
+        onCapture={handleCustomCameraCapture}
+        onPickGallery={() => {
+          setIsCustomCameraOpen(false);
+          // Defer one tick so the camera unmount completes before opening the picker
+          setTimeout(() => { runCapture('gallery'); }, 50);
+        }}
+        title={t('imageExtract.title', 'Scan tasks from paper')}
+      />
     </Sheet>
   );
 };
