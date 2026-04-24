@@ -82,6 +82,20 @@ interface TaskSection {
   order: number;
 }
 
+interface AIParsedTaskResult {
+  title?: string;
+  dueDateIso?: string | null;
+  deadlineIso?: string | null;
+  priority?: Priority;
+  tags?: string[] | null;
+  folderId?: string | null;
+  sectionId?: string | null;
+  repeatType?: RepeatType;
+  location?: string | null;
+  description?: string | null;
+  subtasks?: string[] | null;
+}
+
 interface TaskInputSheetProps {
   isOpen: boolean;
   onClose: () => void;
@@ -245,6 +259,8 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const [aiElapsedMs, setAiElapsedMs] = useState(0);
   const [liveTranscript, setLiveTranscript] = useState('');
+  const [aiParsedTask, setAiParsedTask] = useState<AIParsedTaskResult | null>(null);
+  const [preserveSpokenTranscript, setPreserveSpokenTranscript] = useState(false);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const SILENCE_TIMEOUT_MS = 20_000; // auto-stop after 20s silence
   // Persisted dictation language (BCP-47). Synced with VoiceNoteSheet via the
