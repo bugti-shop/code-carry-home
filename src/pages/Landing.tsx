@@ -341,18 +341,15 @@ const FinalCTA = () => (
 
 const Footer = () => (
   <footer className="bg-[#0f172a] text-white">
-    <div className="max-w-6xl mx-auto px-5 sm:px-8 py-14 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-      <div>
+    <div className="max-w-6xl mx-auto px-5 sm:px-8 py-14 grid sm:grid-cols-2 lg:grid-cols-5 gap-8">
+      <div className="lg:col-span-2">
         <div className="flex items-center gap-2.5">
           <AppLogo size="md" />
           <span className="text-[17px] font-extrabold">Flowist</span>
         </div>
-        <p className="mt-3 text-white/60 text-[13px] leading-relaxed">
+        <p className="mt-3 text-white/60 text-[13px] leading-relaxed max-w-sm">
           Calmness and clarity for your day. Tasks, notes & focus — all in one place.
         </p>
-        <div className="mt-5">
-          <GooglePlayButton size="sm" />
-        </div>
       </div>
       {[
         { title: 'Product', items: ['Features', 'Pricing', 'What\'s new'] },
@@ -370,6 +367,15 @@ const Footer = () => (
           </ul>
         </div>
       ))}
+      <div>
+        <div className="text-[12px] font-bold uppercase tracking-wider text-white/50">Get the app</div>
+        <div className="mt-3">
+          <GooglePlayButton size="sm" />
+        </div>
+        <p className="mt-3 text-white/50 text-[12px] leading-relaxed">
+          Available now on Android.
+        </p>
+      </div>
     </div>
     <div className="border-t border-white/10">
       <div className="max-w-6xl mx-auto px-5 sm:px-8 py-5 text-[12px] text-white/50 flex flex-wrap items-center justify-between gap-3">
