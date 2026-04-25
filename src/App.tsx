@@ -198,6 +198,18 @@ const RootRedirect = () => {
   return <Today />;
 };
 
+// Root route: Landing page on web, app on native
+const RootRoute = () => {
+  if (isWebPlatform) {
+    return (
+      <Suspense fallback={<EmptyFallback />}>
+        <Landing />
+      </Suspense>
+    );
+  }
+  return <RootRedirect />;
+};
+
 const AppRoutes = () => {
   return (
     <BrowserRouter>
