@@ -219,7 +219,8 @@ const AppRoutes = () => {
         <TourNavigationListener />
         <Suspense fallback={<EmptyFallback />}>
           <Routes>
-            <Route path="/" element={<RootRedirect />} />
+            <Route path="/" element={<RootRoute />} />
+            <Route path="/app" element={<RootRedirect />} />
             <Route path="/notesdashboard" element={<Index />} />
             <Route path="/notes" element={<Notes />} />
             <Route path="/calendar" element={<NotesCalendar />} />
