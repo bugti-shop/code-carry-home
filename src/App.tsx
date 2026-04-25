@@ -6,7 +6,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+const Landing = lazy(() => import("./pages/Landing"));
+const isWebPlatform = !Capacitor.isNativePlatform();
 
 import { SubscriptionProvider, useSubscription } from "@/contexts/SubscriptionContext";
 import { NotesProvider } from "@/contexts/NotesContext";
@@ -195,6 +198,18 @@ const RootRedirect = () => {
   return <Today />;
 };
 
+// Root route: Landing page on web, app on native
+const RootRoute = () => {
+  if (isWebPlatform) {
+    return (
+      <Suspense fallback={<EmptyFallback />}>
+        <Landing />
+      </Suspense>
+    );
+  }
+  return <RootRedirect />;
+};
+
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -204,7 +219,8 @@ const AppRoutes = () => {
         <TourNavigationListener />
         <Suspense fallback={<EmptyFallback />}>
           <Routes>
-            <Route path="/" element={<RootRedirect />} />
+            <Route path="/" element={<RootRoute />} />
+            <Route path="/app" element={<RootRedirect />} />
             <Route path="/notesdashboard" element={<Index />} />
             <Route path="/notes" element={<Notes />} />
             <Route path="/calendar" element={<NotesCalendar />} />
@@ -416,6 +432,26 @@ const AppContent = () => {
   // Render the app for: verified Pro, previously-Pro this session (avoid flash), OR new free users (soft paywall mode).
   // Soft-paywall users see the app with limits — paywall is opened on gated actions, dismissable.
   const canRenderProtectedApp = showOnboarding === false && !isVerifyingCheckout && (isPro || (wasEverPro.current && subLoading) || isNewFreeUser);
+
+  // On web landing page (/), skip onboarding/paywall gating entirely
+  const isWebLanding = isWebPlatform && typeof window !== 'undefined' && window.location.pathname === '/';
+
+  if (isWebLanding) {
+    return (
+      <>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Suspense fallback={<EmptyFallback />}>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="*" element={<Landing />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </>
+    );
+  }
 
   return (
     <>
