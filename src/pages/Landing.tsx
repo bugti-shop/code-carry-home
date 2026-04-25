@@ -19,7 +19,7 @@ const navLinks = [
   { label: 'Pricing', href: '#pricing' },
 ];
 
-const FONT_STACK = '"Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif';
+const FONT_STACK = '"Plus Jakarta Sans", system-ui, sans-serif';
 
 const GooglePlayButton = ({ className = '', size = 'md' }: { className?: string; size?: 'sm' | 'md' | 'lg' }) => {
   const h = size === 'lg' ? 'h-14' : size === 'sm' ? 'h-11' : 'h-12';
