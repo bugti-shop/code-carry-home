@@ -406,7 +406,10 @@ const Landing = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white text-[#0f172a]" style={{ fontFamily: FONT_STACK }}>
+    <div className="landing-root min-h-screen bg-white text-[#0f172a]" style={{ fontFamily: FONT_STACK }}>
+      <style>{`
+        .landing-root, .landing-root * { font-family: ${FONT_STACK} !important; }
+      `}</style>
       <Header />
       <main>
         <Hero />
