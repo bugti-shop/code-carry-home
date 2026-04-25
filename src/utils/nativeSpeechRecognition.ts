@@ -81,10 +81,48 @@ export const startNativeSpeechSession = async (
     return overlapLen > 0 ? iWordsOrig.slice(overlapLen).join(' ') : incoming;
   };
 
+  // Collapse internal stutters / immediate phrase repetitions within a single utterance.
+  // Examples:
+  //   "bhai bhai bhai groceries" → "bhai groceries"
+  //   "buy some buy some groceries" → "buy some groceries"
+  //   "groceries tomorrow groceries tomorrow at 9" → "groceries tomorrow at 9"
+  // Conservative: only collapses immediately adjacent repeated runs (length 1..4 words).
+  const collapseInternalRepeats = (text: string): string => {
+    if (!text) return text;
+    let words = text.split(/\s+/).filter(Boolean);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (let runLen = 4; runLen >= 1; runLen--) {
+        const out: string[] = [];
+        let i = 0;
+        while (i < words.length) {
+          if (i + 2 * runLen <= words.length) {
+            const a = words.slice(i, i + runLen).map(w => w.toLowerCase()).join(' ');
+            const b = words.slice(i + runLen, i + 2 * runLen).map(w => w.toLowerCase()).join(' ');
+            if (a === b) {
+              // Skip the duplicate run
+              out.push(...words.slice(i, i + runLen));
+              i += 2 * runLen;
+              changed = true;
+              continue;
+            }
+          }
+          out.push(words[i]);
+          i++;
+        }
+        words = out;
+        if (changed) break;
+      }
+    }
+    return words.join(' ');
+  };
+
   const getFullTranscript = () => {
-    const parts = [...committedSegments];
-    if (currentBest) parts.push(currentBest);
-    return parts.join(' ').trim();
+    const committed = committedSegments.join(' ').trim();
+    const dedupedCurrent = currentBest ? deduplicateOverlap(committed, currentBest) : '';
+    const joined = [committed, dedupedCurrent].filter(Boolean).join(' ').trim();
+    return collapseInternalRepeats(joined);
   };
 
   const partialListener = await SpeechRecognition.addListener('partialResults', (data) => {
