@@ -433,6 +433,26 @@ const AppContent = () => {
   // Soft-paywall users see the app with limits — paywall is opened on gated actions, dismissable.
   const canRenderProtectedApp = showOnboarding === false && !isVerifyingCheckout && (isPro || (wasEverPro.current && subLoading) || isNewFreeUser);
 
+  // On web landing page (/), skip onboarding/paywall gating entirely
+  const isWebLanding = isWebPlatform && typeof window !== 'undefined' && window.location.pathname === '/';
+
+  if (isWebLanding) {
+    return (
+      <>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Suspense fallback={<EmptyFallback />}>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="*" element={<Landing />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </>
+    );
+  }
+
   return (
     <>
       <Toaster />
