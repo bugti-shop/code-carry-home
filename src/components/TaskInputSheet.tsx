@@ -60,7 +60,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { TaskDateTimePage, RepeatSettings } from './TaskDateTimePage';
 import { parseNaturalLanguageTask, hasNaturalLanguagePatterns } from '@/utils/naturalLanguageParser';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles as SparklesIcon, Loader2, ScanLine } from 'lucide-react';
+import { Sparkles as SparklesIcon, ScanLine } from 'lucide-react';
 import { ImageTaskExtractorSheet } from './ImageTaskExtractorSheet';
 import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
 import { acquireAiLock, getAiBusyMessage, releaseAllAiLocks } from '@/utils/aiConcurrencyLock';
@@ -101,7 +101,7 @@ interface TaskInputSheetProps {
 }
 
 export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFolderId, onCreateFolder, sections = [], selectedSectionId, defaultDate, preventBackdropClose = false }: TaskInputSheetProps) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
 
 
