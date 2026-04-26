@@ -28,8 +28,6 @@ import {
   Image as ImageIcon,
   Send,
   X,
-  Mic,
-  Square,
   Play,
   Pause,
   Timer,
@@ -47,7 +45,6 @@ import {
   Trash2,
   Crown,
   AlertTriangle,
-  Languages
 } from 'lucide-react';
 import { EditActionsSheet, ActionItem, defaultActions } from './EditActionsSheet';
 import { WaveformVisualizer } from './WaveformVisualizer';
@@ -63,16 +60,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { TaskDateTimePage, RepeatSettings } from './TaskDateTimePage';
 import { parseNaturalLanguageTask, hasNaturalLanguagePatterns } from '@/utils/naturalLanguageParser';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles as SparklesIcon, Loader2, ScanLine } from 'lucide-react';
+import { Sparkles as SparklesIcon, ScanLine } from 'lucide-react';
 import { ImageTaskExtractorSheet } from './ImageTaskExtractorSheet';
 import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
 import { acquireAiLock, getAiBusyMessage, releaseAllAiLocks } from '@/utils/aiConcurrencyLock';
-import { getRecentDictationLangs, recordRecentDictationLang } from '@/utils/dictationLangRecent';
-import {
-  startNativeSpeechSession,
-  shouldUseNativeSpeechRecognition,
-  ensureSpeechRecognitionReady,
-} from '@/utils/nativeSpeechRecognition';
 
 interface TaskSection {
   id: string;
@@ -80,20 +71,6 @@ interface TaskSection {
   color: string;
   isCollapsed: boolean;
   order: number;
-}
-
-interface AIParsedTaskResult {
-  title?: string;
-  dueDateIso?: string | null;
-  deadlineIso?: string | null;
-  priority?: Priority;
-  tags?: string[] | null;
-  folderId?: string | null;
-  sectionId?: string | null;
-  repeatType?: RepeatType;
-  location?: string | null;
-  description?: string | null;
-  subtasks?: string[] | null;
 }
 
 interface TaskInputSheetProps {
@@ -110,20 +87,10 @@ interface TaskInputSheetProps {
 }
 
 export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFolderId, onCreateFolder, sections = [], selectedSectionId, defaultDate, preventBackdropClose = false }: TaskInputSheetProps) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
-  // Map i18n short codes -> BCP-47 tags for Web Speech API
-  const SPEECH_LANG_MAP: Record<string, string> = {
-    en: 'en-US', hi: 'hi-IN', ur: 'ur-PK', bn: 'bn-IN', ta: 'ta-IN', te: 'te-IN', mr: 'mr-IN',
-    es: 'es-ES', pt: 'pt-BR', fr: 'fr-FR', de: 'de-DE', it: 'it-IT', tr: 'tr-TR',
-    ar: 'ar-SA', he: 'he-IL', ru: 'ru-RU', zh: 'zh-CN', ja: 'ja-JP', ko: 'ko-KR', id: 'id-ID',
-  };
-  const LANG_NAMES: Record<string, string> = {
-    en: 'English', hi: 'Hindi', ur: 'Urdu', bn: 'Bengali', ta: 'Tamil', te: 'Telugu', mr: 'Marathi',
-    es: 'Spanish', pt: 'Portuguese', fr: 'French', de: 'German', it: 'Italian', tr: 'Turkish',
-    ar: 'Arabic', he: 'Hebrew', ru: 'Russian', zh: 'Chinese', ja: 'Japanese', ko: 'Korean', id: 'Indonesian',
-  };
-  
+
+
   // Swipe-down to close
   const swipeStartY = useRef<number | null>(null);
   const swipeCurrentY = useRef<number>(0);
@@ -254,98 +221,8 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // AI dictation (replaces voice recording UI in the mic button)
-  const [isAIListening, setIsAIListening] = useState(false);
-  const [isAIProcessing, setIsAIProcessing] = useState(false);
-  const [aiElapsedMs, setAiElapsedMs] = useState(0);
-  const [liveTranscript, setLiveTranscript] = useState('');
-  const [aiParsedTask, setAiParsedTask] = useState<AIParsedTaskResult | null>(null);
-  const [preserveSpokenTranscript, setPreserveSpokenTranscript] = useState(false);
-  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const SILENCE_TIMEOUT_MS = 20_000; // auto-stop after 20s silence
-  // Persisted dictation language (BCP-47). Synced with VoiceNoteSheet via the
-  // same `flowist_dictation_lang` key so user picks language once app-wide.
-  const [dictationLang, setDictationLang] = useState<string>(() => {
-    if (typeof window === 'undefined') return 'en-US';
-    const saved = localStorage.getItem('flowist_dictation_lang');
-    if (saved) return saved;
-    const shortLang = (i18n.language || 'en').split('-')[0];
-    return SPEECH_LANG_MAP[shortLang] || 'en-US';
-  });
-  const speechRecognitionRef = useRef<any>(null);
-  const aiTranscriptRef = useRef<string>('');
-  // Native speech session refs — simplified: accumulation now lives inside
-  // nativeSpeechRecognition.ts via committed-segments model.
-  const nativeSpeechStopRef = useRef<null | (() => Promise<void>)>(null);
-  const nativeSpeechCleanupRef = useRef<null | (() => Promise<void>)>(null);
-  const nativeSpeechGetTranscriptRef = useRef<null | (() => string)>(null);
-  const nativeSpeechEndingRef = useRef(false);
-  const nativeSpeechStartedRef = useRef(false);
-  const nativeSpeechStartFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const userStoppedDictationRef = useRef(false);
-  // Web Speech API: accumulate final results across auto-restarts
-  const webSpeechCommittedRef = useRef<string[]>([]);
-  const aiStartedAtRef = useRef<number | null>(null);
-  const aiTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const clearAiElapsedTimer = () => {
-    if (aiTickRef.current) {
-      clearInterval(aiTickRef.current);
-      aiTickRef.current = null;
-    }
-    aiStartedAtRef.current = null;
-    setAiElapsedMs(0);
-  };
 
-  const startAiElapsedTimer = () => {
-    aiStartedAtRef.current = Date.now();
-    setAiElapsedMs(0);
-    if (aiTickRef.current) clearInterval(aiTickRef.current);
-    aiTickRef.current = setInterval(() => {
-      if (aiStartedAtRef.current != null) {
-        setAiElapsedMs(Date.now() - aiStartedAtRef.current);
-      }
-    }, 250);
-  };
-
-  const cleanupNativeSpeechSession = useCallback(() => {
-    const stop = nativeSpeechStopRef.current;
-    const cleanup = nativeSpeechCleanupRef.current;
-    nativeSpeechStopRef.current = null;
-    nativeSpeechCleanupRef.current = null;
-    nativeSpeechGetTranscriptRef.current = null;
-    nativeSpeechEndingRef.current = false;
-    nativeSpeechStartedRef.current = false;
-    if (nativeSpeechStartFallbackRef.current) {
-      clearTimeout(nativeSpeechStartFallbackRef.current);
-      nativeSpeechStartFallbackRef.current = null;
-    }
-    if (stop) void stop();
-    if (cleanup) void cleanup();
-  }, []);
-
-  const markNativeSpeechStarted = useCallback(() => {
-    if (nativeSpeechStartedRef.current) return;
-    nativeSpeechStartedRef.current = true;
-    setIsAIListening(true);
-    startAiElapsedTimer();
-  }, []);
-
-  const finishNativeAiDictation = () => {
-    if (nativeSpeechEndingRef.current) return;
-    nativeSpeechEndingRef.current = true;
-    // Get the full accumulated transcript from the native session
-    const getText = nativeSpeechGetTranscriptRef.current;
-    const text = getText ? getText() : '';
-    const cleanup = nativeSpeechCleanupRef.current;
-    nativeSpeechStopRef.current = null;
-    nativeSpeechCleanupRef.current = null;
-    nativeSpeechGetTranscriptRef.current = null;
-    setIsAIListening(false);
-    clearAiElapsedTimer();
-    if (cleanup) void cleanup();
-    if (text) void processAITranscript(text);
-  };
 
   // AI vision: scan tasks from a paper / sticky-note image (Pro-gated)
   const [showImageExtractor, setShowImageExtractor] = useState(false);
@@ -377,13 +254,13 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
   // Natural language parsing - real-time preview
   const parsedTask = useMemo(() => {
-    if (preserveSpokenTranscript || !taskText.trim()) return null;
+    if (!taskText.trim()) return null;
     return parseNaturalLanguageTask(taskText);
-  }, [preserveSpokenTranscript, taskText]);
+  }, [taskText]);
 
   const hasNLPPatterns = useMemo(() => {
-    return preserveSpokenTranscript ? false : hasNaturalLanguagePatterns(taskText);
-  }, [preserveSpokenTranscript, taskText]);
+    return hasNaturalLanguagePatterns(taskText);
+  }, [taskText]);
 
   const handleSaveActions = async (actions: ActionItem[]) => {
     setActionItems(actions);
@@ -425,12 +302,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
       setPlaybackProgress(0);
       setPlaybackCurrentTime(0);
       setShowTrimmer(false);
-      setAiParsedTask(null);
-      setPreserveSpokenTranscript(false);
-      clearAiElapsedTimer();
-      speechRecognitionRef.current = null;
-      aiTranscriptRef.current = '';
-      cleanupNativeSpeechSession();
       if (timerRef.current) clearInterval(timerRef.current);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       if (audioContextRef.current) {
@@ -442,11 +313,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
         audioRef.current = null;
       }
     } else {
-      // Pre-warm native speech recognition permissions on Android in the background
-      // so the user's mic-tap doesn't get blocked by a permission prompt mid-gesture.
-      if (shouldUseNativeSpeechRecognition()) {
-        void ensureSpeechRecognitionReady();
-      }
       // Apply default settings when sheet opens
       if (tasksSettings) {
         // Apply default priority
@@ -497,7 +363,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
 
     // Use natural language parsing to extract date/time/priority/repeat/location/tags/folder from text
-    const parsed = preserveSpokenTranscript ? null : (taskText.trim() ? parseNaturalLanguageTask(taskText) : null);
+    const parsed = taskText.trim() ? parseNaturalLanguageTask(taskText) : null;
     
     // Use parsed values if available, otherwise use manually set values
     const finalText = taskText || (voiceRecording ? 'Voice Task' : '');
@@ -613,357 +479,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const mergeDetectedTags = (spokenTags?: string[] | null) => {
-    if (!Array.isArray(spokenTags) || spokenTags.length === 0) return;
-    const normalized = spokenTags
-      .map((tag) => String(tag).trim())
-      .filter(Boolean)
-      .map((tag) => tag.replace(/^#/, '').trim().toLowerCase());
-    if (!normalized.length) return;
 
-    const matchedIds = globalTags
-      .filter((tag) => normalized.includes(tag.name.trim().toLowerCase()))
-      .map((tag) => tag.id);
-
-    if (matchedIds.length) {
-      setSelectedTagIds((prev) => Array.from(new Set([...prev, ...matchedIds])));
-    }
-  };
-
-  // ── AI Dictation: Speech → AI parse → auto-fill task fields ──
-  const applyAIParsed = (parsed: AIParsedTaskResult | null | undefined) => {
-    if (!parsed) return;
-    if (parsed.dueDateIso) {
-      const d = new Date(parsed.dueDateIso);
-      if (!isNaN(d.getTime())) setDueDate(d);
-    }
-    if (parsed.deadlineIso) {
-      const d = new Date(parsed.deadlineIso);
-      if (!isNaN(d.getTime())) setDeadline(d);
-    }
-    if (parsed.priority && parsed.priority !== 'none') {
-      setPriority(parsed.priority as Priority);
-    }
-    mergeDetectedTags(parsed.tags);
-    if (parsed.folderId && folders.some((f) => f.id === parsed.folderId)) {
-      setFolderId(parsed.folderId);
-    }
-    if (parsed.sectionId && sections.some((s) => s.id === parsed.sectionId)) {
-      setSectionId(parsed.sectionId);
-    }
-    if (parsed.repeatType && parsed.repeatType !== 'none') {
-      setRepeatType(parsed.repeatType as RepeatType);
-    }
-    if (parsed.location) setLocation(String(parsed.location));
-    if (parsed.description) {
-      setDescription(String(parsed.description));
-      setShowDescriptionInput(true);
-    }
-    // AI-extracted subtasks
-    if (Array.isArray(parsed.subtasks) && parsed.subtasks.length > 0) {
-      pendingSubtasksRef.current = parsed.subtasks.map((text: string, idx: number) => ({
-        id: `subtask-${Date.now()}-${idx}`,
-        text: String(text),
-        completed: false,
-      })) as TodoItem[];
-    }
-  };
-
-  const processAITranscript = async (transcript: string) => {
-    const text = transcript.trim();
-    if (!text) {
-      setIsAIProcessing(false);
-      return;
-    }
-
-    setPreserveSpokenTranscript(true);
-    setAiParsedTask(null);
-    setTaskText(text);
-
-    // Free users → block & open paywall.
-    if (!isPaidPro && !isOnTrial) {
-      setIsAIProcessing(false);
-      requireFeature('ai_dictation' as any);
-      return;
-    }
-    // Trial users → soft daily cap.
-    if (!isPaidPro && !canUseAiFeature('voice')) {
-      setIsAIProcessing(false);
-      toast.error(getLimitReachedMessage('voice'));
-      return;
-    }
-    // Prevent concurrent AI calls — Android WebView OOMs with parallel calls.
-    const release = acquireAiLock();
-    if (!release) {
-      setIsAIProcessing(false);
-      toast.error(getAiBusyMessage());
-      return;
-    }
-    setIsAIProcessing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('ai-parse-task', {
-        body: {
-          transcript: text,
-          folders: folders.map((f) => ({ id: f.id, name: f.name })),
-          sections: sections.map((s) => ({ id: s.id, name: s.name })),
-          nowIso: new Date().toISOString(),
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          languageCode: (i18n.language || 'en').split('-')[0],
-          languageName: LANG_NAMES[(i18n.language || 'en').split('-')[0]] || 'English',
-        },
-      });
-      if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
-      const parsed = ((data as any)?.parsed || null) as AIParsedTaskResult | null;
-      setAiParsedTask(parsed);
-      applyAIParsed(parsed);
-      if (!hasUnlimitedAi) recordAiUsage('voice');
-      try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
-      toast.success(t('tasks.aiParsedSuccess', 'AI filled the task'));
-    } catch (e: any) {
-      console.error('[AI parse] error', e);
-      setAiParsedTask(null);
-      const msg = e?.message || '';
-      if (msg.includes('429')) toast.error(t('tasks.aiRateLimit', 'AI is busy, try again shortly'));
-      else if (msg.includes('402')) toast.error(t('tasks.aiCredits', 'AI credits exhausted'));
-      else toast.error(t('tasks.aiFailed', 'AI parsing failed, used transcript as title'));
-    } finally {
-      setIsAIProcessing(false);
-      release();
-    }
-  };
-
-  const [showMicCoachmark, setShowMicCoachmark] = useState(false);
-  const MIC_COACHMARK_KEY = 'aiMicCoachmarkSeen_v1';
-  const dismissMicCoachmark = () => {
-    setShowMicCoachmark(false);
-    runAIDictation();
-  };
-  const runAIDictation = async () => {
-    if (shouldUseNativeSpeechRecognition()) {
-      await actuallyStartNativeDictation();
-      return;
-    }
-    const SR: any =
-      (typeof window !== 'undefined' &&
-        ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
-    if (!SR) {
-      toast.error(t('tasks.aiNoSpeech', 'Speech recognition not supported on this device'));
-      return;
-    }
-    await actuallyStartDictation(SR);
-  };
-  const startAIDictation = async () => {
-    if (!requireFeature('ai_dictation')) return;
-    const seen = typeof window !== 'undefined' && localStorage.getItem(MIC_COACHMARK_KEY) === '1';
-    if (!seen) {
-      setShowMicCoachmark(true);
-      try { localStorage.setItem(MIC_COACHMARK_KEY, '1'); } catch {}
-      return;
-    }
-    if (shouldUseNativeSpeechRecognition()) {
-      await actuallyStartNativeDictation();
-      return;
-    }
-    const SR: any =
-      (typeof window !== 'undefined' &&
-        ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
-    if (!SR) {
-      toast.error(t('tasks.aiNoSpeech', 'Speech recognition not supported on this device'));
-      return;
-    }
-    await actuallyStartDictation(SR);
-  };
-  const actuallyStartNativeDictation = async () => {
-    try {
-      cleanupNativeSpeechSession();
-      nativeSpeechEndingRef.current = false;
-      nativeSpeechStartedRef.current = false;
-      userStoppedDictationRef.current = false;
-
-      const session = await startNativeSpeechSession({
-        language:
-          dictationLang ||
-          (typeof navigator !== 'undefined' && navigator.language) ||
-          'en-US',
-        onPartial: (text) => {
-          setLiveTranscript(text);
-          // Reset silence timer on every partial result
-          if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-          silenceTimerRef.current = setTimeout(() => {
-            if (!userStoppedDictationRef.current) {
-              userStoppedDictationRef.current = true;
-              stopAIDictation();
-            }
-          }, SILENCE_TIMEOUT_MS);
-        },
-        onStart: () => {
-          markNativeSpeechStarted();
-        },
-        onStop: () => {
-          if (!userStoppedDictationRef.current) return;
-          finishNativeAiDictation();
-        },
-      });
-
-      nativeSpeechStopRef.current = session.stop;
-      nativeSpeechCleanupRef.current = session.cleanup;
-      nativeSpeechGetTranscriptRef.current = session.getTranscript;
-      nativeSpeechStartFallbackRef.current = setTimeout(() => {
-        nativeSpeechStartFallbackRef.current = null;
-        markNativeSpeechStarted();
-      }, 400);
-      try { await Haptics.impact({ style: ImpactStyle.Medium }); } catch {}
-    } catch (err) {
-      console.error('[AI dictation][native] start failed', err);
-      cleanupNativeSpeechSession();
-      setIsAIListening(false);
-      clearAiElapsedTimer();
-      toast.error(t('errors.microphoneFailed'));
-    }
-  };
-  const actuallyStartDictation = async (SR: any) => {
-    try {
-      const recognition = new SR();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang =
-        dictationLang ||
-        (typeof navigator !== 'undefined' && navigator.language) ||
-        'en-US';
-      aiTranscriptRef.current = '';
-      webSpeechCommittedRef.current = [];
-      userStoppedDictationRef.current = false;
-
-      recognition.onresult = (event: any) => {
-        // Collect all final results from the current recognition session
-        let sessionFinal = '';
-        let interim = '';
-        for (let i = 0; i < event.results.length; i++) {
-          const res = event.results[i];
-          if (res.isFinal) {
-            sessionFinal += (sessionFinal ? ' ' : '') + res[0].transcript.trim();
-          } else {
-            interim += (interim ? ' ' : '') + res[0].transcript.trim();
-          }
-        }
-        // Full transcript = committed segments from previous restarts + current session finals
-        const committed = webSpeechCommittedRef.current.join(' ');
-        const full = [committed, sessionFinal].filter(Boolean).join(' ').trim();
-        if (full) aiTranscriptRef.current = full;
-        // Show live preview (finals + interim)
-        const preview = [full || committed, interim].filter(Boolean).join(' ').trim();
-        if (preview) setLiveTranscript(preview);
-        // Reset silence timer
-        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-        silenceTimerRef.current = setTimeout(() => {
-          if (!userStoppedDictationRef.current) {
-            userStoppedDictationRef.current = true;
-            stopAIDictation();
-          }
-        }, SILENCE_TIMEOUT_MS);
-      };
-      recognition.onerror = (e: any) => {
-        console.warn('[AI dictation] error', e?.error);
-        if (e?.error === 'not-allowed' || e?.error === 'service-not-allowed') {
-          userStoppedDictationRef.current = true;
-          setIsAIListening(false);
-          toast.error(t('errors.microphoneFailed'));
-        } else if (e?.error !== 'no-speech' && e?.error !== 'aborted') {
-          userStoppedDictationRef.current = true;
-          setIsAIListening(false);
-          toast.error(t('tasks.aiSpeechFailed', 'Could not capture speech'));
-        }
-      };
-      recognition.onend = () => {
-        // Commit whatever we have from this session before restarting
-        if (aiTranscriptRef.current) {
-          webSpeechCommittedRef.current = [aiTranscriptRef.current];
-        }
-        if (!userStoppedDictationRef.current && speechRecognitionRef.current === recognition) {
-          try {
-            recognition.start();
-            return;
-          } catch {
-            // fallthrough → finalize
-          }
-        }
-        setIsAIListening(false);
-        const text = aiTranscriptRef.current;
-        if (text) processAITranscript(text);
-      };
-
-      speechRecognitionRef.current = recognition;
-      recognition.start();
-      setIsAIListening(true);
-      startAiElapsedTimer();
-      try { await Haptics.impact({ style: ImpactStyle.Medium }); } catch {}
-    } catch (err) {
-      console.error('[AI dictation] start failed', err);
-      toast.error(t('errors.microphoneFailed'));
-      setIsAIListening(false);
-    }
-  };
-
-  const stopAIDictation = () => {
-    userStoppedDictationRef.current = true;
-    if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
-    setLiveTranscript('');
-    if (shouldUseNativeSpeechRecognition()) {
-      const stop = nativeSpeechStopRef.current;
-      // Grab transcript BEFORE stopping — some Android devices clear
-      // internal buffers on stop(), so we read first.
-      const getText = nativeSpeechGetTranscriptRef.current;
-      const earlyTranscript = getText ? getText() : '';
-
-      setIsAIListening(false);
-      clearAiElapsedTimer();
-      if (stop) {
-        void stop().finally(() => {
-          // Try again after stop in case more data arrived
-          const getTextAfter = nativeSpeechGetTranscriptRef.current;
-          const afterTranscript = getTextAfter ? getTextAfter() : '';
-          const best = afterTranscript.length >= earlyTranscript.length ? afterTranscript : earlyTranscript;
-          // Manually set the transcript so finishNativeAiDictation can read it
-          if (best && nativeSpeechGetTranscriptRef.current) {
-            // getTranscript already returns accumulated; finishNativeAiDictation will call it
-          }
-          finishNativeAiDictation();
-        });
-      } else {
-        // No stop handle — use whatever we captured early
-        if (earlyTranscript) {
-          const cleanup = nativeSpeechCleanupRef.current;
-          nativeSpeechStopRef.current = null;
-          nativeSpeechCleanupRef.current = null;
-          nativeSpeechGetTranscriptRef.current = null;
-          if (cleanup) void cleanup();
-          void processAITranscript(earlyTranscript);
-        } else {
-          finishNativeAiDictation();
-        }
-      }
-      return;
-    }
-    try {
-      speechRecognitionRef.current?.stop();
-    } catch {}
-    setIsAIListening(false);
-    clearAiElapsedTimer();
-    // For web: if auto-restart committed text but onend hasn't fired yet
-    const webText = aiTranscriptRef.current;
-    if (webText) {
-      void processAITranscript(webText);
-    }
-  };
-
-  // Format ms → MM:SS for the on-screen dictation timer.
-  const formatAiElapsed = (ms: number) => {
-    const total = Math.floor(ms / 1000);
-    const m = String(Math.floor(total / 60)).padStart(2, '0');
-    const s = String(total % 60).padStart(2, '0');
-    return `${m}:${s}`;
-  };
 
   const startRecording = async () => {
     try {
@@ -1297,17 +813,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   };
 
   const resolvedSelectedTags = resolveTagIds(selectedTagIds);
-  const detectedTaskPreview = useMemo(() => {
-    if (!preserveSpokenTranscript || !aiParsedTask) return parsedTask;
-    return {
-      dueDate: aiParsedTask.dueDateIso ? new Date(aiParsedTask.dueDateIso) : undefined,
-      priority: aiParsedTask.priority,
-      repeatType: aiParsedTask.repeatType,
-      location: aiParsedTask.location ?? undefined,
-      description: aiParsedTask.description ?? undefined,
-      tags: aiParsedTask.tags ?? undefined,
-    };
-  }, [aiParsedTask, parsedTask, preserveSpokenTranscript]);
+  const detectedTaskPreview = parsedTask;
 
   if (!isOpen) return null;
 
@@ -1344,7 +850,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
               value={taskText}
               onChange={(e) => {
                 setTaskText(e.target.value);
-                setPreserveSpokenTranscript(false);
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -1357,14 +862,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
               autoFocus
             />
 
-            {/* Live transcript preview while AI is listening */}
-            {isAIListening && liveTranscript && (
-              <div className="absolute left-0 right-12 top-full mt-1 px-1">
-                <p className="text-xs text-muted-foreground italic line-clamp-2 animate-pulse">
-                  {liveTranscript}
-                </p>
-              </div>
-            )}
+
 
             {taskText.trim() || voiceRecording ? (
               <button
@@ -1375,100 +873,8 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
               >
                 <Send className="h-5 w-5 text-primary-foreground rotate-45" />
               </button>
-            ) : isAIListening ? (
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <div
-                  className="flex items-center gap-1.5 text-sm font-mono text-destructive tabular-nums"
-                  aria-live="polite"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
-                  {formatAiElapsed(aiElapsedMs)}
-                </div>
-                <button
-                  onClick={stopAIDictation}
-                  className="w-10 h-10 rounded-lg bg-destructive hover:opacity-90 flex items-center justify-center transition-all animate-pulse"
-                  aria-label={t('tasks.aiStopListening', 'Stop listening')}
-                >
-                  <Square className="h-4 w-4 text-destructive-foreground" />
-                </button>
-              </div>
-            ) : isAIProcessing ? (
-              <div
-                className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"
-                aria-label={t('tasks.aiProcessing', 'AI thinking…')}
-              >
-                <Loader2 className="h-5 w-5 text-primary animate-spin" />
-              </div>
             ) : (
               <div className="flex items-center gap-1.5 flex-shrink-0">
-                {/* Dictation language picker — synced app-wide via localStorage */}
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      className="h-10 px-2 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center gap-1 text-primary transition-colors"
-                      aria-label={t('voiceNote.language', 'Recognition language')}
-                      title={t('voiceNote.language', 'Recognition language')}
-                    >
-                      <Languages className="h-4 w-4" />
-                      <span className="text-[10px] font-semibold uppercase tracking-wide">
-                        {dictationLang.split('-')[0]}
-                      </span>
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    side="top"
-                    align="start"
-                    sideOffset={8}
-                    className="w-56 p-1 max-h-72 overflow-y-auto overscroll-contain z-[60]"
-                    style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
-                    onWheel={(e) => e.stopPropagation()}
-                    onTouchMove={(e) => e.stopPropagation()}
-                  >
-                    {(() => {
-                      // Build ordered list: recent (pinned) → rest, no dupes.
-                      const recents = getRecentDictationLangs();
-                      const all = Object.entries(SPEECH_LANG_MAP);
-                      const recentEntries = recents
-                        .map((bcp) => all.find(([, b]) => b === bcp))
-                        .filter((x): x is [string, string] => !!x);
-                      const restEntries = all.filter(([, b]) => !recents.includes(b));
-                      const renderRow = ([short, bcp47]: [string, string]) => (
-                        <button
-                          key={bcp47}
-                          onClick={() => {
-                            setDictationLang(bcp47);
-                            try { localStorage.setItem('flowist_dictation_lang', bcp47); } catch {}
-                            recordRecentDictationLang(bcp47);
-                          }}
-                          className={cn(
-                            'w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-sm hover:bg-accent transition-colors text-left',
-                            dictationLang === bcp47 && 'bg-primary/10 text-primary font-medium',
-                          )}
-                        >
-                          <span>{LANG_NAMES[short] || short}</span>
-                          <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{bcp47}</span>
-                        </button>
-                      );
-                      return (
-                        <div className="space-y-0.5">
-                          {recentEntries.length > 0 && (
-                            <>
-                              <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                                {t('voiceNote.recent', 'Recent')}
-                              </div>
-                              {recentEntries.map(renderRow)}
-                              <div className="my-1 h-px bg-border" />
-                              <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                                {t('voiceNote.allLanguages', 'All languages')}
-                              </div>
-                            </>
-                          )}
-                          {restEntries.map(renderRow)}
-                        </div>
-                      );
-                    })()}
-                  </PopoverContent>
-                </Popover>
                 <Popover open={showScanCoachmark} onOpenChange={(o) => !o && dismissScanCoachmark()}>
                   <PopoverTrigger asChild>
                     <button
@@ -1501,46 +907,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
                         </p>
                         <button
                           onClick={dismissScanCoachmark}
-                          className="text-xs font-medium text-primary hover:underline"
-                        >
-                          {t('common.gotIt', 'Got it')}
-                        </button>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                <Popover open={showMicCoachmark} onOpenChange={(o) => !o && dismissMicCoachmark()}>
-                  <PopoverTrigger asChild>
-                    <button
-                      onClick={startAIDictation}
-                      className="w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors relative"
-                      aria-label={t('tasks.aiDictate', 'AI voice task')}
-                      title={t('tasks.aiDictateHint', 'Speak: e.g. "Buy groceries tomorrow at 5pm in Sample folder"')}
-                    >
-                      <Mic className="h-5 w-5 text-primary" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    side="top"
-                    align="end"
-                    className="w-72 p-3 border-primary/20"
-                  >
-                    <div className="flex items-start gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Mic className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <p className="text-sm font-medium leading-tight">
-                          {t('tasks.micCoachmarkTitle', 'Speak your tasks')}
-                        </p>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {t(
-                            'tasks.micCoachmarkBody',
-                            'Speak naturally — AI picks up dates, priorities, folders, and works in any language.',
-                          )}
-                        </p>
-                        <button
-                          onClick={dismissMicCoachmark}
                           className="text-xs font-medium text-primary hover:underline"
                         >
                           {t('common.gotIt', 'Got it')}
