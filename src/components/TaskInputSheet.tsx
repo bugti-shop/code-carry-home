@@ -73,20 +73,6 @@ interface TaskSection {
   order: number;
 }
 
-interface AIParsedTaskResult {
-  title?: string;
-  dueDateIso?: string | null;
-  deadlineIso?: string | null;
-  priority?: Priority;
-  tags?: string[] | null;
-  folderId?: string | null;
-  sectionId?: string | null;
-  repeatType?: RepeatType;
-  location?: string | null;
-  description?: string | null;
-  subtasks?: string[] | null;
-}
-
 interface TaskInputSheetProps {
   isOpen: boolean;
   onClose: () => void;
