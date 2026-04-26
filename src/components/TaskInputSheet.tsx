@@ -235,98 +235,10 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // AI dictation (replaces voice recording UI in the mic button)
-  const [isAIListening, setIsAIListening] = useState(false);
-  const [isAIProcessing, setIsAIProcessing] = useState(false);
-  const [aiElapsedMs, setAiElapsedMs] = useState(0);
-  const [liveTranscript, setLiveTranscript] = useState('');
-  const [aiParsedTask, setAiParsedTask] = useState<AIParsedTaskResult | null>(null);
-  const [preserveSpokenTranscript, setPreserveSpokenTranscript] = useState(false);
-  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const SILENCE_TIMEOUT_MS = 20_000; // auto-stop after 20s silence
-  // Persisted dictation language (BCP-47). Synced with VoiceNoteSheet via the
-  // same `flowist_dictation_lang` key so user picks language once app-wide.
-  const [dictationLang, setDictationLang] = useState<string>(() => {
-    if (typeof window === 'undefined') return 'en-US';
-    const saved = localStorage.getItem('flowist_dictation_lang');
-    if (saved) return saved;
-    const shortLang = (i18n.language || 'en').split('-')[0];
-    return SPEECH_LANG_MAP[shortLang] || 'en-US';
-  });
-  const speechRecognitionRef = useRef<any>(null);
-  const aiTranscriptRef = useRef<string>('');
-  // Native speech session refs — simplified: accumulation now lives inside
-  // nativeSpeechRecognition.ts via committed-segments model.
-  const nativeSpeechStopRef = useRef<null | (() => Promise<void>)>(null);
-  const nativeSpeechCleanupRef = useRef<null | (() => Promise<void>)>(null);
-  const nativeSpeechGetTranscriptRef = useRef<null | (() => string)>(null);
-  const nativeSpeechEndingRef = useRef(false);
-  const nativeSpeechStartedRef = useRef(false);
-  const nativeSpeechStartFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const userStoppedDictationRef = useRef(false);
-  // Web Speech API: accumulate final results across auto-restarts
-  const webSpeechCommittedRef = useRef<string[]>([]);
-  const aiStartedAtRef = useRef<number | null>(null);
-  const aiTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // AI parsed metadata preview state (kept for natural-language typed input)
+  const [preserveSpokenTranscript] = useState(false);
+  const aiParsedTask: AIParsedTaskResult | null = null;
 
-  const clearAiElapsedTimer = () => {
-    if (aiTickRef.current) {
-      clearInterval(aiTickRef.current);
-      aiTickRef.current = null;
-    }
-    aiStartedAtRef.current = null;
-    setAiElapsedMs(0);
-  };
-
-  const startAiElapsedTimer = () => {
-    aiStartedAtRef.current = Date.now();
-    setAiElapsedMs(0);
-    if (aiTickRef.current) clearInterval(aiTickRef.current);
-    aiTickRef.current = setInterval(() => {
-      if (aiStartedAtRef.current != null) {
-        setAiElapsedMs(Date.now() - aiStartedAtRef.current);
-      }
-    }, 250);
-  };
-
-  const cleanupNativeSpeechSession = useCallback(() => {
-    const stop = nativeSpeechStopRef.current;
-    const cleanup = nativeSpeechCleanupRef.current;
-    nativeSpeechStopRef.current = null;
-    nativeSpeechCleanupRef.current = null;
-    nativeSpeechGetTranscriptRef.current = null;
-    nativeSpeechEndingRef.current = false;
-    nativeSpeechStartedRef.current = false;
-    if (nativeSpeechStartFallbackRef.current) {
-      clearTimeout(nativeSpeechStartFallbackRef.current);
-      nativeSpeechStartFallbackRef.current = null;
-    }
-    if (stop) void stop();
-    if (cleanup) void cleanup();
-  }, []);
-
-  const markNativeSpeechStarted = useCallback(() => {
-    if (nativeSpeechStartedRef.current) return;
-    nativeSpeechStartedRef.current = true;
-    setIsAIListening(true);
-    startAiElapsedTimer();
-  }, []);
-
-  const finishNativeAiDictation = () => {
-    if (nativeSpeechEndingRef.current) return;
-    nativeSpeechEndingRef.current = true;
-    // Get the full accumulated transcript from the native session
-    const getText = nativeSpeechGetTranscriptRef.current;
-    const text = getText ? getText() : '';
-    const cleanup = nativeSpeechCleanupRef.current;
-    nativeSpeechStopRef.current = null;
-    nativeSpeechCleanupRef.current = null;
-    nativeSpeechGetTranscriptRef.current = null;
-    setIsAIListening(false);
-    clearAiElapsedTimer();
-    if (cleanup) void cleanup();
-    if (text) void processAITranscript(text);
-  };
 
   // AI vision: scan tasks from a paper / sticky-note image (Pro-gated)
   const [showImageExtractor, setShowImageExtractor] = useState(false);
