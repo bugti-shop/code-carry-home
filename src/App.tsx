@@ -44,6 +44,7 @@ const preloadNotesDashboardPage = () => import("./pages/Index");
 const Today = lazy(preloadTodayPage);
 
 const Index = lazy(preloadNotesDashboardPage);
+const Landing = lazy(() => import("./pages/Landing"));
 void preloadTodayPage();
 
 // Lazy load everything else - they load in background after first paint
@@ -244,11 +245,42 @@ const DriveSyncBootstrap = () => (
 const AppContent = () => {
   const [isAppLocked, setIsAppLocked] = useState<boolean | null>(null);
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
-  
+  const [showLanding, setShowLanding] = useState<boolean>(() => {
+    // Web-only landing page. Skip on native (Android/iOS).
+    try {
+      // Lazy-import Capacitor synchronously via window check (Capacitor injects globals on native)
+      const isNative = !!(window as any)?.Capacitor?.isNativePlatform?.();
+      if (isNative) return false;
+      // If user has already clicked Get Started in this browser before, never show again
+      if (localStorage.getItem('flowist_landing_seen') === 'true') return false;
+      // Only show on root path — refresh on inner routes should NOT redirect to landing
+      if (window.location.pathname !== '/') return false;
+      return true;
+    } catch {
+      return false;
+    }
+  });
+
+  // Listen for Get Started click from Landing
+  useEffect(() => {
+    const onSeen = () => setShowLanding(false);
+    window.addEventListener('flowistLandingSeen', onSeen);
+    return () => window.removeEventListener('flowistLandingSeen', onSeen);
+  }, []);
+
   const { isPro, isLoading: subLoading, isVerifyingCheckout, localTrialExpired, graceExpired, isNewFreeUser } = useSubscription();
   const awaitingSubscriptionChoice = useRef(
     sessionStorage.getItem('awaitingSubscriptionChoice') === 'true'
   );
+
+  // Paid users skip landing entirely — straight to app
+  useEffect(() => {
+    if (isPro && showLanding) {
+      try { localStorage.setItem('flowist_landing_seen', 'true'); } catch {}
+      setShowLanding(false);
+    }
+  }, [isPro, showLanding]);
+
 
   // Check onboarding status
   useEffect(() => {
@@ -421,8 +453,14 @@ const AppContent = () => {
     <>
       <Toaster />
       <Sonner />
-      
-      {showOnboarding && (
+
+      {showLanding && (
+        <Suspense fallback={<EmptyFallback />}>
+          <Landing />
+        </Suspense>
+      )}
+
+      {!showLanding && showOnboarding && (
         <OnboardingFlow onComplete={handleOnboardingComplete} />
       )}
 
@@ -431,7 +469,7 @@ const AppContent = () => {
       
 
       {/* Only render app content after subscription access is fully verified */}
-      {canRenderProtectedApp && (
+      {!showLanding && canRenderProtectedApp && (
         <>
           <StreakMilestoneCelebration />
           <StreakTierCelebration />
