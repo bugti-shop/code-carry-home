@@ -1,23 +1,18 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Menu, X, AlarmClock, Repeat, Sparkles, ListFilter, Keyboard, Share2, Calendar, Kanban, GitBranch, LayoutGrid, StickyNote } from 'lucide-react';
 import appLogo from '@/assets/app-logo.webp';
-import { setSetting } from '@/utils/settingsStorage';
 
 const Landing = () => {
-  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleGetStarted = async () => {
-    // Mark landing as seen for this browser, then trigger onboarding (language selection)
+  const handleGetStarted = () => {
     try {
       localStorage.setItem('flowist_landing_seen', 'true');
-      await setSetting('onboarding_completed', false);
     } catch {}
-    // Dispatch event so App resets onboarding state, then navigate to root
-    window.dispatchEvent(new Event('flowistOnboardingReset'));
-    navigate('/', { replace: true });
+    // Tell App to hide landing and proceed to onboarding (language selection)
+    window.dispatchEvent(new Event('flowistLandingSeen'));
   };
+
 
   const handleDownload = () => {
     // Smooth scroll to a download / footer area for now
