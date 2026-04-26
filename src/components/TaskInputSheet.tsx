@@ -932,7 +932,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
               value={taskText}
               onChange={(e) => {
                 setTaskText(e.target.value);
-                setPreserveSpokenTranscript(false);
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -963,100 +962,8 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
               >
                 <Send className="h-5 w-5 text-primary-foreground rotate-45" />
               </button>
-            ) : isAIListening ? (
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <div
-                  className="flex items-center gap-1.5 text-sm font-mono text-destructive tabular-nums"
-                  aria-live="polite"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
-                  {formatAiElapsed(aiElapsedMs)}
-                </div>
-                <button
-                  onClick={stopAIDictation}
-                  className="w-10 h-10 rounded-lg bg-destructive hover:opacity-90 flex items-center justify-center transition-all animate-pulse"
-                  aria-label={t('tasks.aiStopListening', 'Stop listening')}
-                >
-                  <Square className="h-4 w-4 text-destructive-foreground" />
-                </button>
-              </div>
-            ) : isAIProcessing ? (
-              <div
-                className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"
-                aria-label={t('tasks.aiProcessing', 'AI thinking…')}
-              >
-                <Loader2 className="h-5 w-5 text-primary animate-spin" />
-              </div>
             ) : (
               <div className="flex items-center gap-1.5 flex-shrink-0">
-                {/* Dictation language picker — synced app-wide via localStorage */}
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      className="h-10 px-2 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center gap-1 text-primary transition-colors"
-                      aria-label={t('voiceNote.language', 'Recognition language')}
-                      title={t('voiceNote.language', 'Recognition language')}
-                    >
-                      <Languages className="h-4 w-4" />
-                      <span className="text-[10px] font-semibold uppercase tracking-wide">
-                        {dictationLang.split('-')[0]}
-                      </span>
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    side="top"
-                    align="start"
-                    sideOffset={8}
-                    className="w-56 p-1 max-h-72 overflow-y-auto overscroll-contain z-[60]"
-                    style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
-                    onWheel={(e) => e.stopPropagation()}
-                    onTouchMove={(e) => e.stopPropagation()}
-                  >
-                    {(() => {
-                      // Build ordered list: recent (pinned) → rest, no dupes.
-                      const recents = getRecentDictationLangs();
-                      const all = Object.entries(SPEECH_LANG_MAP);
-                      const recentEntries = recents
-                        .map((bcp) => all.find(([, b]) => b === bcp))
-                        .filter((x): x is [string, string] => !!x);
-                      const restEntries = all.filter(([, b]) => !recents.includes(b));
-                      const renderRow = ([short, bcp47]: [string, string]) => (
-                        <button
-                          key={bcp47}
-                          onClick={() => {
-                            setDictationLang(bcp47);
-                            try { localStorage.setItem('flowist_dictation_lang', bcp47); } catch {}
-                            recordRecentDictationLang(bcp47);
-                          }}
-                          className={cn(
-                            'w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-sm hover:bg-accent transition-colors text-left',
-                            dictationLang === bcp47 && 'bg-primary/10 text-primary font-medium',
-                          )}
-                        >
-                          <span>{LANG_NAMES[short] || short}</span>
-                          <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{bcp47}</span>
-                        </button>
-                      );
-                      return (
-                        <div className="space-y-0.5">
-                          {recentEntries.length > 0 && (
-                            <>
-                              <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                                {t('voiceNote.recent', 'Recent')}
-                              </div>
-                              {recentEntries.map(renderRow)}
-                              <div className="my-1 h-px bg-border" />
-                              <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                                {t('voiceNote.allLanguages', 'All languages')}
-                              </div>
-                            </>
-                          )}
-                          {restEntries.map(renderRow)}
-                        </div>
-                      );
-                    })()}
-                  </PopoverContent>
-                </Popover>
                 <Popover open={showScanCoachmark} onOpenChange={(o) => !o && dismissScanCoachmark()}>
                   <PopoverTrigger asChild>
                     <button
@@ -1089,46 +996,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
                         </p>
                         <button
                           onClick={dismissScanCoachmark}
-                          className="text-xs font-medium text-primary hover:underline"
-                        >
-                          {t('common.gotIt', 'Got it')}
-                        </button>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                <Popover open={showMicCoachmark} onOpenChange={(o) => !o && dismissMicCoachmark()}>
-                  <PopoverTrigger asChild>
-                    <button
-                      onClick={startAIDictation}
-                      className="w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors relative"
-                      aria-label={t('tasks.aiDictate', 'AI voice task')}
-                      title={t('tasks.aiDictateHint', 'Speak: e.g. "Buy groceries tomorrow at 5pm in Sample folder"')}
-                    >
-                      <Mic className="h-5 w-5 text-primary" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    side="top"
-                    align="end"
-                    className="w-72 p-3 border-primary/20"
-                  >
-                    <div className="flex items-start gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Mic className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <p className="text-sm font-medium leading-tight">
-                          {t('tasks.micCoachmarkTitle', 'Speak your tasks')}
-                        </p>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {t(
-                            'tasks.micCoachmarkBody',
-                            'Speak naturally — AI picks up dates, priorities, folders, and works in any language.',
-                          )}
-                        </p>
-                        <button
-                          onClick={dismissMicCoachmark}
                           className="text-xs font-medium text-primary hover:underline"
                         >
                           {t('common.gotIt', 'Got it')}
