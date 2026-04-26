@@ -453,8 +453,14 @@ const AppContent = () => {
     <>
       <Toaster />
       <Sonner />
-      
-      {showOnboarding && (
+
+      {showLanding && (
+        <Suspense fallback={<EmptyFallback />}>
+          <Landing />
+        </Suspense>
+      )}
+
+      {!showLanding && showOnboarding && (
         <OnboardingFlow onComplete={handleOnboardingComplete} />
       )}
 
@@ -463,7 +469,7 @@ const AppContent = () => {
       
 
       {/* Only render app content after subscription access is fully verified */}
-      {canRenderProtectedApp && (
+      {!showLanding && canRenderProtectedApp && (
         <>
           <StreakMilestoneCelebration />
           <StreakTierCelebration />
