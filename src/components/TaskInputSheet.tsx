@@ -28,8 +28,6 @@ import {
   Image as ImageIcon,
   Send,
   X,
-  Mic,
-  Square,
   Play,
   Pause,
   Timer,
@@ -47,7 +45,6 @@ import {
   Trash2,
   Crown,
   AlertTriangle,
-  Languages
 } from 'lucide-react';
 import { EditActionsSheet, ActionItem, defaultActions } from './EditActionsSheet';
 import { WaveformVisualizer } from './WaveformVisualizer';
@@ -67,12 +64,6 @@ import { Sparkles as SparklesIcon, Loader2, ScanLine } from 'lucide-react';
 import { ImageTaskExtractorSheet } from './ImageTaskExtractorSheet';
 import { canUseAiFeature, recordAiUsage, getLimitReachedMessage } from '@/utils/aiUsageLimits';
 import { acquireAiLock, getAiBusyMessage, releaseAllAiLocks } from '@/utils/aiConcurrencyLock';
-import { getRecentDictationLangs, recordRecentDictationLang } from '@/utils/dictationLangRecent';
-import {
-  startNativeSpeechSession,
-  shouldUseNativeSpeechRecognition,
-  ensureSpeechRecognitionReady,
-} from '@/utils/nativeSpeechRecognition';
 
 interface TaskSection {
   id: string;
