@@ -235,9 +235,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // AI parsed metadata preview state (kept for natural-language typed input)
-  const [preserveSpokenTranscript] = useState(false);
-  const aiParsedTask: AIParsedTaskResult | null = null;
+
 
 
   // AI vision: scan tasks from a paper / sticky-note image (Pro-gated)
@@ -493,62 +491,6 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const mergeDetectedTags = (spokenTags?: string[] | null) => {
-    if (!Array.isArray(spokenTags) || spokenTags.length === 0) return;
-    const normalized = spokenTags
-      .map((tag) => String(tag).trim())
-      .filter(Boolean)
-      .map((tag) => tag.replace(/^#/, '').trim().toLowerCase());
-    if (!normalized.length) return;
-
-    const matchedIds = globalTags
-      .filter((tag) => normalized.includes(tag.name.trim().toLowerCase()))
-      .map((tag) => tag.id);
-
-    if (matchedIds.length) {
-      setSelectedTagIds((prev) => Array.from(new Set([...prev, ...matchedIds])));
-    }
-  };
-
-  // ── AI Dictation: Speech → AI parse → auto-fill task fields ──
-  const applyAIParsed = (parsed: AIParsedTaskResult | null | undefined) => {
-    if (!parsed) return;
-    if (parsed.dueDateIso) {
-      const d = new Date(parsed.dueDateIso);
-      if (!isNaN(d.getTime())) setDueDate(d);
-    }
-    if (parsed.deadlineIso) {
-      const d = new Date(parsed.deadlineIso);
-      if (!isNaN(d.getTime())) setDeadline(d);
-    }
-    if (parsed.priority && parsed.priority !== 'none') {
-      setPriority(parsed.priority as Priority);
-    }
-    mergeDetectedTags(parsed.tags);
-    if (parsed.folderId && folders.some((f) => f.id === parsed.folderId)) {
-      setFolderId(parsed.folderId);
-    }
-    if (parsed.sectionId && sections.some((s) => s.id === parsed.sectionId)) {
-      setSectionId(parsed.sectionId);
-    }
-    if (parsed.repeatType && parsed.repeatType !== 'none') {
-      setRepeatType(parsed.repeatType as RepeatType);
-    }
-    if (parsed.location) setLocation(String(parsed.location));
-    if (parsed.description) {
-      setDescription(String(parsed.description));
-      setShowDescriptionInput(true);
-    }
-    // AI-extracted subtasks
-    if (Array.isArray(parsed.subtasks) && parsed.subtasks.length > 0) {
-      pendingSubtasksRef.current = parsed.subtasks.map((text: string, idx: number) => ({
-        id: `subtask-${Date.now()}-${idx}`,
-        text: String(text),
-        completed: false,
-      })) as TodoItem[];
-    }
   };
 
 
