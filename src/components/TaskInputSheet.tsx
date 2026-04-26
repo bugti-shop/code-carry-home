@@ -268,13 +268,13 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
   // Natural language parsing - real-time preview
   const parsedTask = useMemo(() => {
-    if (preserveSpokenTranscript || !taskText.trim()) return null;
+    if (!taskText.trim()) return null;
     return parseNaturalLanguageTask(taskText);
-  }, [preserveSpokenTranscript, taskText]);
+  }, [taskText]);
 
   const hasNLPPatterns = useMemo(() => {
-    return preserveSpokenTranscript ? false : hasNaturalLanguagePatterns(taskText);
-  }, [preserveSpokenTranscript, taskText]);
+    return hasNaturalLanguagePatterns(taskText);
+  }, [taskText]);
 
   const handleSaveActions = async (actions: ActionItem[]) => {
     setActionItems(actions);
@@ -377,7 +377,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
 
     // Use natural language parsing to extract date/time/priority/repeat/location/tags/folder from text
-    const parsed = preserveSpokenTranscript ? null : (taskText.trim() ? parseNaturalLanguageTask(taskText) : null);
+    const parsed = taskText.trim() ? parseNaturalLanguageTask(taskText) : null;
     
     // Use parsed values if available, otherwise use manually set values
     const finalText = taskText || (voiceRecording ? 'Voice Task' : '');
@@ -827,17 +827,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   };
 
   const resolvedSelectedTags = resolveTagIds(selectedTagIds);
-  const detectedTaskPreview = useMemo(() => {
-    if (!preserveSpokenTranscript || !aiParsedTask) return parsedTask;
-    return {
-      dueDate: aiParsedTask.dueDateIso ? new Date(aiParsedTask.dueDateIso) : undefined,
-      priority: aiParsedTask.priority,
-      repeatType: aiParsedTask.repeatType,
-      location: aiParsedTask.location ?? undefined,
-      description: aiParsedTask.description ?? undefined,
-      tags: aiParsedTask.tags ?? undefined,
-    };
-  }, [aiParsedTask, parsedTask, preserveSpokenTranscript]);
+  const detectedTaskPreview = parsedTask;
 
   if (!isOpen) return null;
 
