@@ -20,6 +20,7 @@ import { X, Image as ImageIcon, Zap, ZapOff, RotateCcw, Loader2, Sparkles } from
 import { createPortal } from 'react-dom';
 import { compressImage } from '@/utils/imageCompression';
 import { toast } from 'sonner';
+import { Capacitor } from '@capacitor/core';
 
 interface Props {
   isOpen: boolean;
