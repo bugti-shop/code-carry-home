@@ -21,6 +21,7 @@ import { createPortal } from 'react-dom';
 import { compressImage } from '@/utils/imageCompression';
 import { toast } from 'sonner';
 import { Capacitor } from '@capacitor/core';
+import { captureImageForAI } from '@/utils/imageCaptureForAI';
 
 interface Props {
   isOpen: boolean;
