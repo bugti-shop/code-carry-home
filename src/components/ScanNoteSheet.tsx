@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { captureImageForAI } from '@/utils/imageCaptureForAI';
+import { CustomCameraSheet } from './CustomCameraSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { sanitizeForDisplay } from '@/lib/sanitize';
 import { useSubscription } from '@/contexts/SubscriptionContext';
