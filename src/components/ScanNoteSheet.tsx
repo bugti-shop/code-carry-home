@@ -300,6 +300,17 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
           )}
         </div>
       </SheetContent>
+
+      <CustomCameraSheet
+        isOpen={isCustomCameraOpen}
+        onClose={() => setIsCustomCameraOpen(false)}
+        onCapture={handleCustomCameraCapture}
+        onPickGallery={() => {
+          setIsCustomCameraOpen(false);
+          setTimeout(() => { runCapture('gallery'); }, 50);
+        }}
+        title={t('scanNote.title', 'Scan page to note')}
+      />
     </Sheet>
   );
 };
