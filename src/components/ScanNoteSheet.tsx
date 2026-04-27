@@ -220,7 +220,7 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
                 className="w-full max-h-40 object-cover"
               />
               <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                {isNative ? (
+                {showInAppCamera ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
