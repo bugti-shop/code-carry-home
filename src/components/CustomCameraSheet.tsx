@@ -428,9 +428,11 @@ export const CustomCameraSheet = ({
       </div>
 
       {/* Bottom controls */}
-      <div className="relative z-10 px-8 pt-5 pb-6 flex items-center justify-between bg-gradient-to-t from-black to-transparent">
+      <div className="relative z-10 px-8 pt-5 pb-6 flex items-center justify-between bg-gradient-to-t from-black to-transparent" style={{ paddingBottom: `calc(1.5rem + var(--safe-bottom, 0px))` }}>
         <button
-          onClick={() => {
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
             stopStream();
             onPickGallery?.();
           }}
@@ -442,18 +444,26 @@ export const CustomCameraSheet = ({
         </button>
 
         <button
-          onClick={handleShutter}
-          disabled={!isReady || isCapturing}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleShutter();
+          }}
+          disabled={isCapturing}
           aria-label={t('camera.capture', 'Take photo')}
-          className="relative w-[78px] h-[78px] rounded-full flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
+          className="relative w-[88px] h-[88px] rounded-full flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
         >
-          <span className="absolute inset-0 rounded-full border-[3px] border-white" />
-          <span className={`block w-[60px] h-[60px] rounded-full bg-white transition-transform ${isCapturing ? 'scale-90' : 'scale-100'}`} />
-          {isCapturing && <Loader2 className="absolute h-6 w-6 text-black animate-spin" />}
+          <span className="absolute inset-0 rounded-full border-[4px] border-white" />
+          <span className={`block w-[68px] h-[68px] rounded-full bg-white transition-transform ${isCapturing ? 'scale-90' : 'scale-100'}`} />
+          {isCapturing && <Loader2 className="absolute h-7 w-7 text-black animate-spin" />}
         </button>
 
         <button
-          onClick={toggleFacing}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleFacing();
+          }}
           disabled={!isReady}
           className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center active:scale-95 transition-transform disabled:opacity-30"
           aria-label={t('camera.flip', 'Flip camera')}
