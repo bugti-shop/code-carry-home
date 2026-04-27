@@ -20,6 +20,8 @@ import { X, Image as ImageIcon, Zap, ZapOff, RotateCcw, Loader2, Sparkles } from
 import { createPortal } from 'react-dom';
 import { compressImage } from '@/utils/imageCompression';
 import { toast } from 'sonner';
+import { Capacitor } from '@capacitor/core';
+import { captureImageForAI } from '@/utils/imageCaptureForAI';
 
 interface Props {
   isOpen: boolean;
@@ -103,14 +105,58 @@ export const CustomCameraSheet = ({
     setError(null);
     setIsReady(false);
     stopStream();
+
+    // Guard: some Android WebViews / insecure contexts expose no mediaDevices.
+    const md: MediaDevices | undefined =
+      typeof navigator !== 'undefined' ? (navigator.mediaDevices as any) : undefined;
+    if (!md || typeof md.getUserMedia !== 'function') {
+      console.warn('[CustomCamera] mediaDevices.getUserMedia not available');
+      setError(
+        t(
+          'camera.unsupported',
+          'Camera not available in this browser. Use the gallery instead.',
+        ),
+      );
+      return;
+    }
+
+    // On native (Capacitor) ask the OS for camera permission first; without
+    // this Android often returns NotAllowedError silently and the white-frame
+    // crash appears.
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { Camera } = await import('@capacitor/camera');
+        const status = await Camera.checkPermissions();
+        if (status.camera !== 'granted') {
+          const req = await Camera.requestPermissions({ permissions: ['camera'] });
+          if (req.camera !== 'granted') {
+            setError(t('camera.permissionDenied', 'Camera permission denied'));
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('[CustomCamera] native permission check skipped', e);
+      }
+    }
+
     try {
       const target = hd
         ? { width: { ideal: 2560 }, height: { ideal: 1440 } }
         : { width: { ideal: 1920 }, height: { ideal: 1080 } };
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: mode }, ...target },
-        audio: false,
-      });
+      let stream: MediaStream;
+      try {
+        stream = await md.getUserMedia({
+          video: { facingMode: { ideal: mode }, ...target },
+          audio: false,
+        });
+      } catch (innerErr) {
+        // Fallback: some devices reject the resolution constraints.
+        console.warn('[CustomCamera] retrying with relaxed constraints', innerErr);
+        stream = await md.getUserMedia({
+          video: { facingMode: mode },
+          audio: false,
+        });
+      }
       streamRef.current = stream;
       const video = videoRef.current;
       if (video) {
@@ -132,10 +178,13 @@ export const CustomCameraSheet = ({
       setIsReady(true);
     } catch (e: any) {
       console.error('[CustomCamera] getUserMedia failed', e);
+      const name = e?.name || '';
       setError(
-        e?.name === 'NotAllowedError'
+        name === 'NotAllowedError' || name === 'SecurityError'
           ? t('camera.permissionDenied', 'Camera permission denied')
-          : t('camera.unavailable', 'Camera unavailable on this device'),
+          : name === 'NotFoundError' || name === 'OverconstrainedError'
+            ? t('camera.noDevice', 'No camera found on this device')
+            : t('camera.unavailable', 'Camera unavailable on this device'),
       );
     }
   }, [stopStream, t]);
@@ -315,12 +364,38 @@ export const CustomCameraSheet = ({
         {error && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-8 text-center">
             <p className="text-base text-white/90">{error}</p>
-            <button
-              onClick={() => startStream(facing, hdMode)}
-              className="mt-2 px-5 py-2 rounded-full bg-white text-black text-sm font-medium"
-            >
-              {t('common.retry', 'Retry')}
-            </button>
+            <div className="flex flex-wrap gap-2 justify-center">
+              <button
+                onClick={() => startStream(facing, hdMode)}
+                className="mt-2 px-5 py-2 rounded-full bg-white text-black text-sm font-medium"
+              >
+                {t('common.retry', 'Retry')}
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const dataUrl = await captureImageForAI('camera');
+                    if (dataUrl) {
+                      stopStream();
+                      onCapture(dataUrl);
+                    }
+                  } catch (e) {
+                    console.error('[CustomCamera] system camera fallback failed', e);
+                  }
+                }}
+                className="mt-2 px-5 py-2 rounded-full bg-white/20 text-white text-sm font-medium"
+              >
+                {t('camera.useSystem', 'Use system camera')}
+              </button>
+              {onPickGallery && (
+                <button
+                  onClick={() => { stopStream(); onPickGallery(); }}
+                  className="mt-2 px-5 py-2 rounded-full bg-white/20 text-white text-sm font-medium"
+                >
+                  {t('camera.gallery', 'Gallery')}
+                </button>
+              )}
+            </div>
           </div>
         )}
 
