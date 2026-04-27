@@ -363,12 +363,38 @@ export const CustomCameraSheet = ({
         {error && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-8 text-center">
             <p className="text-base text-white/90">{error}</p>
-            <button
-              onClick={() => startStream(facing, hdMode)}
-              className="mt-2 px-5 py-2 rounded-full bg-white text-black text-sm font-medium"
-            >
-              {t('common.retry', 'Retry')}
-            </button>
+            <div className="flex flex-wrap gap-2 justify-center">
+              <button
+                onClick={() => startStream(facing, hdMode)}
+                className="mt-2 px-5 py-2 rounded-full bg-white text-black text-sm font-medium"
+              >
+                {t('common.retry', 'Retry')}
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const dataUrl = await captureImageForAI('camera');
+                    if (dataUrl) {
+                      stopStream();
+                      onCapture(dataUrl);
+                    }
+                  } catch (e) {
+                    console.error('[CustomCamera] system camera fallback failed', e);
+                  }
+                }}
+                className="mt-2 px-5 py-2 rounded-full bg-white/20 text-white text-sm font-medium"
+              >
+                {t('camera.useSystem', 'Use system camera')}
+              </button>
+              {onPickGallery && (
+                <button
+                  onClick={() => { stopStream(); onPickGallery(); }}
+                  className="mt-2 px-5 py-2 rounded-full bg-white/20 text-white text-sm font-medium"
+                >
+                  {t('camera.gallery', 'Gallery')}
+                </button>
+              )}
+            </div>
           </div>
         )}
 
