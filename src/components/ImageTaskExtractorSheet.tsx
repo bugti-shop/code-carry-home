@@ -78,6 +78,16 @@ export const ImageTaskExtractorSheet = ({
   // (Stripe trial OR Android/iOS native RevenueCat trial). Only the local no-card trial gets the daily cap.
   const hasUnlimitedAi = isPaidPro || isAdminBypass || isPaidTrial;
   const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
+  // Web also supports the in-app camera as long as the browser exposes
+  // getUserMedia (and we're in a secure context). Otherwise we fall back to
+  // the gallery / file picker.
+  const webCameraSupported = useMemo(() => {
+    if (typeof navigator === 'undefined' || typeof window === 'undefined') return false;
+    const md: any = (navigator as any).mediaDevices;
+    if (!md || typeof md.getUserMedia !== 'function') return false;
+    return Boolean((window as any).isSecureContext);
+  }, []);
+  const showInAppCamera = isNative || webCameraSupported;
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const [items, setItems] = useState<ReviewItem[]>([]);
@@ -299,7 +309,7 @@ export const ImageTaskExtractorSheet = ({
                   'Snap a photo of your sticky notes, whiteboard, or handwritten to-do list. AI will extract each task.',
                 )}
               </p>
-              {isNative ? (
+              {showInAppCamera ? (
                 <div className="grid grid-cols-2 gap-2">
                   <Button
                     onClick={() => runCapture('camera')}
@@ -354,7 +364,7 @@ export const ImageTaskExtractorSheet = ({
                 {t('imageExtract.tapToZoom', 'Tap to zoom')}
               </div>
               <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                {isNative ? (
+                {showInAppCamera ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button

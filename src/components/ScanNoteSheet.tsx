@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { captureImageForAI } from '@/utils/imageCaptureForAI';
+import { CustomCameraSheet } from './CustomCameraSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { sanitizeForDisplay } from '@/lib/sanitize';
 import { useSubscription } from '@/contexts/SubscriptionContext';
@@ -43,12 +44,20 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
   // (Stripe web trial or Android/iOS native RevenueCat trial).
   const hasUnlimitedAi = isPaidPro || isAdminBypass || isPaidTrial;
   const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
+  const webCameraSupported = useMemo(() => {
+    if (typeof navigator === 'undefined' || typeof window === 'undefined') return false;
+    const md: any = (navigator as any).mediaDevices;
+    if (!md || typeof md.getUserMedia !== 'function') return false;
+    return Boolean((window as any).isSecureContext);
+  }, []);
+  const showInAppCamera = isNative || webCameraSupported;
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const [html, setHtml] = useState('');
   const [suggestedTitle, setSuggestedTitle] = useState('');
   const [hasRun, setHasRun] = useState(false);
   const captureLockRef = useRef(false);
+  const [isCustomCameraOpen, setIsCustomCameraOpen] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -57,6 +66,7 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
       setSuggestedTitle('');
       setIsExtracting(false);
       setHasRun(false);
+      setIsCustomCameraOpen(false);
       captureLockRef.current = false;
       // Force-release any in-flight AI lock so the app never stays "busy"
       // if the user closed the sheet mid-request.
@@ -66,6 +76,11 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
 
   const runCapture = async (source: 'camera' | 'gallery') => {
     if (captureLockRef.current) return;
+    // Use the in-app branded camera whenever supported (native + secure web).
+    if (source === 'camera' && showInAppCamera) {
+      setIsCustomCameraOpen(true);
+      return;
+    }
     captureLockRef.current = true;
     try {
       const dataUrl = await captureImageForAI(source);
@@ -75,6 +90,12 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
     } finally {
       captureLockRef.current = false;
     }
+  };
+
+  const handleCustomCameraCapture = async (dataUrl: string) => {
+    setIsCustomCameraOpen(false);
+    setImageDataUrl(dataUrl);
+    await runExtraction(dataUrl);
   };
 
   const runExtraction = async (dataUrl: string) => {
@@ -171,7 +192,7 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
                   'Snap a photo of a handwritten or printed page. AI will transcribe it and keep the headings and lists.',
                 )}
               </p>
-              {isNative ? (
+              {showInAppCamera ? (
                 <div className="grid grid-cols-2 gap-2">
                   <Button onClick={() => runCapture('camera')} className="h-14 flex-col gap-1">
                     <Camera className="h-5 w-5" />
@@ -199,7 +220,7 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
                 className="w-full max-h-40 object-cover"
               />
               <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                {isNative ? (
+                {showInAppCamera ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
@@ -279,6 +300,17 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
           )}
         </div>
       </SheetContent>
+
+      <CustomCameraSheet
+        isOpen={isCustomCameraOpen}
+        onClose={() => setIsCustomCameraOpen(false)}
+        onCapture={handleCustomCameraCapture}
+        onPickGallery={() => {
+          setIsCustomCameraOpen(false);
+          setTimeout(() => { runCapture('gallery'); }, 50);
+        }}
+        title={t('scanNote.title', 'Scan page to note')}
+      />
     </Sheet>
   );
 };
