@@ -57,6 +57,7 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
   const [suggestedTitle, setSuggestedTitle] = useState('');
   const [hasRun, setHasRun] = useState(false);
   const captureLockRef = useRef(false);
+  const [isCustomCameraOpen, setIsCustomCameraOpen] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -65,6 +66,7 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
       setSuggestedTitle('');
       setIsExtracting(false);
       setHasRun(false);
+      setIsCustomCameraOpen(false);
       captureLockRef.current = false;
       // Force-release any in-flight AI lock so the app never stays "busy"
       // if the user closed the sheet mid-request.
@@ -74,6 +76,11 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
 
   const runCapture = async (source: 'camera' | 'gallery') => {
     if (captureLockRef.current) return;
+    // Use the in-app branded camera whenever supported (native + secure web).
+    if (source === 'camera' && showInAppCamera) {
+      setIsCustomCameraOpen(true);
+      return;
+    }
     captureLockRef.current = true;
     try {
       const dataUrl = await captureImageForAI(source);
@@ -83,6 +90,12 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
     } finally {
       captureLockRef.current = false;
     }
+  };
+
+  const handleCustomCameraCapture = async (dataUrl: string) => {
+    setIsCustomCameraOpen(false);
+    setImageDataUrl(dataUrl);
+    await runExtraction(dataUrl);
   };
 
   const runExtraction = async (dataUrl: string) => {
