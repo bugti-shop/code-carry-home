@@ -309,7 +309,7 @@ export const ImageTaskExtractorSheet = ({
                   'Snap a photo of your sticky notes, whiteboard, or handwritten to-do list. AI will extract each task.',
                 )}
               </p>
-              {isNative ? (
+              {showInAppCamera ? (
                 <div className="grid grid-cols-2 gap-2">
                   <Button
                     onClick={() => runCapture('camera')}
