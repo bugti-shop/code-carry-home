@@ -364,7 +364,7 @@ export const ImageTaskExtractorSheet = ({
                 {t('imageExtract.tapToZoom', 'Tap to zoom')}
               </div>
               <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                {isNative ? (
+                {showInAppCamera ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
