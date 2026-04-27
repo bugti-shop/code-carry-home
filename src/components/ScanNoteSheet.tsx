@@ -43,6 +43,13 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
   // (Stripe web trial or Android/iOS native RevenueCat trial).
   const hasUnlimitedAi = isPaidPro || isAdminBypass || isPaidTrial;
   const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
+  const webCameraSupported = useMemo(() => {
+    if (typeof navigator === 'undefined' || typeof window === 'undefined') return false;
+    const md: any = (navigator as any).mediaDevices;
+    if (!md || typeof md.getUserMedia !== 'function') return false;
+    return Boolean((window as any).isSecureContext);
+  }, []);
+  const showInAppCamera = isNative || webCameraSupported;
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const [html, setHtml] = useState('');
