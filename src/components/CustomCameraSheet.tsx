@@ -104,14 +104,58 @@ export const CustomCameraSheet = ({
     setError(null);
     setIsReady(false);
     stopStream();
+
+    // Guard: some Android WebViews / insecure contexts expose no mediaDevices.
+    const md: MediaDevices | undefined =
+      typeof navigator !== 'undefined' ? (navigator.mediaDevices as any) : undefined;
+    if (!md || typeof md.getUserMedia !== 'function') {
+      console.warn('[CustomCamera] mediaDevices.getUserMedia not available');
+      setError(
+        t(
+          'camera.unsupported',
+          'Camera not available in this browser. Use the gallery instead.',
+        ),
+      );
+      return;
+    }
+
+    // On native (Capacitor) ask the OS for camera permission first; without
+    // this Android often returns NotAllowedError silently and the white-frame
+    // crash appears.
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { Camera } = await import('@capacitor/camera');
+        const status = await Camera.checkPermissions();
+        if (status.camera !== 'granted') {
+          const req = await Camera.requestPermissions({ permissions: ['camera'] });
+          if (req.camera !== 'granted') {
+            setError(t('camera.permissionDenied', 'Camera permission denied'));
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('[CustomCamera] native permission check skipped', e);
+      }
+    }
+
     try {
       const target = hd
         ? { width: { ideal: 2560 }, height: { ideal: 1440 } }
         : { width: { ideal: 1920 }, height: { ideal: 1080 } };
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: mode }, ...target },
-        audio: false,
-      });
+      let stream: MediaStream;
+      try {
+        stream = await md.getUserMedia({
+          video: { facingMode: { ideal: mode }, ...target },
+          audio: false,
+        });
+      } catch (innerErr) {
+        // Fallback: some devices reject the resolution constraints.
+        console.warn('[CustomCamera] retrying with relaxed constraints', innerErr);
+        stream = await md.getUserMedia({
+          video: { facingMode: mode },
+          audio: false,
+        });
+      }
       streamRef.current = stream;
       const video = videoRef.current;
       if (video) {
@@ -133,10 +177,13 @@ export const CustomCameraSheet = ({
       setIsReady(true);
     } catch (e: any) {
       console.error('[CustomCamera] getUserMedia failed', e);
+      const name = e?.name || '';
       setError(
-        e?.name === 'NotAllowedError'
+        name === 'NotAllowedError' || name === 'SecurityError'
           ? t('camera.permissionDenied', 'Camera permission denied')
-          : t('camera.unavailable', 'Camera unavailable on this device'),
+          : name === 'NotFoundError' || name === 'OverconstrainedError'
+            ? t('camera.noDevice', 'No camera found on this device')
+            : t('camera.unavailable', 'Camera unavailable on this device'),
       );
     }
   }, [stopStream, t]);
