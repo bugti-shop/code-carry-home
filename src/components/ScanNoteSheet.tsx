@@ -192,7 +192,7 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
                   'Snap a photo of a handwritten or printed page. AI will transcribe it and keep the headings and lists.',
                 )}
               </p>
-              {isNative ? (
+              {showInAppCamera ? (
                 <div className="grid grid-cols-2 gap-2">
                   <Button onClick={() => runCapture('camera')} className="h-14 flex-col gap-1">
                     <Camera className="h-5 w-5" />
