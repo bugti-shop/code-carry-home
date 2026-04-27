@@ -233,9 +233,24 @@ export const CustomCameraSheet = ({
   };
 
   const handleShutter = async () => {
-    if (!isReady || isCapturing) return;
+    console.log('[CustomCamera] shutter tapped', { isReady, isCapturing });
+    if (isCapturing) return;
     const video = videoRef.current;
-    if (!video || video.readyState < 2) return;
+    if (!video) {
+      toast.error(t('camera.notReady', 'Camera not ready yet'));
+      return;
+    }
+    // Wait briefly for video metadata if not ready yet (handles slow-start devices)
+    if (video.readyState < 2 || !video.videoWidth) {
+      for (let i = 0; i < 20; i++) {
+        await new Promise((r) => setTimeout(r, 100));
+        if (video.readyState >= 2 && video.videoWidth > 0) break;
+      }
+    }
+    if (!video.videoWidth || !video.videoHeight) {
+      toast.error(t('camera.notReady', 'Camera not ready yet'));
+      return;
+    }
     setIsCapturing(true);
     setFlashAnim(true);
     setTimeout(() => setFlashAnim(false), 180);
