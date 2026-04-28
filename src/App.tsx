@@ -64,7 +64,7 @@ const WebClipper = lazy(() => import("./pages/WebClipper"));
 const Reminders = lazy(() => import("./pages/Reminders"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminOnboarding = lazy(() => import("./pages/AdminOnboarding"));
-
+const Landing = lazy(() => import("./pages/Landing"));
 
 const queryClient = new QueryClient();
 
