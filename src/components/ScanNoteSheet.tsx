@@ -1,24 +1,16 @@
 /**
- * ScanNoteSheet — Capture/upload a page photo, OCR + structure it via AI vision,
+ * ScanNoteSheet — Upload a page photo from gallery, OCR + structure it via AI vision,
  * preview as formatted HTML, and insert into the current note.
  *
  * Pro-gated via the `ai_dictation` feature flag (shared "AI features" entitlement).
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Camera, Image as ImageIcon, Loader2, Sparkles, X, RotateCcw, ImagePlus, Check } from 'lucide-react';
-import { Capacitor } from '@capacitor/core';
+import { Image as ImageIcon, Loader2, Sparkles, X, RotateCcw, Check } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { captureImageForAI } from '@/utils/imageCaptureForAI';
-import { CustomCameraSheet } from './CustomCameraSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { sanitizeForDisplay } from '@/lib/sanitize';
 import { useSubscription } from '@/contexts/SubscriptionContext';
@@ -38,26 +30,14 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
   const isStripeTrialing = typeof window !== 'undefined' && Boolean((window as any).__stripeIsTrialing);
   const isPaidTrial = isStripeTrialing || isRevenueCatTrial;
   const isOnTrial = isLocalTrial || isPaidTrial;
-  // Only fully-paid Pro (not on free trial) gets unlimited AI use by default.
   const isPaidPro = isPro && !isOnTrial;
-  // Unlimited AI for: paid Pro, admin (BUGTI), and any trial with a card on file
-  // (Stripe web trial or Android/iOS native RevenueCat trial).
   const hasUnlimitedAi = isPaidPro || isAdminBypass || isPaidTrial;
-  const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
-  const webCameraSupported = useMemo(() => {
-    if (typeof navigator === 'undefined' || typeof window === 'undefined') return false;
-    const md: any = (navigator as any).mediaDevices;
-    if (!md || typeof md.getUserMedia !== 'function') return false;
-    return Boolean((window as any).isSecureContext);
-  }, []);
-  const showInAppCamera = isNative || webCameraSupported;
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const [html, setHtml] = useState('');
   const [suggestedTitle, setSuggestedTitle] = useState('');
   const [hasRun, setHasRun] = useState(false);
   const captureLockRef = useRef(false);
-  const [isCustomCameraOpen, setIsCustomCameraOpen] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -66,24 +46,16 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
       setSuggestedTitle('');
       setIsExtracting(false);
       setHasRun(false);
-      setIsCustomCameraOpen(false);
       captureLockRef.current = false;
-      // Force-release any in-flight AI lock so the app never stays "busy"
-      // if the user closed the sheet mid-request.
       releaseAllAiLocks();
     }
   }, [isOpen]);
 
-  const runCapture = async (source: 'camera' | 'gallery') => {
+  const runCapture = async () => {
     if (captureLockRef.current) return;
-    // Use the in-app branded camera whenever supported (native + secure web).
-    if (source === 'camera' && showInAppCamera) {
-      setIsCustomCameraOpen(true);
-      return;
-    }
     captureLockRef.current = true;
     try {
-      const dataUrl = await captureImageForAI(source);
+      const dataUrl = await captureImageForAI('gallery');
       if (!dataUrl) return;
       setImageDataUrl(dataUrl);
       await runExtraction(dataUrl);
@@ -92,25 +64,16 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
     }
   };
 
-  const handleCustomCameraCapture = async (dataUrl: string) => {
-    setIsCustomCameraOpen(false);
-    setImageDataUrl(dataUrl);
-    await runExtraction(dataUrl);
-  };
-
   const runExtraction = async (dataUrl: string) => {
-    // Free users (no Pro, no trial) → block & open paywall.
     if (!hasUnlimitedAi && !isOnTrial) {
       onClose();
       requireFeature('ai_scan' as any);
       return;
     }
-    // Local-trial users → soft daily cap (admin & Stripe-trial bypass it).
     if (!hasUnlimitedAi && !canUseAiFeature('scan')) {
       toast.error(getLimitReachedMessage('scan'));
       return;
     }
-    // Prevent concurrent AI calls — Android WebView OOMs with parallel base64 uploads.
     const release = acquireAiLock();
     if (!release) {
       toast.error(getAiBusyMessage());
@@ -188,27 +151,14 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
             <div className="space-y-3 pt-2">
               <p className="text-sm text-muted-foreground">
                 {t(
-                  'scanNote.helper',
-                  'Snap a photo of a handwritten or printed page. AI will transcribe it and keep the headings and lists.',
+                  'scanNote.helperGallery',
+                  'Pick a photo of a handwritten or printed page from your gallery. AI will transcribe it and keep the headings and lists.',
                 )}
               </p>
-              {showInAppCamera ? (
-                <div className="grid grid-cols-2 gap-2">
-                  <Button onClick={() => runCapture('camera')} className="h-14 flex-col gap-1">
-                    <Camera className="h-5 w-5" />
-                    <span className="text-xs">{t('imageExtract.takePhoto', 'Take photo')}</span>
-                  </Button>
-                  <Button variant="outline" onClick={() => runCapture('gallery')} className="h-14 flex-col gap-1">
-                    <ImageIcon className="h-5 w-5" />
-                    <span className="text-xs">{t('imageExtract.fromGallery', 'From gallery')}</span>
-                  </Button>
-                </div>
-              ) : (
-                <Button onClick={() => runCapture('gallery')} className="h-14 w-full gap-2">
-                  <ImagePlus className="h-5 w-5" />
-                  <span className="text-sm">{t('imageExtract.pickOrTakeWeb', 'Pick or take a photo')}</span>
-                </Button>
-              )}
+              <Button onClick={runCapture} className="h-14 w-full gap-2">
+                <ImageIcon className="h-5 w-5" />
+                <span className="text-sm">{t('imageExtract.fromGallery', 'From gallery')}</span>
+              </Button>
             </div>
           )}
 
@@ -220,38 +170,14 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
                 className="w-full max-h-40 object-cover"
               />
               <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                {showInAppCamera ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        disabled={isExtracting}
-                        className="h-8 px-3 rounded-full bg-black/60 text-white flex items-center gap-1 text-xs font-medium disabled:opacity-50"
-                      >
-                        <RotateCcw className="h-3.5 w-3.5" />
-                        {t('imageExtract.retake', 'Retake')}
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-44">
-                      <DropdownMenuItem onClick={() => runCapture('camera')} className="gap-2">
-                        <Camera className="h-4 w-4" />
-                        {t('imageExtract.takePhoto', 'Take photo')}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => runCapture('gallery')} className="gap-2">
-                        <ImageIcon className="h-4 w-4" />
-                        {t('imageExtract.fromGallery', 'From gallery')}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <button
-                    disabled={isExtracting}
-                    onClick={() => runCapture('gallery')}
-                    className="h-8 px-3 rounded-full bg-black/60 text-white flex items-center gap-1 text-xs font-medium disabled:opacity-50"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    {t('imageExtract.replacePhoto', 'Replace photo')}
-                  </button>
-                )}
+                <button
+                  disabled={isExtracting}
+                  onClick={runCapture}
+                  className="h-8 px-3 rounded-full bg-black/60 text-white flex items-center gap-1 text-xs font-medium disabled:opacity-50"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  {t('imageExtract.replacePhoto', 'Replace photo')}
+                </button>
                 <button
                   onClick={() => {
                     setImageDataUrl(null);
@@ -300,17 +226,6 @@ export const ScanNoteSheet = ({ isOpen, onClose, onInsertHtml }: Props) => {
           )}
         </div>
       </SheetContent>
-
-      <CustomCameraSheet
-        isOpen={isCustomCameraOpen}
-        onClose={() => setIsCustomCameraOpen(false)}
-        onCapture={handleCustomCameraCapture}
-        onPickGallery={() => {
-          setIsCustomCameraOpen(false);
-          setTimeout(() => { runCapture('gallery'); }, 50);
-        }}
-        title={t('scanNote.title', 'Scan page to note')}
-      />
     </Sheet>
   );
 };
