@@ -248,18 +248,35 @@ const AppContent = () => {
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
   
   // Web-only landing page gate. Native apps NEVER show landing.
-  const isNative = Capacitor.isNativePlatform();
+  // Multi-signal native detection (Capacitor.isNativePlatform can be false during very early boot
+  // before the bridge attaches; we also sniff the UA + window.Capacitor as belt-and-suspenders).
+  const isNative = (() => {
+    try {
+      if (Capacitor.isNativePlatform()) return true;
+      if (typeof window !== 'undefined') {
+        const w: any = window;
+        if (w.Capacitor?.isNativePlatform?.()) return true;
+        if (w.Capacitor?.platform && w.Capacitor.platform !== 'web') return true;
+        const ua = navigator?.userAgent || '';
+        if (/CapacitorWebView|Capacitor\//i.test(ua)) return true;
+      }
+    } catch {}
+    return false;
+  })();
   const [showLanding, setShowLanding] = useState<boolean>(() => {
     if (isNative) return false;
     try {
       // If user previously engaged (signed in or paid) — never show landing again until logout/expiry
       if (localStorage.getItem('flowist_user_engaged') === 'true') return false;
-      // If they already clicked "Get Started" this session, skip
+      // If they already clicked "Get Started" (session OR persisted across reload), skip
       if (sessionStorage.getItem('flowist_landing_acknowledged') === 'true') return false;
+      if (localStorage.getItem('flowist_landing_acknowledged') === 'true') return false;
+      // If onboarding was already completed before, treat as engaged user — go straight to app
+      if (localStorage.getItem('onboarding_completed_flag') === 'true') return false;
     } catch {}
     return true;
   });
-  
+
   const { isPro, isLoading: subLoading, isVerifyingCheckout, localTrialExpired, graceExpired, isNewFreeUser } = useSubscription();
   const awaitingSubscriptionChoice = useRef(
     sessionStorage.getItem('awaitingSubscriptionChoice') === 'true'
@@ -282,6 +299,8 @@ const AppContent = () => {
       if (!isNative) {
         try {
           localStorage.removeItem('flowist_user_engaged');
+          localStorage.removeItem('flowist_landing_acknowledged');
+          localStorage.removeItem('onboarding_completed_flag');
           sessionStorage.removeItem('flowist_landing_acknowledged');
         } catch {}
         setShowLanding(true);
@@ -316,6 +335,8 @@ const AppContent = () => {
       } else if (event === 'SIGNED_OUT') {
         try {
           localStorage.removeItem('flowist_user_engaged');
+          localStorage.removeItem('flowist_landing_acknowledged');
+          localStorage.removeItem('onboarding_completed_flag');
           sessionStorage.removeItem('flowist_landing_acknowledged');
         } catch {}
         setShowLanding(true);
@@ -378,7 +399,15 @@ const AppContent = () => {
     onboardingJustCompleted.current = true;
     awaitingSubscriptionChoice.current = true;
     sessionStorage.setItem('awaitingSubscriptionChoice', 'true');
+    // Persist engagement so refresh / cold start lands directly on the dashboard,
+    // never the landing page again (until sign-out or subscription expiry).
+    try {
+      localStorage.setItem('flowist_user_engaged', 'true');
+      localStorage.setItem('onboarding_completed_flag', 'true');
+      sessionStorage.setItem('flowist_landing_acknowledged', 'true');
+    } catch {}
     startTransition(() => {
+      setShowLanding(false);
       setShowOnboarding(false);
     });
     // Ensure Notes dashboard reloads folders created during onboarding
@@ -390,7 +419,7 @@ const AppContent = () => {
       onboardingJustCompleted.current = false;
     }, 5000);
   }, []);
-  
+
   // Initialize keyboard height detection for mobile toolbar positioning
   useKeyboardHeight();
   
@@ -480,8 +509,9 @@ const AppContent = () => {
   // Soft-paywall users see the app with limits — paywall is opened on gated actions, dismissable.
   const canRenderProtectedApp = showOnboarding === false && !isVerifyingCheckout && (isPro || (wasEverPro.current && subLoading) || isNewFreeUser);
 
-  // Web-only: show landing page first for guests who haven't engaged yet
-  if (showLanding) {
+  // Web-only: show landing page first for guests who haven't engaged yet.
+  // HARD GUARD: never on native — even if state somehow became true, the platform check wins.
+  if (showLanding && !isNative) {
     return (
       <>
         <Toaster />
