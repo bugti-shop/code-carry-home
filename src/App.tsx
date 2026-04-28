@@ -268,10 +268,10 @@ const AppContent = () => {
     try {
       // If user previously engaged (signed in or paid) — never show landing again until logout/expiry
       if (localStorage.getItem('flowist_user_engaged') === 'true') return false;
-      // If they already clicked "Get Started" this session, skip
+      // If they already clicked "Get Started" (session OR persisted across reload), skip
       if (sessionStorage.getItem('flowist_landing_acknowledged') === 'true') return false;
+      if (localStorage.getItem('flowist_landing_acknowledged') === 'true') return false;
       // If onboarding was already completed before, treat as engaged user — go straight to app
-      // (handles refresh after onboarding finished but before sign-in/subscribe)
       if (localStorage.getItem('onboarding_completed_flag') === 'true') return false;
     } catch {}
     return true;
