@@ -274,39 +274,15 @@ export const ImageTaskExtractorSheet = ({
                   'Snap a photo of your sticky notes, whiteboard, or handwritten to-do list. AI will extract each task.',
                 )}
               </p>
-              {showInAppCamera ? (
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    onClick={() => runCapture('camera')}
-                    className="h-14 flex-col gap-1"
-                  >
-                    <Camera className="h-5 w-5" />
-                    <span className="text-xs">
-                      {t('imageExtract.takePhoto', 'Take photo')}
-                    </span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => runCapture('gallery')}
-                    className="h-14 flex-col gap-1"
-                  >
-                    <ImageIcon className="h-5 w-5" />
-                    <span className="text-xs">
-                      {t('imageExtract.fromGallery', 'From gallery')}
-                    </span>
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  onClick={() => runCapture('gallery')}
-                  className="h-14 w-full gap-2"
-                >
-                  <ImagePlus className="h-5 w-5" />
-                  <span className="text-sm">
-                    {t('imageExtract.pickOrTakeWeb', 'Pick or take a photo')}
-                  </span>
-                </Button>
-              )}
+              <Button
+                onClick={runCapture}
+                className="h-14 w-full gap-2"
+              >
+                <ImageIcon className="h-5 w-5" />
+                <span className="text-sm">
+                  {t('imageExtract.fromGallery', 'From gallery')}
+                </span>
+              </Button>
             </div>
           )}
 
@@ -329,61 +305,20 @@ export const ImageTaskExtractorSheet = ({
                 {t('imageExtract.tapToZoom', 'Tap to zoom')}
               </div>
               <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                {showInAppCamera ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        disabled={isExtracting}
-                        className="h-8 px-3 rounded-full bg-black/60 text-white flex items-center gap-1 text-xs font-medium disabled:opacity-50"
-                        aria-label={t('imageExtract.retake', 'Retake')}
-                      >
-                        <RotateCcw className="h-3.5 w-3.5" />
-                        {t('imageExtract.retake', 'Retake')}
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-44">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setImageDataUrl(null);
-                          setItems([]);
-                          setHasRun(false);
-                          runCapture('camera');
-                        }}
-                        className="gap-2"
-                      >
-                        <Camera className="h-4 w-4" />
-                        {t('imageExtract.takePhoto', 'Take photo')}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setImageDataUrl(null);
-                          setItems([]);
-                          setHasRun(false);
-                          runCapture('gallery');
-                        }}
-                        className="gap-2"
-                      >
-                        <ImageIcon className="h-4 w-4" />
-                        {t('imageExtract.fromGallery', 'From gallery')}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <button
-                    disabled={isExtracting}
-                    onClick={() => {
-                      setImageDataUrl(null);
-                      setItems([]);
-                      setHasRun(false);
-                      runCapture('gallery');
-                    }}
-                    className="h-8 px-3 rounded-full bg-black/60 text-white flex items-center gap-1 text-xs font-medium disabled:opacity-50"
-                    aria-label={t('imageExtract.replacePhoto', 'Replace photo')}
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    {t('imageExtract.replacePhoto', 'Replace photo')}
-                  </button>
-                )}
+                <button
+                  disabled={isExtracting}
+                  onClick={() => {
+                    setImageDataUrl(null);
+                    setItems([]);
+                    setHasRun(false);
+                    runCapture();
+                  }}
+                  className="h-8 px-3 rounded-full bg-black/60 text-white flex items-center gap-1 text-xs font-medium disabled:opacity-50"
+                  aria-label={t('imageExtract.replacePhoto', 'Replace photo')}
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  {t('imageExtract.replacePhoto', 'Replace photo')}
+                </button>
                 <button
                   onClick={() => {
                     setImageDataUrl(null);
