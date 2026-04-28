@@ -395,7 +395,15 @@ const AppContent = () => {
     onboardingJustCompleted.current = true;
     awaitingSubscriptionChoice.current = true;
     sessionStorage.setItem('awaitingSubscriptionChoice', 'true');
+    // Persist engagement so refresh / cold start lands directly on the dashboard,
+    // never the landing page again (until sign-out or subscription expiry).
+    try {
+      localStorage.setItem('flowist_user_engaged', 'true');
+      localStorage.setItem('onboarding_completed_flag', 'true');
+      sessionStorage.setItem('flowist_landing_acknowledged', 'true');
+    } catch {}
     startTransition(() => {
+      setShowLanding(false);
       setShowOnboarding(false);
     });
     // Ensure Notes dashboard reloads folders created during onboarding
@@ -407,7 +415,7 @@ const AppContent = () => {
       onboardingJustCompleted.current = false;
     }, 5000);
   }, []);
-  
+
   // Initialize keyboard height detection for mobile toolbar positioning
   useKeyboardHeight();
   
