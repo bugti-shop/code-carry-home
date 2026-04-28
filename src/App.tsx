@@ -247,6 +247,19 @@ const AppContent = () => {
   const [isAppLocked, setIsAppLocked] = useState<boolean | null>(null);
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
   
+  // Web-only landing page gate. Native apps NEVER show landing.
+  const isNative = Capacitor.isNativePlatform();
+  const [showLanding, setShowLanding] = useState<boolean>(() => {
+    if (isNative) return false;
+    try {
+      // If user previously engaged (signed in or paid) — never show landing again until logout/expiry
+      if (localStorage.getItem('flowist_user_engaged') === 'true') return false;
+      // If they already clicked "Get Started" this session, skip
+      if (sessionStorage.getItem('flowist_landing_acknowledged') === 'true') return false;
+    } catch {}
+    return true;
+  });
+  
   const { isPro, isLoading: subLoading, isVerifyingCheckout, localTrialExpired, graceExpired, isNewFreeUser } = useSubscription();
   const awaitingSubscriptionChoice = useRef(
     sessionStorage.getItem('awaitingSubscriptionChoice') === 'true'
@@ -265,10 +278,58 @@ const AppContent = () => {
       awaitingSubscriptionChoice.current = false;
       sessionStorage.removeItem('awaitingSubscriptionChoice');
       setShowOnboarding(true);
+      // Web: also send user back to landing page on sign-out / expiry
+      if (!isNative) {
+        try {
+          localStorage.removeItem('flowist_user_engaged');
+          sessionStorage.removeItem('flowist_landing_acknowledged');
+        } catch {}
+        setShowLanding(true);
+      }
     };
     window.addEventListener('flowistOnboardingReset', handleReset);
-    return () => window.removeEventListener('flowistOnboardingReset', handleReset);
-  }, []);
+    
+    // Listen for landing dismissal (user clicked Get Started)
+    const handleLandingDismissed = () => setShowLanding(false);
+    window.addEventListener('flowistLandingDismissed', handleLandingDismissed);
+    
+    return () => {
+      window.removeEventListener('flowistOnboardingReset', handleReset);
+      window.removeEventListener('flowistLandingDismissed', handleLandingDismissed);
+    };
+  }, [isNative]);
+  
+  // Mark user as "engaged" once they're signed in or subscribed (web only)
+  // This persists across refreshes so they skip landing on return visits
+  useEffect(() => {
+    if (isNative) return;
+    if (isPro) {
+      try { localStorage.setItem('flowist_user_engaged', 'true'); } catch {}
+      setShowLanding(false);
+      return;
+    }
+    // Also engage on sign-in (even without subscription)
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        try { localStorage.setItem('flowist_user_engaged', 'true'); } catch {}
+        setShowLanding(false);
+      } else if (event === 'SIGNED_OUT') {
+        try {
+          localStorage.removeItem('flowist_user_engaged');
+          sessionStorage.removeItem('flowist_landing_acknowledged');
+        } catch {}
+        setShowLanding(true);
+      }
+    });
+    // Initial check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        try { localStorage.setItem('flowist_user_engaged', 'true'); } catch {}
+        setShowLanding(false);
+      }
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [isPro, isNative]);
 
   // Track whether user was ever granted access this session to prevent white flash
   const wasEverPro = useRef(false);
