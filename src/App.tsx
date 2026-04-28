@@ -505,8 +505,9 @@ const AppContent = () => {
   // Soft-paywall users see the app with limits — paywall is opened on gated actions, dismissable.
   const canRenderProtectedApp = showOnboarding === false && !isVerifyingCheckout && (isPro || (wasEverPro.current && subLoading) || isNewFreeUser);
 
-  // Web-only: show landing page first for guests who haven't engaged yet
-  if (showLanding) {
+  // Web-only: show landing page first for guests who haven't engaged yet.
+  // HARD GUARD: never on native — even if state somehow became true, the platform check wins.
+  if (showLanding && !isNative) {
     return (
       <>
         <Toaster />
