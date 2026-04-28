@@ -13,9 +13,9 @@ import { m as motion, AnimatePresence } from 'framer-motion';
 
 // Fallback prices (USD) used only when RevenueCat offerings aren't available (e.g. web)
 const FALLBACK_PLANS: { id: ProductType; labelKey: string; price: string; badgeKey: string | null; hasTrial: boolean }[] = [
-  { id: 'weekly', labelKey: 'onboarding.paywall.weekly', price: '$8.99/wk', badgeKey: null, hasTrial: false },
-  { id: 'monthly', labelKey: 'onboarding.paywall.monthly', price: '$12.99/mo', badgeKey: 'onboarding.paywall.popular', hasTrial: true },
-  { id: 'yearly', labelKey: 'onboarding.paywall.yearly', price: '$96.99/yr', badgeKey: 'onboarding.paywall.bestValue', hasTrial: true },
+  { id: 'weekly', labelKey: 'onboarding.paywall.weekly', price: '$1.49/wk', badgeKey: null, hasTrial: false },
+  { id: 'monthly', labelKey: 'onboarding.paywall.monthly', price: '$3.99/mo', badgeKey: 'onboarding.paywall.popular', hasTrial: true },
+  { id: 'yearly', labelKey: 'onboarding.paywall.yearly', price: '$35.99/yearly', badgeKey: 'onboarding.paywall.bestValue', hasTrial: true },
 ];
 
 const PERIOD_LABELS: Record<string, string> = {
