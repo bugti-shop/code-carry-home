@@ -25,7 +25,11 @@ export default function Landing() {
   const handleGetStarted = async () => {
     // Force onboarding to show after redirect
     await setSetting('onboarding_completed', false);
-    sessionStorage.setItem('flowist_landing_acknowledged', 'true');
+    try {
+      // Persist landing dismissal across refresh & background resume
+      sessionStorage.setItem('flowist_landing_acknowledged', 'true');
+      localStorage.setItem('flowist_landing_acknowledged', 'true');
+    } catch {}
     window.dispatchEvent(new Event('flowistLandingDismissed'));
     navigate('/');
   };
