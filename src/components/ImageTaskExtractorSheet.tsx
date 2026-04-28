@@ -4,26 +4,18 @@
  *
  * Pro-gated via the `ai_dictation` (alias `ai_vision`) feature flag.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Camera, Image as ImageIcon, Loader2, Sparkles, X, Check, Trash2, RotateCcw, Minus, Plus, Maximize2, ImagePlus } from 'lucide-react';
+import { Image as ImageIcon, Loader2, Sparkles, X, Check, Trash2, RotateCcw, Minus, Plus, Maximize2 } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
-import { Capacitor } from '@capacitor/core';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetOverlay, SheetPortal } from '@/components/ui/sheet';
+import { Sheet, SheetHeader, SheetTitle, SheetPortal } from '@/components/ui/sheet';
 import * as SheetPrimitive from '@radix-ui/react-dialog';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { captureImageForAI } from '@/utils/imageCaptureForAI';
-import { CustomCameraSheet } from './CustomCameraSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { TodoItem, Folder, Priority, RepeatType } from '@/types/note';
 import { cn } from '@/lib/utils';
@@ -77,24 +69,12 @@ export const ImageTaskExtractorSheet = ({
   // Unlimited AI for: paid Pro, admin (BUGTI code), and any trial with a card on file
   // (Stripe trial OR Android/iOS native RevenueCat trial). Only the local no-card trial gets the daily cap.
   const hasUnlimitedAi = isPaidPro || isAdminBypass || isPaidTrial;
-  const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
-  // Web also supports the in-app camera as long as the browser exposes
-  // getUserMedia (and we're in a secure context). Otherwise we fall back to
-  // the gallery / file picker.
-  const webCameraSupported = useMemo(() => {
-    if (typeof navigator === 'undefined' || typeof window === 'undefined') return false;
-    const md: any = (navigator as any).mediaDevices;
-    if (!md || typeof md.getUserMedia !== 'function') return false;
-    return Boolean((window as any).isSecureContext);
-  }, []);
-  const showInAppCamera = isNative || webCameraSupported;
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const [items, setItems] = useState<ReviewItem[]>([]);
   const [hasRun, setHasRun] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const captureLockRef = useRef(false);
-  const [isCustomCameraOpen, setIsCustomCameraOpen] = useState(false);
 
   // Reset on close
   useEffect(() => {
@@ -103,37 +83,22 @@ export const ImageTaskExtractorSheet = ({
       setItems([]);
       setIsExtracting(false);
       setHasRun(false);
-      setIsCustomCameraOpen(false);
       captureLockRef.current = false;
-      // Force-release any in-flight AI lock so the app never stays "busy"
-      // if the user closed the sheet mid-request.
       releaseAllAiLocks();
     }
   }, [isOpen]);
 
-  const runCapture = async (source: 'camera' | 'gallery') => {
+  const runCapture = async () => {
     if (captureLockRef.current) return;
-    // Use the beautiful in-app camera for the "camera" source so users get
-    // a branded experience instead of the OS picker.
-    if (source === 'camera') {
-      setIsCustomCameraOpen(true);
-      return;
-    }
     captureLockRef.current = true;
     try {
-      const dataUrl = await captureImageForAI(source);
+      const dataUrl = await captureImageForAI('gallery');
       if (!dataUrl) return;
       setImageDataUrl(dataUrl);
       await runExtraction(dataUrl);
     } finally {
       captureLockRef.current = false;
     }
-  };
-
-  const handleCustomCameraCapture = async (dataUrl: string) => {
-    setIsCustomCameraOpen(false);
-    setImageDataUrl(dataUrl);
-    await runExtraction(dataUrl);
   };
 
   const runExtraction = async (dataUrl: string) => {
