@@ -248,7 +248,21 @@ const AppContent = () => {
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
   
   // Web-only landing page gate. Native apps NEVER show landing.
-  const isNative = Capacitor.isNativePlatform();
+  // Multi-signal native detection (Capacitor.isNativePlatform can be false during very early boot
+  // before the bridge attaches; we also sniff the UA + window.Capacitor as belt-and-suspenders).
+  const isNative = (() => {
+    try {
+      if (Capacitor.isNativePlatform()) return true;
+      if (typeof window !== 'undefined') {
+        const w: any = window;
+        if (w.Capacitor?.isNativePlatform?.()) return true;
+        if (w.Capacitor?.platform && w.Capacitor.platform !== 'web') return true;
+        const ua = navigator?.userAgent || '';
+        if (/CapacitorWebView|Capacitor\//i.test(ua)) return true;
+      }
+    } catch {}
+    return false;
+  })();
   const [showLanding, setShowLanding] = useState<boolean>(() => {
     if (isNative) return false;
     try {
@@ -256,10 +270,13 @@ const AppContent = () => {
       if (localStorage.getItem('flowist_user_engaged') === 'true') return false;
       // If they already clicked "Get Started" this session, skip
       if (sessionStorage.getItem('flowist_landing_acknowledged') === 'true') return false;
+      // If onboarding was already completed before, treat as engaged user — go straight to app
+      // (handles refresh after onboarding finished but before sign-in/subscribe)
+      if (localStorage.getItem('onboarding_completed_flag') === 'true') return false;
     } catch {}
     return true;
   });
-  
+
   const { isPro, isLoading: subLoading, isVerifyingCheckout, localTrialExpired, graceExpired, isNewFreeUser } = useSubscription();
   const awaitingSubscriptionChoice = useRef(
     sessionStorage.getItem('awaitingSubscriptionChoice') === 'true'
