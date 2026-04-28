@@ -299,6 +299,8 @@ const AppContent = () => {
       if (!isNative) {
         try {
           localStorage.removeItem('flowist_user_engaged');
+          localStorage.removeItem('flowist_landing_acknowledged');
+          localStorage.removeItem('onboarding_completed_flag');
           sessionStorage.removeItem('flowist_landing_acknowledged');
         } catch {}
         setShowLanding(true);
