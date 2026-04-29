@@ -10,9 +10,9 @@ const corsHeaders = {
 
 // Stripe Price IDs
 const PRICE_IDS: Record<string, string> = {
-  weekly: "price_1TNY0ZFAPtKh08jGLnp6RBqy",
-  monthly: "price_1TNY13FAPtKh08jGUybjx3uC",
-  yearly: "price_1TNY1CFAPtKh08jGscKXlbzA",
+  weekly: "price_1TRbliFAPtKh08jGPKXWPcPG",
+  monthly: "price_1TR6SoFAPtKh08jGW4lfGDYt",
+  yearly: "price_1TRbljFAPtKh08jGGf1qg42c",
 };
 
 // Free trial is handled locally in-app (8 days, no credit card)
