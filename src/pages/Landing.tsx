@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, ListTodo, StickyNote, Repeat, Bell, Calendar, Cloud, Star } from 'lucide-react';
+import { Menu, Check, Plus, Calendar, Bell, Repeat, StickyNote, Sparkles, Shield, Zap, Star, ArrowRight } from 'lucide-react';
 import { AppLogo } from '@/components/AppLogo';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { setSetting } from '@/utils/settingsStorage';
 
 const BLUE = '#3c78f0';
+const BLUE_DARK = '#2b5dbf';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -13,8 +14,9 @@ export default function Landing() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 4);
+    const onScroll = () => setScrolled(window.scrollY > 6);
     window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
@@ -30,55 +32,75 @@ export default function Landing() {
 
   const navLinks = [
     { label: 'Features', href: '#features' },
-    { label: 'Why Flowist', href: '#why' },
+    { label: 'How it works', href: '#how' },
     { label: 'Reviews', href: '#reviews' },
+    { label: 'FAQ', href: '#faq' },
   ];
 
   const features = [
-    { icon: ListTodo, title: 'Smart tasks', desc: 'Add tasks fast with priorities, dates and gentle reminders.' },
-    { icon: StickyNote, title: 'Beautiful notes', desc: 'Write, sketch and save ideas in one calm place.' },
-    { icon: Repeat, title: 'Habits & streaks', desc: 'Build daily habits and watch your streak grow.' },
-    { icon: Bell, title: 'Smart reminders', desc: 'Get a nudge at the right moment so nothing slips by.' },
+    { icon: Check, title: 'Quick tasks', desc: 'Add tasks in seconds with priorities and due dates.' },
+    { icon: StickyNote, title: 'Notes & sketches', desc: 'Write, draw and save ideas in one calm space.' },
+    { icon: Repeat, title: 'Habits & streaks', desc: 'Build daily habits and keep your streak alive.' },
+    { icon: Bell, title: 'Smart reminders', desc: 'Gentle nudges so nothing important slips by.' },
     { icon: Calendar, title: 'Clear calendar', desc: 'See your day, week and month at a glance.' },
-    { icon: Cloud, title: 'Safe backup', desc: 'Sync with Google Drive. Switch devices, lose nothing.' },
+    { icon: Sparkles, title: 'AI helpers', desc: 'Turn photos into tasks. Auto-plan your week.' },
+  ];
+
+  const steps = [
+    { n: '01', title: 'Add it', desc: 'Type, speak or snap a photo — Flowist sorts it.' },
+    { n: '02', title: 'Plan it', desc: 'Drop tasks on a date. Set a reminder. Done.' },
+    { n: '03', title: 'Do it', desc: 'Tick things off. Watch your streak grow.' },
   ];
 
   const reviews = [
-    { name: 'Ayesha K.', text: 'The only app I open every single day. Tasks, notes and habits — all sorted.' },
-    { name: 'Daniel R.', text: 'Calmest planner I’ve used. Streaks keep me consistent without feeling pushy.' },
-    { name: 'Priya S.', text: 'Replaced 3 apps with Flowist. Cleanest space to write and plan.' },
+    { name: 'Ayesha K.', role: 'Designer', text: 'The only planner I open every day. Tasks, notes and habits — all sorted.' },
+    { name: 'Daniel R.', role: 'Founder', text: 'Calmest planner I’ve used. Streaks keep me consistent without being pushy.' },
+    { name: 'Priya S.', role: 'Student', text: 'Replaced 3 apps with Flowist. Cleanest place to write and plan.' },
+  ];
+
+  const faqs = [
+    { q: 'Is Flowist free?', a: 'Yes — start free. Upgrade anytime for unlimited everything from $1.49/week.' },
+    { q: 'Does it work offline?', a: 'Fully. Your tasks and notes are saved on your device and sync when you’re back online.' },
+    { q: 'Can I switch devices?', a: 'Yes. Sign in and your tasks, notes and habits follow you across web, Android and iOS.' },
+    { q: 'Is my data private?', a: 'Always. You own your data. Export or back it up to Google Drive anytime.' },
   ];
 
   return (
-    <div className="min-h-screen bg-[#fff7f3] text-slate-900 antialiased">
+    <div className="min-h-screen bg-white text-slate-900 antialiased selection:bg-[#3c78f0]/20">
       {/* Header */}
       <header
         className={`sticky top-0 z-40 w-full transition-all ${
-          scrolled ? 'border-b border-slate-200/70 bg-white/90 backdrop-blur-xl' : 'border-b border-transparent bg-[#fff7f3]'
+          scrolled ? 'border-b border-slate-200 bg-white/90 backdrop-blur-xl' : 'border-b border-transparent bg-white'
         }`}
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
-          <a href="#top" className="flex items-center gap-2.5">
+          <a href="#top" className="flex items-center gap-2">
             <AppLogo size="md" />
-            <span className="text-xl font-bold tracking-tight" style={{ color: BLUE }}>
-              Flowist
-            </span>
+            <span className="text-xl font-extrabold tracking-tight" style={{ color: BLUE }}>Flowist</span>
           </a>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <nav className="hidden items-center gap-7 md:flex">
+            {navLinks.map((l) => (
+              <a key={l.label} href={l.href} className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900">
+                {l.label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-2">
             <button
               onClick={handleGetStarted}
-              className="rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-transform active:scale-[0.98] sm:px-6 sm:text-base"
+              className="rounded-full px-4 py-2 text-sm font-semibold text-white transition-transform active:scale-[0.98] sm:px-5"
               style={{ backgroundColor: BLUE }}
             >
-              Start for free
+              Start free
             </button>
 
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
                 <button
                   aria-label="Open menu"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700 transition-colors active:bg-slate-100"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700 transition-colors active:bg-slate-100 md:hidden"
                 >
                   <Menu className="h-6 w-6" />
                 </button>
@@ -86,7 +108,7 @@ export default function Landing() {
               <SheetContent side="right" className="w-[80vw] max-w-xs border-l border-slate-200 bg-white p-6">
                 <div className="mb-8 flex items-center gap-2">
                   <AppLogo size="md" />
-                  <span className="text-lg font-bold" style={{ color: BLUE }}>Flowist</span>
+                  <span className="text-lg font-extrabold" style={{ color: BLUE }}>Flowist</span>
                 </div>
                 <div className="flex flex-col gap-1">
                   {navLinks.map((item) => (
@@ -100,10 +122,7 @@ export default function Landing() {
                     </a>
                   ))}
                   <button
-                    onClick={() => {
-                      setMenuOpen(false);
-                      handleGetStarted();
-                    }}
+                    onClick={() => { setMenuOpen(false); handleGetStarted(); }}
                     className="mt-4 rounded-full py-3 text-base font-semibold text-white"
                     style={{ backgroundColor: BLUE }}
                   >
@@ -119,91 +138,129 @@ export default function Landing() {
 
       <main id="top">
         {/* Hero */}
-        <section className="mx-auto w-full max-w-3xl px-5 pt-10 pb-12 text-center sm:pt-20 sm:pb-20">
-          <h1 className="mb-6 text-[44px] font-bold leading-[1.05] tracking-tight text-slate-900 sm:text-7xl">
-            Clarity, finally.
-          </h1>
-          <p className="mx-auto mb-7 max-w-xl text-lg leading-relaxed text-slate-600 sm:text-xl">
-            Plan your day, capture your ideas and build calm habits — all in one simple app.
-          </p>
-
-          <div className="mx-auto mb-10 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600">
-            <span aria-hidden></span>
-            <span aria-hidden>🤖</span>
-            <span className="ml-1 font-medium">Loved on Web, Android & iOS</span>
-          </div>
-
-          <div className="flex flex-col items-center">
-            <button
-              onClick={handleGetStarted}
-              className="w-full max-w-xs rounded-2xl py-4 text-lg font-bold text-white shadow-[0_8px_0_0_#2b5dbf] transition-transform active:translate-y-1 active:shadow-[0_2px_0_0_#2b5dbf] sm:w-auto sm:px-14"
-              style={{ backgroundColor: BLUE }}
-            >
-              Start for free
-            </button>
-            <p className="mt-4 text-xs text-slate-500">No credit card · Works offline · Free to try</p>
-          </div>
-
-          {/* Mobile preview card */}
-          <div className="relative mx-auto mt-14 max-w-sm">
-            <div className="absolute -inset-6 rounded-[40px] bg-[#3c78f0]/10 blur-2xl" />
-            <div className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_-20px_rgba(60,120,240,0.4)]">
-              <div className="mb-4 flex items-center justify-between">
-                <span className="text-xs text-slate-400">8:30</span>
-                <span className="text-xs text-slate-400">●●●</span>
+        <section className="relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-gradient-to-b from-[#eaf1ff] via-white to-white" />
+          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pt-12 pb-16 sm:px-6 sm:pt-20 sm:pb-24 md:grid-cols-2">
+            <div className="text-center md:text-left">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm">
+                <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: BLUE }} />
+                Now on Web, Android & iOS
               </div>
-              <h3 className="mb-1 text-2xl font-bold text-slate-900">Today</h3>
-              <p className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400">My Tasks · 3</p>
-              <ul className="space-y-3.5 text-left">
-                {[
-                  { text: 'Do 30 minutes of yoga 🧘', tag: 'Fitness', done: true },
-                  { text: 'Dentist appointment', tag: 'Health', done: false },
-                  { text: 'Reply to Sarah', tag: 'Work', done: false },
-                ].map((t, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <span
-                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2"
-                      style={{
-                        borderColor: t.done ? BLUE : '#cbd5e1',
-                        backgroundColor: t.done ? BLUE : 'transparent',
-                      }}
-                    >
-                      {t.done && (
-                        <svg viewBox="0 0 12 12" className="h-3 w-3 text-white"><path fill="currentColor" d="M10.28 3.22a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0L2.22 6.28a.75.75 0 1 1 1.06-1.06l2 2 3.97-3.97a.75.75 0 0 1 1.03-.03Z"/></svg>
-                      )}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm ${t.done ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{t.text}</p>
-                      <p className="text-[11px]" style={{ color: BLUE }}># {t.tag}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              <h1 className="mb-5 text-[40px] font-extrabold leading-[1.05] tracking-tight text-slate-900 sm:text-[64px]">
+                Organize your day,<br />
+                <span style={{ color: BLUE }}>achieve more.</span>
+              </h1>
+              <p className="mx-auto mb-8 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg md:mx-0">
+                Tasks, notes and habits — all in one calm app. Add anything in seconds. Get gentle reminders. Build streaks that stick.
+              </p>
+              <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center md:justify-start">
+                <button
+                  onClick={handleGetStarted}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-8 py-4 text-base font-bold text-white transition-transform active:translate-y-1 sm:w-auto"
+                  style={{ backgroundColor: BLUE, boxShadow: `0 6px 0 0 ${BLUE_DARK}` }}
+                >
+                  Start for free <ArrowRight className="h-5 w-5" />
+                </button>
+                <a
+                  href="#features"
+                  className="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-4 text-base font-semibold text-slate-700 transition-colors hover:bg-slate-50 sm:w-auto"
+                >
+                  See how it works
+                </a>
+              </div>
+              <p className="mt-4 text-xs text-slate-500">No credit card · Works offline · Free forever plan</p>
+            </div>
+
+            {/* Mock app card */}
+            <div className="relative mx-auto w-full max-w-md">
+              <div className="absolute -inset-6 rounded-[40px] bg-[#3c78f0]/10 blur-3xl" />
+              <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_30px_80px_-30px_rgba(60,120,240,0.45)]">
+                <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900">Today</h3>
+                    <p className="text-xs text-slate-500">Wednesday, Apr 29</p>
+                  </div>
+                  <div
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-white"
+                    style={{ backgroundColor: BLUE }}
+                  >
+                    <Plus className="h-5 w-5" />
+                  </div>
+                </div>
+                <ul className="divide-y divide-slate-100">
+                  {[
+                    { text: '30 min morning yoga', tag: 'Health', done: true, time: '7:00 AM' },
+                    { text: 'Reply to Sarah’s email', tag: 'Work', done: false, time: '10:30 AM' },
+                    { text: 'Buy groceries', tag: 'Personal', done: false, time: '6:00 PM' },
+                    { text: 'Read 20 pages 📚', tag: 'Habit', done: false, time: 'Tonight' },
+                  ].map((t, i) => (
+                    <li key={i} className="flex items-center gap-3 px-5 py-3.5">
+                      <span
+                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2"
+                        style={{
+                          borderColor: t.done ? BLUE : '#cbd5e1',
+                          backgroundColor: t.done ? BLUE : 'transparent',
+                        }}
+                      >
+                        {t.done && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium ${t.done ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+                          {t.text}
+                        </p>
+                        <div className="mt-0.5 flex items-center gap-2 text-[11px] text-slate-500">
+                          <span>{t.time}</span>
+                          <span>·</span>
+                          <span style={{ color: BLUE }}># {t.tag}</span>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex items-center justify-between bg-slate-50 px-5 py-3 text-xs text-slate-500">
+                  <span>🔥 12-day streak</span>
+                  <span>3 of 4 done</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
+        {/* Trust bar */}
+        <section className="border-y border-slate-100 bg-slate-50/50 py-6">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-5 text-xs font-medium text-slate-500 sm:text-sm">
+            <span className="inline-flex items-center gap-1.5"><Shield className="h-4 w-4" /> Private & secure</span>
+            <span className="inline-flex items-center gap-1.5"><Zap className="h-4 w-4" /> Opens instantly</span>
+            <span className="inline-flex items-center gap-1.5"><Star className="h-4 w-4 fill-current" style={{ color: BLUE }} /> 4.9 average rating</span>
+            <span className="inline-flex items-center gap-1.5"><Repeat className="h-4 w-4" /> Sync across devices</span>
+          </div>
+        </section>
+
         {/* Features */}
-        <section id="features" className="bg-white py-16 sm:py-24">
+        <section id="features" className="py-20 sm:py-28">
           <div className="mx-auto max-w-6xl px-5 sm:px-6">
-            <div className="mx-auto mb-12 max-w-2xl text-center">
-              <h2 className="mb-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+            <div className="mx-auto mb-14 max-w-2xl text-center">
+              <p className="mb-3 text-sm font-bold uppercase tracking-wider" style={{ color: BLUE }}>Features</p>
+              <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
                 Everything you need. Nothing you don’t.
               </h2>
               <p className="text-base text-slate-600 sm:text-lg">
-                Tasks, notes, habits, reminders and a calendar — under one calm roof.
+                Tasks, notes, habits, reminders and a calendar — all in one calm place.
               </p>
             </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {features.map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="rounded-2xl border border-slate-200 bg-white p-6 transition-all active:scale-[0.99]">
+                <div
+                  key={title}
+                  className="group rounded-2xl border border-slate-200 bg-white p-6 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                >
                   <div
-                    className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl"
+                    className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl transition-transform group-hover:scale-105"
                     style={{ backgroundColor: `${BLUE}15`, color: BLUE }}
                   >
-                    <Icon className="h-5 w-5" />
+                    <Icon className="h-6 w-6" />
                   </div>
-                  <h3 className="mb-1.5 text-lg font-semibold text-slate-900">{title}</h3>
+                  <h3 className="mb-2 text-lg font-bold text-slate-900">{title}</h3>
                   <p className="text-sm leading-relaxed text-slate-600">{desc}</p>
                 </div>
               ))}
@@ -211,32 +268,37 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* Why */}
-        <section id="why" className="bg-[#fff7f3] py-16 sm:py-24">
-          <div className="mx-auto max-w-3xl px-5 text-center sm:px-6">
-            <h2 className="mb-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-              Calm. Fast. Yours.
-            </h2>
-            <p className="mb-10 text-base text-slate-600 sm:text-lg">
-              Flowist opens instantly, works offline and never gets in your way. Your data stays private — you can export or back it up anytime.
-            </p>
-            <button
-              onClick={handleGetStarted}
-              className="rounded-2xl px-10 py-4 text-base font-bold text-white shadow-[0_8px_0_0_#2b5dbf] transition-transform active:translate-y-1 active:shadow-[0_2px_0_0_#2b5dbf]"
-              style={{ backgroundColor: BLUE }}
-            >
-              Try Flowist free
-            </button>
+        {/* How it works */}
+        <section id="how" className="bg-slate-50 py-20 sm:py-28">
+          <div className="mx-auto max-w-6xl px-5 sm:px-6">
+            <div className="mx-auto mb-14 max-w-2xl text-center">
+              <p className="mb-3 text-sm font-bold uppercase tracking-wider" style={{ color: BLUE }}>How it works</p>
+              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+                Three simple steps to a calmer day.
+              </h2>
+            </div>
+            <div className="grid gap-5 md:grid-cols-3">
+              {steps.map((s) => (
+                <div key={s.n} className="rounded-2xl border border-slate-200 bg-white p-7">
+                  <span className="text-3xl font-extrabold" style={{ color: BLUE }}>{s.n}</span>
+                  <h3 className="mt-3 mb-2 text-xl font-bold text-slate-900">{s.title}</h3>
+                  <p className="text-sm leading-relaxed text-slate-600">{s.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Reviews */}
-        <section id="reviews" className="bg-white py-16 sm:py-24">
+        <section id="reviews" className="py-20 sm:py-28">
           <div className="mx-auto max-w-6xl px-5 sm:px-6">
-            <div className="mb-10 text-center">
-              <h2 className="mb-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Loved by people like you</h2>
+            <div className="mb-12 text-center">
+              <p className="mb-3 text-sm font-bold uppercase tracking-wider" style={{ color: BLUE }}>Reviews</p>
+              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+                Loved by people like you
+              </h2>
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="grid gap-5 md:grid-cols-3">
               {reviews.map((r) => (
                 <div key={r.name} className="rounded-2xl border border-slate-200 bg-white p-6">
                   <div className="mb-3 flex items-center gap-0.5" style={{ color: BLUE }}>
@@ -247,12 +309,15 @@ export default function Landing() {
                   <p className="mb-5 text-sm leading-relaxed text-slate-700">“{r.text}”</p>
                   <div className="flex items-center gap-3">
                     <div
-                      className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold"
+                      className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
                       style={{ backgroundColor: `${BLUE}15`, color: BLUE }}
                     >
                       {r.name.charAt(0)}
                     </div>
-                    <p className="text-sm font-semibold text-slate-900">{r.name}</p>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">{r.name}</p>
+                      <p className="text-xs text-slate-500">{r.role}</p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -260,32 +325,64 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* FAQ */}
+        <section id="faq" className="bg-slate-50 py-20 sm:py-28">
+          <div className="mx-auto max-w-3xl px-5 sm:px-6">
+            <div className="mb-10 text-center">
+              <p className="mb-3 text-sm font-bold uppercase tracking-wider" style={{ color: BLUE }}>FAQ</p>
+              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+                Quick answers
+              </h2>
+            </div>
+            <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              {faqs.map((f) => (
+                <details key={f.q} className="group p-5 [&_summary::-webkit-details-marker]:hidden">
+                  <summary className="flex cursor-pointer items-center justify-between gap-4">
+                    <span className="text-base font-semibold text-slate-900">{f.q}</span>
+                    <span
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-lg font-bold transition-transform group-open:rotate-45"
+                      style={{ backgroundColor: `${BLUE}15`, color: BLUE }}
+                    >
+                      +
+                    </span>
+                  </summary>
+                  <p className="mt-3 text-sm leading-relaxed text-slate-600">{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Final CTA */}
-        <section className="bg-[#fff7f3] py-16 sm:py-24">
-          <div className="mx-auto max-w-3xl px-5 text-center sm:px-6">
-            <h2 className="mb-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-              Start your day in flow.
-            </h2>
-            <p className="mx-auto mb-8 max-w-xl text-base text-slate-600 sm:text-lg">
-              Join people using Flowist to plan smarter, write freely and build habits that stick.
-            </p>
-            <button
-              onClick={handleGetStarted}
-              className="rounded-2xl px-12 py-4 text-lg font-bold text-white shadow-[0_8px_0_0_#2b5dbf] transition-transform active:translate-y-1 active:shadow-[0_2px_0_0_#2b5dbf]"
-              style={{ backgroundColor: BLUE }}
+        <section className="py-20 sm:py-28">
+          <div className="mx-auto max-w-4xl px-5 sm:px-6">
+            <div
+              className="overflow-hidden rounded-3xl px-8 py-14 text-center text-white sm:px-14 sm:py-20"
+              style={{ background: `linear-gradient(135deg, ${BLUE} 0%, ${BLUE_DARK} 100%)` }}
             >
-              Start for free
-            </button>
-            <p className="mt-4 text-xs text-slate-500">No credit card needed · Works offline</p>
+              <h2 className="mb-4 text-3xl font-extrabold tracking-tight sm:text-5xl">
+                Start your day in flow.
+              </h2>
+              <p className="mx-auto mb-8 max-w-xl text-base text-white/90 sm:text-lg">
+                Join people using Flowist to plan smarter, write freely and build habits that stick.
+              </p>
+              <button
+                onClick={handleGetStarted}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-10 py-4 text-lg font-bold text-slate-900 shadow-[0_6px_0_0_rgba(0,0,0,0.15)] transition-transform active:translate-y-1"
+              >
+                Start for free <ArrowRight className="h-5 w-5" />
+              </button>
+              <p className="mt-4 text-xs text-white/80">No credit card · Works offline</p>
+            </div>
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-slate-200 bg-white py-8">
+      <footer className="border-t border-slate-200 bg-white py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 sm:flex-row sm:px-6">
           <div className="flex items-center gap-2">
             <AppLogo size="sm" />
-            <span className="text-sm font-semibold" style={{ color: BLUE }}>Flowist</span>
+            <span className="text-sm font-bold" style={{ color: BLUE }}>Flowist</span>
             <span className="text-xs text-slate-400">© {new Date().getFullYear()}</span>
           </div>
           <div className="flex items-center gap-6 text-xs text-slate-500">
