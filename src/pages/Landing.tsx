@@ -213,56 +213,30 @@ export default function Landing() {
               <p className="mt-4 text-xs text-slate-500">Try it free · Works offline · Cancel anytime</p>
             </div>
 
-            {/* Mock app card */}
+            {/* Product highlight cards */}
             <div className="relative mx-auto w-full max-w-md">
               <div className="absolute -inset-6 rounded-[40px] bg-[#3c78f0]/10 blur-3xl" />
-              <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_30px_80px_-30px_rgba(60,120,240,0.45)]">
-                <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900">Today</h3>
-                    <p className="text-xs text-slate-500">Wednesday, Apr 29</p>
-                  </div>
+              <div className="relative grid grid-cols-2 gap-3 sm:gap-4">
+                {[
+                  { title: 'To-Do List', desc: 'Plan tasks, set reminders & build streaks.', icon: Check },
+                  { title: 'Sketch Editor', desc: 'Draw ideas freely on infinite canvas.', icon: Sparkles },
+                  { title: 'Regular Notes', desc: 'Capture thoughts in a clean editor.', icon: StickyNote },
+                  { title: 'Lined Notes', desc: 'Write neatly on classic ruled paper.', icon: Calendar },
+                ].map(({ title, desc, icon: Icon }) => (
                   <div
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-white"
-                    style={{ backgroundColor: BLUE }}
+                    key={title}
+                    className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_20px_50px_-25px_rgba(60,120,240,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_25px_60px_-20px_rgba(60,120,240,0.45)] sm:p-5"
                   >
-                    <Plus className="h-5 w-5" />
+                    <div
+                      className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl"
+                      style={{ backgroundColor: `${BLUE}15`, color: BLUE }}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="mb-1 text-[15px] font-bold text-slate-900">{title}</h3>
+                    <p className="text-xs leading-relaxed text-slate-600">{desc}</p>
                   </div>
-                </div>
-                <ul className="divide-y divide-slate-100">
-                  {[
-                    { text: '30 min morning yoga', tag: 'Health', done: true, time: '7:00 AM' },
-                    { text: 'Reply to Sarah’s email', tag: 'Work', done: false, time: '10:30 AM' },
-                    { text: 'Buy groceries', tag: 'Personal', done: false, time: '6:00 PM' },
-                    { text: 'Read 20 pages 📚', tag: 'Habit', done: false, time: 'Tonight' },
-                  ].map((t, i) => (
-                    <li key={i} className="flex items-center gap-3 px-5 py-3.5">
-                      <span
-                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2"
-                        style={{
-                          borderColor: t.done ? BLUE : '#cbd5e1',
-                          backgroundColor: t.done ? BLUE : 'transparent',
-                        }}
-                      >
-                        {t.done && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium ${t.done ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
-                          {t.text}
-                        </p>
-                        <div className="mt-0.5 flex items-center gap-2 text-[11px] text-slate-500">
-                          <span>{t.time}</span>
-                          <span>·</span>
-                          <span style={{ color: BLUE }}># {t.tag}</span>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                <div className="flex items-center justify-between bg-slate-50 px-5 py-3 text-xs text-slate-500">
-                  <span>🔥 12-day streak</span>
-                  <span>3 of 4 done</span>
-                </div>
+                ))}
               </div>
             </div>
           </div>
