@@ -20,12 +20,25 @@ export default function Landing() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Preload onboarding chunk on idle so the landing → onboarding handoff is instant (no white screen)
+  useEffect(() => {
+    const preload = () => { import('@/components/OnboardingFlow').catch(() => {}); };
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(preload, { timeout: 1500 });
+    } else {
+      setTimeout(preload, 300);
+    }
+  }, []);
+
   const handleGetStarted = async () => {
+    // Preload onboarding chunk BEFORE navigating so the next screen renders immediately
+    const preload = import('@/components/OnboardingFlow').catch(() => {});
     await setSetting('onboarding_completed', false);
     try {
       sessionStorage.setItem('flowist_landing_acknowledged', 'true');
       localStorage.setItem('flowist_landing_acknowledged', 'true');
     } catch {}
+    await preload;
     window.dispatchEvent(new Event('flowistLandingDismissed'));
     navigate('/');
   };
