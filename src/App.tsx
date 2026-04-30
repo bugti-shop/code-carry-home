@@ -546,7 +546,7 @@ const AppContent = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Suspense fallback={<EmptyFallback />}>
+          <Suspense fallback={<BrandedFallback />}>
             <Routes>
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
