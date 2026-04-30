@@ -489,7 +489,7 @@ export default function Landing() {
                 href="https://play.google.com/store/apps/details?id=app.lovable.flowist"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-[52px] items-center justify-center gap-2 rounded-lg bg-black px-4 text-white"
+                className="inline-flex h-[46px] min-w-[200px] flex-1 items-center justify-center gap-2 rounded-lg bg-black px-6 text-white"
                 aria-label="Get it on Google Play"
               >
                 <svg viewBox="0 0 512 512" className="h-6 w-6" aria-hidden="true">
