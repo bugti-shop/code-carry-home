@@ -233,7 +233,7 @@ const AppRoutes = () => {
         <NavigationLoader />
         <DashboardTracker />
         <TourNavigationListener />
-        <Suspense fallback={<EmptyFallback />}>
+        <Suspense fallback={<BrandedFallback />}>
           <Routes>
             <Route path="/" element={<RootRedirect />} />
             <Route path="/notesdashboard" element={<Index />} />
