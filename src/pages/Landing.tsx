@@ -174,7 +174,7 @@ export default function Landing() {
                 >
                   Get Flowist Free <ArrowRight className="h-5 w-5" />
                 </button>
-                <div className="grid w-full grid-cols-2 gap-3">
+                <div className="grid w-full grid-cols-2 gap-2">
                   <a
                     href="https://apps.apple.com/app/flowist"
                     target="_blank"
