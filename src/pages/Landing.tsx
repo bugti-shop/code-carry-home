@@ -443,38 +443,38 @@ export default function Landing() {
           {/* Get the app */}
           <div className="mt-14">
             <h4 className="mb-5 text-2xl font-extrabold text-slate-900">Get the app</h4>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid max-w-md grid-cols-2 gap-2">
               <a
                 href="https://apps.apple.com/app/flowist"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-[46px] min-w-[200px] flex-1 items-center justify-center gap-2 rounded-lg bg-black px-6 text-white"
+                className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-black px-3 text-white"
                 aria-label="Download on the App Store"
               >
-                <svg viewBox="0 0 384 512" className="h-6 w-6 fill-current" aria-hidden="true">
+                <svg viewBox="0 0 384 512" className="h-7 w-7 fill-current shrink-0" aria-hidden="true">
                   <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zM256.5 105.7c30.1-35.7 27.4-68.2 26.5-79.9-26.6 1.5-57.4 18.1-74.9 38.5-19.3 21.9-30.6 49-28.2 78.8 28.7 2.2 54.9-12.5 76.6-37.4z"/>
                 </svg>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[9px] font-medium opacity-90">Download on the</span>
-                  <span className="text-[15px] font-semibold tracking-tight">App Store</span>
+                  <span className="text-[10px] font-medium opacity-90">Download on the</span>
+                  <span className="text-[17px] font-semibold tracking-tight">App Store</span>
                 </div>
               </a>
               <a
                 href="https://play.google.com/store/apps/details?id=app.lovable.flowist"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-[46px] min-w-[200px] flex-1 items-center justify-center gap-2 rounded-lg bg-black px-6 text-white"
+                className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-black px-3 text-white"
                 aria-label="Get it on Google Play"
               >
-                <svg viewBox="0 0 512 512" className="h-6 w-6" aria-hidden="true">
+                <svg viewBox="0 0 512 512" className="h-7 w-7 shrink-0" aria-hidden="true">
                   <path fill="#00d7fe" d="M99.6 14.4C77.7 21.5 64 41.6 64 67.7v376.6c0 26.1 13.7 46.2 35.6 53.3l217.4-251.8L99.6 14.4z"/>
                   <path fill="#ffce00" d="M396.7 314.2l-79.7-58.4 70.9-82.1 105.4 60.7c19.7 11.4 19.7 39.8 0 51.2l-96.6 28.6z"/>
                   <path fill="#ff3a44" d="M396.7 314.2l-79.7-58.4-217.4 242.6c8.7 2.8 18.8 1.9 28.6-3.7l268.5-180.5z"/>
                   <path fill="#48ff48" d="M99.6 14.4c-9.8-5.6-19.9-6.5-28.6-3.7l245.9 244.7 79.7-82.1L99.6 14.4z"/>
                 </svg>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[9px] font-medium opacity-90">GET IT ON</span>
-                  <span className="text-[15px] font-semibold tracking-tight">Google Play</span>
+                  <span className="text-[10px] font-medium opacity-90">GET IT ON</span>
+                  <span className="text-[17px] font-semibold tracking-tight">Google Play</span>
                 </div>
               </a>
             </div>
