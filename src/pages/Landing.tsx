@@ -169,8 +169,8 @@ export default function Landing() {
               <div className="mx-auto flex max-w-md flex-col gap-3 md:mx-0">
                 <button
                   onClick={handleGetStarted}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-8 py-4 text-base font-bold text-white transition-transform active:translate-y-1"
-                  style={{ backgroundColor: BLUE, boxShadow: `0 6px 0 0 ${BLUE_DARK}` }}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-8 py-3 text-base font-bold text-white transition-transform active:translate-y-1"
+                  style={{ backgroundColor: BLUE, boxShadow: `0 5px 0 0 ${BLUE_DARK}` }}
                 >
                   Get Flowist Free <ArrowRight className="h-5 w-5" />
                 </button>
@@ -179,33 +179,33 @@ export default function Landing() {
                     href="https://apps.apple.com/app/flowist"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-xl bg-black px-4 text-white transition-transform active:translate-y-0.5"
+                    className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-black px-3 text-white transition-transform active:translate-y-0.5"
                     aria-label="Download on the App Store"
                   >
-                    <svg viewBox="0 0 384 512" className="h-6 w-6 fill-current" aria-hidden="true">
+                    <svg viewBox="0 0 384 512" className="h-7 w-7 fill-current shrink-0" aria-hidden="true">
                       <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zM256.5 105.7c30.1-35.7 27.4-68.2 26.5-79.9-26.6 1.5-57.4 18.1-74.9 38.5-19.3 21.9-30.6 49-28.2 78.8 28.7 2.2 54.9-12.5 76.6-37.4z"/>
                     </svg>
                     <div className="flex flex-col items-start leading-tight">
-                      <span className="text-[9px] font-medium opacity-90">Download on the</span>
-                      <span className="text-[15px] font-semibold tracking-tight">App Store</span>
+                      <span className="text-[10px] font-medium opacity-90">Download on the</span>
+                      <span className="text-[17px] font-semibold tracking-tight">App Store</span>
                     </div>
                   </a>
                   <a
                     href="https://play.google.com/store/apps/details?id=app.lovable.flowist"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-xl bg-black px-4 text-white transition-transform active:translate-y-0.5"
+                    className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-black px-3 text-white transition-transform active:translate-y-0.5"
                     aria-label="Get it on Google Play"
                   >
-                    <svg viewBox="0 0 512 512" className="h-6 w-6" aria-hidden="true">
+                    <svg viewBox="0 0 512 512" className="h-7 w-7 shrink-0" aria-hidden="true">
                       <path fill="#00d7fe" d="M99.6 14.4C77.7 21.5 64 41.6 64 67.7v376.6c0 26.1 13.7 46.2 35.6 53.3l217.4-251.8L99.6 14.4z"/>
                       <path fill="#ffce00" d="M396.7 314.2l-79.7-58.4 70.9-82.1 105.4 60.7c19.7 11.4 19.7 39.8 0 51.2l-96.6 28.6z"/>
                       <path fill="#ff3a44" d="M396.7 314.2l-79.7-58.4-217.4 242.6c8.7 2.8 18.8 1.9 28.6-3.7l268.5-180.5z"/>
                       <path fill="#48ff48" d="M99.6 14.4c-9.8-5.6-19.9-6.5-28.6-3.7l245.9 244.7 79.7-82.1L99.6 14.4z"/>
                     </svg>
                     <div className="flex flex-col items-start leading-tight">
-                      <span className="text-[9px] font-medium opacity-90">GET IT ON</span>
-                      <span className="text-[15px] font-semibold tracking-tight">Google Play</span>
+                      <span className="text-[10px] font-medium opacity-90">GET IT ON</span>
+                      <span className="text-[17px] font-semibold tracking-tight">Google Play</span>
                     </div>
                   </a>
                 </div>
@@ -213,56 +213,30 @@ export default function Landing() {
               <p className="mt-4 text-xs text-slate-500">Try it free · Works offline · Cancel anytime</p>
             </div>
 
-            {/* Mock app card */}
+            {/* Product highlight cards */}
             <div className="relative mx-auto w-full max-w-md">
               <div className="absolute -inset-6 rounded-[40px] bg-[#3c78f0]/10 blur-3xl" />
-              <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_30px_80px_-30px_rgba(60,120,240,0.45)]">
-                <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900">Today</h3>
-                    <p className="text-xs text-slate-500">Wednesday, Apr 29</p>
-                  </div>
+              <div className="relative grid grid-cols-2 gap-3 sm:gap-4">
+                {[
+                  { title: 'To-Do List', desc: 'Plan tasks, set reminders & build streaks.', icon: Check },
+                  { title: 'Sketch Editor', desc: 'Draw ideas freely on infinite canvas.', icon: Sparkles },
+                  { title: 'Regular Notes', desc: 'Capture thoughts in a clean editor.', icon: StickyNote },
+                  { title: 'Lined Notes', desc: 'Write neatly on classic ruled paper.', icon: Calendar },
+                ].map(({ title, desc, icon: Icon }) => (
                   <div
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-white"
-                    style={{ backgroundColor: BLUE }}
+                    key={title}
+                    className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_20px_50px_-25px_rgba(60,120,240,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_25px_60px_-20px_rgba(60,120,240,0.45)] sm:p-5"
                   >
-                    <Plus className="h-5 w-5" />
+                    <div
+                      className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl"
+                      style={{ backgroundColor: `${BLUE}15`, color: BLUE }}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="mb-1 text-[15px] font-bold text-slate-900">{title}</h3>
+                    <p className="text-xs leading-relaxed text-slate-600">{desc}</p>
                   </div>
-                </div>
-                <ul className="divide-y divide-slate-100">
-                  {[
-                    { text: '30 min morning yoga', tag: 'Health', done: true, time: '7:00 AM' },
-                    { text: 'Reply to Sarah’s email', tag: 'Work', done: false, time: '10:30 AM' },
-                    { text: 'Buy groceries', tag: 'Personal', done: false, time: '6:00 PM' },
-                    { text: 'Read 20 pages 📚', tag: 'Habit', done: false, time: 'Tonight' },
-                  ].map((t, i) => (
-                    <li key={i} className="flex items-center gap-3 px-5 py-3.5">
-                      <span
-                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2"
-                        style={{
-                          borderColor: t.done ? BLUE : '#cbd5e1',
-                          backgroundColor: t.done ? BLUE : 'transparent',
-                        }}
-                      >
-                        {t.done && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium ${t.done ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
-                          {t.text}
-                        </p>
-                        <div className="mt-0.5 flex items-center gap-2 text-[11px] text-slate-500">
-                          <span>{t.time}</span>
-                          <span>·</span>
-                          <span style={{ color: BLUE }}># {t.tag}</span>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                <div className="flex items-center justify-between bg-slate-50 px-5 py-3 text-xs text-slate-500">
-                  <span>🔥 12-day streak</span>
-                  <span>3 of 4 done</span>
-                </div>
+                ))}
               </div>
             </div>
           </div>
@@ -469,38 +443,38 @@ export default function Landing() {
           {/* Get the app */}
           <div className="mt-14">
             <h4 className="mb-5 text-2xl font-extrabold text-slate-900">Get the app</h4>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid max-w-md grid-cols-2 gap-2">
               <a
                 href="https://apps.apple.com/app/flowist"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-[46px] min-w-[200px] flex-1 items-center justify-center gap-2 rounded-lg bg-black px-6 text-white"
+                className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-black px-3 text-white"
                 aria-label="Download on the App Store"
               >
-                <svg viewBox="0 0 384 512" className="h-6 w-6 fill-current" aria-hidden="true">
+                <svg viewBox="0 0 384 512" className="h-7 w-7 fill-current shrink-0" aria-hidden="true">
                   <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zM256.5 105.7c30.1-35.7 27.4-68.2 26.5-79.9-26.6 1.5-57.4 18.1-74.9 38.5-19.3 21.9-30.6 49-28.2 78.8 28.7 2.2 54.9-12.5 76.6-37.4z"/>
                 </svg>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[9px] font-medium opacity-90">Download on the</span>
-                  <span className="text-[15px] font-semibold tracking-tight">App Store</span>
+                  <span className="text-[10px] font-medium opacity-90">Download on the</span>
+                  <span className="text-[17px] font-semibold tracking-tight">App Store</span>
                 </div>
               </a>
               <a
                 href="https://play.google.com/store/apps/details?id=app.lovable.flowist"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-[46px] min-w-[200px] flex-1 items-center justify-center gap-2 rounded-lg bg-black px-6 text-white"
+                className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-black px-3 text-white"
                 aria-label="Get it on Google Play"
               >
-                <svg viewBox="0 0 512 512" className="h-6 w-6" aria-hidden="true">
+                <svg viewBox="0 0 512 512" className="h-7 w-7 shrink-0" aria-hidden="true">
                   <path fill="#00d7fe" d="M99.6 14.4C77.7 21.5 64 41.6 64 67.7v376.6c0 26.1 13.7 46.2 35.6 53.3l217.4-251.8L99.6 14.4z"/>
                   <path fill="#ffce00" d="M396.7 314.2l-79.7-58.4 70.9-82.1 105.4 60.7c19.7 11.4 19.7 39.8 0 51.2l-96.6 28.6z"/>
                   <path fill="#ff3a44" d="M396.7 314.2l-79.7-58.4-217.4 242.6c8.7 2.8 18.8 1.9 28.6-3.7l268.5-180.5z"/>
                   <path fill="#48ff48" d="M99.6 14.4c-9.8-5.6-19.9-6.5-28.6-3.7l245.9 244.7 79.7-82.1L99.6 14.4z"/>
                 </svg>
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[9px] font-medium opacity-90">GET IT ON</span>
-                  <span className="text-[15px] font-semibold tracking-tight">Google Play</span>
+                  <span className="text-[10px] font-medium opacity-90">GET IT ON</span>
+                  <span className="text-[17px] font-semibold tracking-tight">Google Play</span>
                 </div>
               </a>
             </div>
