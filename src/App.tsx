@@ -74,6 +74,35 @@ let hasResolvedInitialDashboard = false;
 
 // Minimal fallback — keeps layout stable during chunk load
 const EmptyFallback = () => null;
+
+// Branded fallback — shown briefly while onboarding/landing chunks load.
+// Prevents the "white screen for 6-7 seconds" perception by matching brand color.
+const BrandedFallback = () => (
+  <div
+    aria-hidden="true"
+    style={{
+      position: 'fixed',
+      inset: 0,
+      backgroundColor: '#ffffff',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1,
+    }}
+  >
+    <div
+      style={{
+        width: 36,
+        height: 36,
+        border: '3px solid #e2e8f0',
+        borderTopColor: '#3c78f0',
+        borderRadius: '50%',
+        animation: 'flowist-spin 0.8s linear infinite',
+      }}
+    />
+    <style>{`@keyframes flowist-spin { to { transform: rotate(360deg); } }`}</style>
+  </div>
+);
 // Detect stale chunk errors and auto-reload once
 const isChunkError = (error: any): boolean => {
   const msg = String(error?.message || error || '');
@@ -204,7 +233,7 @@ const AppRoutes = () => {
         <NavigationLoader />
         <DashboardTracker />
         <TourNavigationListener />
-        <Suspense fallback={<EmptyFallback />}>
+        <Suspense fallback={<BrandedFallback />}>
           <Routes>
             <Route path="/" element={<RootRedirect />} />
             <Route path="/notesdashboard" element={<Index />} />
@@ -517,7 +546,7 @@ const AppContent = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Suspense fallback={<EmptyFallback />}>
+          <Suspense fallback={<BrandedFallback />}>
             <Routes>
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
@@ -535,7 +564,9 @@ const AppContent = () => {
       <Sonner />
       
       {showOnboarding && (
-        <OnboardingFlow onComplete={handleOnboardingComplete} />
+        <Suspense fallback={<BrandedFallback />}>
+          <OnboardingFlow onComplete={handleOnboardingComplete} />
+        </Suspense>
       )}
 
       
