@@ -82,11 +82,11 @@ export default function Landing() {
     <div className="min-h-screen bg-white text-slate-900 antialiased selection:bg-[#3c78f0]/20">
       {/* Header */}
       <header
-        className={`sticky top-0 z-40 w-full transition-all ${
-          scrolled ? 'border-b border-slate-200 bg-white/90 backdrop-blur-xl' : 'border-b border-transparent bg-white'
+        className={`sticky top-0 z-40 w-full border-b border-slate-200 transition-all ${
+          scrolled ? 'bg-white/90 backdrop-blur-xl' : 'bg-white'
         }`}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2 sm:px-6 sm:py-2.5">
           <a href="#top" className="flex items-center gap-2">
             <AppLogo size="md" />
             <span className="text-xl font-extrabold tracking-tight" style={{ color: BLUE }}>Flowist</span>
@@ -103,7 +103,7 @@ export default function Landing() {
           <div className="flex items-center gap-2">
             <button
               onClick={handleGetStarted}
-              className="rounded-xl px-5 py-3 text-base font-bold text-white transition-transform active:scale-[0.98] sm:px-6 sm:py-3.5 sm:text-[17px]"
+              className="rounded-lg px-4 py-2 text-sm font-bold text-white transition-transform active:scale-[0.98] sm:px-5 sm:py-2.5 sm:text-[15px]"
               style={{ backgroundColor: BLUE }}
             >
               Get Flowist Free
@@ -174,12 +174,12 @@ export default function Landing() {
                 >
                   Get Flowist Free <ArrowRight className="h-5 w-5" />
                 </button>
-                <div className="grid w-full grid-cols-2 gap-3">
+                <div className="grid w-full grid-cols-2 gap-2">
                   <a
                     href="https://apps.apple.com/app/flowist"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-black px-3 text-white transition-transform active:translate-y-0.5"
+                    className="inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-xl bg-black px-4 text-white transition-transform active:translate-y-0.5"
                     aria-label="Download on the App Store"
                   >
                     <svg viewBox="0 0 384 512" className="h-6 w-6 fill-current" aria-hidden="true">
@@ -194,7 +194,7 @@ export default function Landing() {
                     href="https://play.google.com/store/apps/details?id=app.lovable.flowist"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-black px-3 text-white transition-transform active:translate-y-0.5"
+                    className="inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-xl bg-black px-4 text-white transition-transform active:translate-y-0.5"
                     aria-label="Get it on Google Play"
                   >
                     <svg viewBox="0 0 512 512" className="h-6 w-6" aria-hidden="true">
@@ -469,12 +469,12 @@ export default function Landing() {
           {/* Get the app */}
           <div className="mt-14">
             <h4 className="mb-5 text-2xl font-extrabold text-slate-900">Get the app</h4>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
               <a
                 href="https://apps.apple.com/app/flowist"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-[52px] items-center justify-center gap-2 rounded-lg bg-black px-4 text-white"
+                className="inline-flex h-[46px] min-w-[200px] flex-1 items-center justify-center gap-2 rounded-lg bg-black px-6 text-white"
                 aria-label="Download on the App Store"
               >
                 <svg viewBox="0 0 384 512" className="h-6 w-6 fill-current" aria-hidden="true">
@@ -489,7 +489,7 @@ export default function Landing() {
                 href="https://play.google.com/store/apps/details?id=app.lovable.flowist"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-[52px] items-center justify-center gap-2 rounded-lg bg-black px-4 text-white"
+                className="inline-flex h-[46px] min-w-[200px] flex-1 items-center justify-center gap-2 rounded-lg bg-black px-6 text-white"
                 aria-label="Get it on Google Play"
               >
                 <svg viewBox="0 0 512 512" className="h-6 w-6" aria-hidden="true">
