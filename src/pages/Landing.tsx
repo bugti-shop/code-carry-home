@@ -469,7 +469,7 @@ export default function Landing() {
           {/* Get the app */}
           <div className="mt-14">
             <h4 className="mb-5 text-2xl font-extrabold text-slate-900">Get the app</h4>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
               <a
                 href="https://apps.apple.com/app/flowist"
                 target="_blank"
