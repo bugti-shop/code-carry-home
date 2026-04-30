@@ -412,25 +412,98 @@ export default function Landing() {
                 onClick={handleGetStarted}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-10 py-4 text-lg font-bold text-slate-900 shadow-[0_6px_0_0_rgba(0,0,0,0.15)] transition-transform active:translate-y-1"
               >
-                Start for free <ArrowRight className="h-5 w-5" />
+                Get Flowist Free <ArrowRight className="h-5 w-5" />
               </button>
-              <p className="mt-4 text-xs text-white/80">No credit card · Works offline</p>
+              <p className="mt-4 text-xs text-white/80">Try it free · Works offline</p>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-slate-200 bg-white py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 sm:flex-row sm:px-6">
-          <div className="flex items-center gap-2">
+      <footer className="border-t border-slate-200 bg-white">
+        <div className="mx-auto max-w-6xl px-5 py-12 sm:px-6 sm:py-16">
+          {/* Top: logo + copyright */}
+          <div className="mb-10 flex items-center gap-2">
             <AppLogo size="sm" />
-            <span className="text-sm font-bold" style={{ color: BLUE }}>Flowist</span>
-            <span className="text-xs text-slate-400">© {new Date().getFullYear()}</span>
+            <span className="text-base font-extrabold" style={{ color: BLUE }}>Flowist</span>
           </div>
-          <div className="flex items-center gap-6 text-xs text-slate-500">
-            <a href="/privacy-policy" className="hover:text-slate-900">Privacy</a>
-            <a href="/terms-and-conditions" className="hover:text-slate-900">Terms</a>
-            <a href="#top" className="hover:text-slate-900">Back to top</a>
+          <p className="mb-10 text-sm text-slate-500">© {new Date().getFullYear()} Flowist Inc.</p>
+
+          {/* Link grid */}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
+            <div>
+              <h4 className="mb-4 text-base font-bold text-slate-900">Company</h4>
+              <ul className="space-y-3 text-sm text-slate-600">
+                <li><a href="#features" className="hover:text-slate-900">About</a></li>
+                <li><a href="#reviews" className="hover:text-slate-900">Reviews</a></li>
+                <li><a href="/privacy-policy" className="hover:text-slate-900">Privacy</a></li>
+                <li><a href="/terms-and-conditions" className="hover:text-slate-900">Terms</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="mb-4 text-base font-bold text-slate-900">Download</h4>
+              <ul className="space-y-3 text-sm text-slate-600">
+                <li><a href="https://apps.apple.com/app/flowist" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900">iOS</a></li>
+                <li><a href="https://play.google.com/store/apps/details?id=app.lovable.flowist" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900">Android</a></li>
+                <li><button onClick={handleGetStarted} className="hover:text-slate-900">Web App</button></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="mb-4 text-base font-bold text-slate-900">Resources</h4>
+              <ul className="space-y-3 text-sm text-slate-600">
+                <li><a href="#how" className="hover:text-slate-900">How it works</a></li>
+                <li><a href="#faq" className="hover:text-slate-900">FAQ</a></li>
+                <li><a href="#features" className="hover:text-slate-900">Features</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="mb-4 text-base font-bold text-slate-900">Flowist for</h4>
+              <ul className="space-y-3 text-sm text-slate-600">
+                <li><span>Students</span></li>
+                <li><span>Professionals</span></li>
+                <li><span>Creators</span></li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Get the app */}
+          <div className="mt-14">
+            <h4 className="mb-5 text-2xl font-extrabold text-slate-900">Get the app</h4>
+            <div className="flex flex-wrap gap-3">
+              <a
+                href="https://apps.apple.com/app/flowist"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-[52px] items-center justify-center gap-2 rounded-lg bg-black px-4 text-white"
+                aria-label="Download on the App Store"
+              >
+                <svg viewBox="0 0 384 512" className="h-6 w-6 fill-current" aria-hidden="true">
+                  <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zM256.5 105.7c30.1-35.7 27.4-68.2 26.5-79.9-26.6 1.5-57.4 18.1-74.9 38.5-19.3 21.9-30.6 49-28.2 78.8 28.7 2.2 54.9-12.5 76.6-37.4z"/>
+                </svg>
+                <div className="flex flex-col items-start leading-tight">
+                  <span className="text-[9px] font-medium opacity-90">Download on the</span>
+                  <span className="text-[15px] font-semibold tracking-tight">App Store</span>
+                </div>
+              </a>
+              <a
+                href="https://play.google.com/store/apps/details?id=app.lovable.flowist"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-[52px] items-center justify-center gap-2 rounded-lg bg-black px-4 text-white"
+                aria-label="Get it on Google Play"
+              >
+                <svg viewBox="0 0 512 512" className="h-6 w-6" aria-hidden="true">
+                  <path fill="#00d7fe" d="M99.6 14.4C77.7 21.5 64 41.6 64 67.7v376.6c0 26.1 13.7 46.2 35.6 53.3l217.4-251.8L99.6 14.4z"/>
+                  <path fill="#ffce00" d="M396.7 314.2l-79.7-58.4 70.9-82.1 105.4 60.7c19.7 11.4 19.7 39.8 0 51.2l-96.6 28.6z"/>
+                  <path fill="#ff3a44" d="M396.7 314.2l-79.7-58.4-217.4 242.6c8.7 2.8 18.8 1.9 28.6-3.7l268.5-180.5z"/>
+                  <path fill="#48ff48" d="M99.6 14.4c-9.8-5.6-19.9-6.5-28.6-3.7l245.9 244.7 79.7-82.1L99.6 14.4z"/>
+                </svg>
+                <div className="flex flex-col items-start leading-tight">
+                  <span className="text-[9px] font-medium opacity-90">GET IT ON</span>
+                  <span className="text-[15px] font-semibold tracking-tight">Google Play</span>
+                </div>
+              </a>
+            </div>
           </div>
         </div>
       </footer>
