@@ -179,7 +179,7 @@ export default function Landing() {
                     href="https://apps.apple.com/app/flowist"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-black px-3 text-white transition-transform active:translate-y-0.5"
+                    className="inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-xl bg-black px-4 text-white transition-transform active:translate-y-0.5"
                     aria-label="Download on the App Store"
                   >
                     <svg viewBox="0 0 384 512" className="h-6 w-6 fill-current" aria-hidden="true">
