@@ -564,7 +564,9 @@ const AppContent = () => {
       <Sonner />
       
       {showOnboarding && (
-        <OnboardingFlow onComplete={handleOnboardingComplete} />
+        <Suspense fallback={<BrandedFallback />}>
+          <OnboardingFlow onComplete={handleOnboardingComplete} />
+        </Suspense>
       )}
 
       
