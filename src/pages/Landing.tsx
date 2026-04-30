@@ -103,10 +103,10 @@ export default function Landing() {
           <div className="flex items-center gap-2">
             <button
               onClick={handleGetStarted}
-              className="rounded-full px-4 py-2 text-sm font-semibold text-white transition-transform active:scale-[0.98] sm:px-5"
+              className="rounded-xl px-5 py-3 text-base font-bold text-white transition-transform active:scale-[0.98] sm:px-6 sm:py-3.5 sm:text-[17px]"
               style={{ backgroundColor: BLUE }}
             >
-              Start free
+              Get Flowist Free
             </button>
 
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
