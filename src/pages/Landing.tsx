@@ -64,10 +64,34 @@ export default function Landing() {
   ];
 
   const productCards = [
-    { title: 'To-Do List', desc: 'Plan tasks, set reminders & build streaks.', icon: Check },
-    { title: 'Sketch Editor', desc: 'Draw ideas freely on infinite canvas.', icon: Sparkles },
-    { title: 'Regular Notes', desc: 'Capture thoughts in a clean editor.', icon: StickyNote },
-    { title: 'Lined Notes', desc: 'Write neatly on classic ruled paper.', icon: Calendar },
+    {
+      label: 'To-Do List',
+      title: 'Organize everything in your life',
+      desc: "Whether it's work projects, personal tasks, or study plans, Flowist helps you organize and confidently tackle everything in your life.",
+      icon: Check,
+      gradient: 'from-[#eaf1ff] to-[#f5f9ff]',
+    },
+    {
+      label: 'Sketch Editor',
+      title: 'Sketch your ideas freely',
+      desc: 'A powerful infinite canvas with shapes, layers and templates — capture thoughts visually, the way your mind actually works.',
+      icon: Sparkles,
+      gradient: 'from-[#fff4ea] to-[#fffaf3]',
+    },
+    {
+      label: 'Regular Notes',
+      title: 'Capture thoughts in a clean editor',
+      desc: 'A distraction-free notes editor with rich formatting, tags and folders — perfect for journaling, ideas and quick captures.',
+      icon: StickyNote,
+      gradient: 'from-[#eafff1] to-[#f4fff8]',
+    },
+    {
+      label: 'Lined Notes',
+      title: 'Write neatly on ruled paper',
+      desc: 'Classic ruled paper with a modern feel — handwrite or type with perfect alignment for a calm, focused writing experience.',
+      icon: Calendar,
+      gradient: 'from-[#fdeaff] to-[#fbf3ff]',
+    },
   ];
 
   const faqs = [
