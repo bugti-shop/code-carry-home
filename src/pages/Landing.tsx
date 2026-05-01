@@ -64,10 +64,34 @@ export default function Landing() {
   ];
 
   const productCards = [
-    { title: 'To-Do List', desc: 'Plan tasks, set reminders & build streaks.', icon: Check },
-    { title: 'Sketch Editor', desc: 'Draw ideas freely on infinite canvas.', icon: Sparkles },
-    { title: 'Regular Notes', desc: 'Capture thoughts in a clean editor.', icon: StickyNote },
-    { title: 'Lined Notes', desc: 'Write neatly on classic ruled paper.', icon: Calendar },
+    {
+      label: 'To-Do List',
+      title: 'Organize everything in your life',
+      desc: "Whether it's work projects, personal tasks, or study plans, Flowist helps you organize and confidently tackle everything in your life.",
+      icon: Check,
+      gradient: 'from-[#eaf1ff] to-[#f5f9ff]',
+    },
+    {
+      label: 'Sketch Editor',
+      title: 'Sketch your ideas freely',
+      desc: 'A powerful infinite canvas with shapes, layers and templates — capture thoughts visually, the way your mind actually works.',
+      icon: Sparkles,
+      gradient: 'from-[#fff4ea] to-[#fffaf3]',
+    },
+    {
+      label: 'Regular Notes',
+      title: 'Capture thoughts in a clean editor',
+      desc: 'A distraction-free notes editor with rich formatting, tags and folders — perfect for journaling, ideas and quick captures.',
+      icon: StickyNote,
+      gradient: 'from-[#eafff1] to-[#f4fff8]',
+    },
+    {
+      label: 'Lined Notes',
+      title: 'Write neatly on ruled paper',
+      desc: 'Classic ruled paper with a modern feel — handwrite or type with perfect alignment for a calm, focused writing experience.',
+      icon: Calendar,
+      gradient: 'from-[#fdeaff] to-[#fbf3ff]',
+    },
   ];
 
   const faqs = [
@@ -267,26 +291,10 @@ export default function Landing() {
               <p className="mt-4 text-xs text-slate-500">Try it free · Works offline · Cancel anytime</p>
             </div>
 
-            {/* Product highlight cards */}
-            <div id="cards" className="relative mx-auto w-full max-w-md">
+            {/* Hero side decoration (replaces inline cards) */}
+            <div className="relative mx-auto hidden w-full max-w-md md:block">
               <div className="absolute -inset-6 rounded-[40px] bg-[#3c78f0]/10 blur-3xl" />
-              <div className="relative grid grid-cols-2 gap-3 sm:gap-4">
-                {productCards.map(({ title, desc, icon: Icon }) => (
-                  <div
-                    key={title}
-                    className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_20px_50px_-25px_rgba(60,120,240,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_25px_60px_-20px_rgba(60,120,240,0.45)] sm:p-5"
-                  >
-                    <div
-                      className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl"
-                      style={{ backgroundColor: `${BLUE}15`, color: BLUE }}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <h3 className="mb-1 text-[15px] font-bold text-slate-900">{title}</h3>
-                    <p className="text-xs leading-relaxed text-slate-600">{desc}</p>
-                  </div>
-                ))}
-              </div>
+              <div className="relative aspect-[4/5] w-full rounded-[32px] border border-slate-200 bg-gradient-to-br from-[#eaf1ff] to-white shadow-[0_30px_80px_-30px_rgba(60,120,240,0.45)]" />
             </div>
           </div>
         </section>
@@ -298,6 +306,35 @@ export default function Landing() {
             <span className="inline-flex items-center gap-1.5"><Zap className="h-4 w-4" /> Opens instantly</span>
             <span className="inline-flex items-center gap-1.5"><Star className="h-4 w-4 fill-current" style={{ color: BLUE }} /> 4.9 average rating</span>
             <span className="inline-flex items-center gap-1.5"><Repeat className="h-4 w-4" /> Sync across devices</span>
+          </div>
+        </section>
+
+        {/* Product feature cards (TickTick-style) */}
+        <section id="cards" className="bg-gradient-to-b from-white via-[#f5f9ff] to-white py-16 sm:py-24">
+          <div className="mx-auto max-w-3xl space-y-6 px-4 sm:space-y-8 sm:px-6">
+            {productCards.map(({ label, title, desc, icon: Icon, gradient }) => (
+              <article
+                key={label}
+                className="overflow-hidden rounded-[28px] border border-slate-200/70 bg-white p-6 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.18)] sm:p-9"
+              >
+                <p className="mb-3 text-sm font-bold tracking-tight sm:text-base" style={{ color: BLUE }}>
+                  {label}
+                </p>
+                <h3 className="mb-4 text-[26px] font-extrabold leading-[1.15] tracking-tight text-slate-900 sm:text-[34px]">
+                  {title}
+                </h3>
+                <p className="mb-7 text-[15px] leading-relaxed text-slate-600 sm:text-base">
+                  {desc}
+                </p>
+                <div
+                  className={`relative flex aspect-[16/10] w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br ${gradient}`}
+                >
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/80 shadow-sm backdrop-blur-sm">
+                    <Icon className="h-8 w-8" style={{ color: BLUE }} />
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 
