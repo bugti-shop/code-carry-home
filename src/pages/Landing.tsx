@@ -291,26 +291,10 @@ export default function Landing() {
               <p className="mt-4 text-xs text-slate-500">Try it free · Works offline · Cancel anytime</p>
             </div>
 
-            {/* Product highlight cards */}
-            <div id="cards" className="relative mx-auto w-full max-w-md">
+            {/* Hero side decoration (replaces inline cards) */}
+            <div className="relative mx-auto hidden w-full max-w-md md:block">
               <div className="absolute -inset-6 rounded-[40px] bg-[#3c78f0]/10 blur-3xl" />
-              <div className="relative grid grid-cols-2 gap-3 sm:gap-4">
-                {productCards.map(({ title, desc, icon: Icon }) => (
-                  <div
-                    key={title}
-                    className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_20px_50px_-25px_rgba(60,120,240,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_25px_60px_-20px_rgba(60,120,240,0.45)] sm:p-5"
-                  >
-                    <div
-                      className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl"
-                      style={{ backgroundColor: `${BLUE}15`, color: BLUE }}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <h3 className="mb-1 text-[15px] font-bold text-slate-900">{title}</h3>
-                    <p className="text-xs leading-relaxed text-slate-600">{desc}</p>
-                  </div>
-                ))}
-              </div>
+              <div className="relative aspect-[4/5] w-full rounded-[32px] border border-slate-200 bg-gradient-to-br from-[#eaf1ff] to-white shadow-[0_30px_80px_-30px_rgba(60,120,240,0.45)]" />
             </div>
           </div>
         </section>
