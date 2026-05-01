@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Check, Plus, Calendar, Bell, Repeat, StickyNote, Sparkles, Shield, Zap, Star, ArrowRight } from 'lucide-react';
+import { Menu, Check, Calendar, StickyNote, Sparkles, Shield, Zap, Star, Repeat, ArrowRight, ChevronDown, X } from 'lucide-react';
 import { AppLogo } from '@/components/AppLogo';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { setSetting } from '@/utils/settingsStorage';
@@ -12,6 +12,7 @@ export default function Landing() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [openGroup, setOpenGroup] = useState<string | null>('Made For');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 6);
@@ -20,7 +21,6 @@ export default function Landing() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Preload onboarding chunk on idle so the landing → onboarding handoff is instant (no white screen)
   useEffect(() => {
     const preload = () => { import('@/components/OnboardingFlow').catch(() => {}); };
     if ('requestIdleCallback' in window) {
@@ -31,7 +31,6 @@ export default function Landing() {
   }, []);
 
   const handleGetStarted = async () => {
-    // Preload onboarding chunk BEFORE navigating so the next screen renders immediately
     const preload = import('@/components/OnboardingFlow').catch(() => {});
     await setSetting('onboarding_completed', false);
     try {
@@ -43,32 +42,32 @@ export default function Landing() {
     navigate('/');
   };
 
-  const navLinks = [
-    { label: 'Features', href: '#features' },
-    { label: 'How it works', href: '#how' },
-    { label: 'Reviews', href: '#reviews' },
-    { label: 'FAQ', href: '#faq' },
+  const menuGroups: { label: string; items: { label: string; href?: string }[] }[] = [
+    {
+      label: 'Made For',
+      items: [
+        { label: 'Task Management', href: '#cards' },
+        { label: 'Note Taking', href: '#cards' },
+        { label: 'Sketching', href: '#cards' },
+        { label: 'Habit Forming', href: '#cards' },
+        { label: 'Daily Planning', href: '#cards' },
+      ],
+    },
+    {
+      label: 'Resources',
+      items: [
+        { label: 'FAQ', href: '#faq' },
+        { label: 'Privacy', href: '/privacy-policy' },
+        { label: 'Terms', href: '/terms-and-conditions' },
+      ],
+    },
   ];
 
-  const features = [
-    { icon: Check, title: 'Quick tasks', desc: 'Add tasks in seconds with priorities and due dates.' },
-    { icon: StickyNote, title: 'Notes & sketches', desc: 'Write, draw and save ideas in one calm space.' },
-    { icon: Repeat, title: 'Habits & streaks', desc: 'Build daily habits and keep your streak alive.' },
-    { icon: Bell, title: 'Smart reminders', desc: 'Gentle nudges so nothing important slips by.' },
-    { icon: Calendar, title: 'Clear calendar', desc: 'See your day, week and month at a glance.' },
-    { icon: Sparkles, title: 'AI helpers', desc: 'Turn photos into tasks. Auto-plan your week.' },
-  ];
-
-  const steps = [
-    { n: '01', title: 'Add it', desc: 'Type, speak or snap a photo — Flowist sorts it.' },
-    { n: '02', title: 'Plan it', desc: 'Drop tasks on a date. Set a reminder. Done.' },
-    { n: '03', title: 'Do it', desc: 'Tick things off. Watch your streak grow.' },
-  ];
-
-  const reviews = [
-    { name: 'Ayesha K.', role: 'Designer', text: 'The only planner I open every day. Tasks, notes and habits — all sorted.' },
-    { name: 'Daniel R.', role: 'Founder', text: 'Calmest planner I’ve used. Streaks keep me consistent without being pushy.' },
-    { name: 'Priya S.', role: 'Student', text: 'Replaced 3 apps with Flowist. Cleanest place to write and plan.' },
+  const productCards = [
+    { title: 'To-Do List', desc: 'Plan tasks, set reminders & build streaks.', icon: Check },
+    { title: 'Sketch Editor', desc: 'Draw ideas freely on infinite canvas.', icon: Sparkles },
+    { title: 'Regular Notes', desc: 'Capture thoughts in a clean editor.', icon: StickyNote },
+    { title: 'Lined Notes', desc: 'Write neatly on classic ruled paper.', icon: Calendar },
   ];
 
   const faqs = [
@@ -92,14 +91,6 @@ export default function Landing() {
             <span className="text-xl font-extrabold tracking-tight" style={{ color: BLUE }}>Flowist</span>
           </a>
 
-          <nav className="hidden items-center gap-7 md:flex">
-            {navLinks.map((l) => (
-              <a key={l.label} href={l.href} className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900">
-                {l.label}
-              </a>
-            ))}
-          </nav>
-
           <div className="flex items-center gap-2">
             <button
               onClick={handleGetStarted}
@@ -113,36 +104,99 @@ export default function Landing() {
               <SheetTrigger asChild>
                 <button
                   aria-label="Open menu"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700 transition-colors active:bg-slate-100 md:hidden"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 transition-colors active:bg-slate-100"
                 >
-                  <Menu className="h-6 w-6" />
+                  <Menu className="h-6 w-6" strokeWidth={2.25} />
                 </button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[80vw] max-w-xs border-l border-slate-200 bg-white p-6">
-                <div className="mb-8 flex items-center gap-2">
-                  <AppLogo size="md" />
-                  <span className="text-lg font-extrabold" style={{ color: BLUE }}>Flowist</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  {navLinks.map((item) => (
-                    <a
-                      key={item.label}
-                      href={item.href}
-                      onClick={() => setMenuOpen(false)}
-                      className="rounded-xl px-4 py-3 text-base font-medium text-slate-700 transition-colors active:bg-slate-100"
+              <SheetContent
+                side="right"
+                className="flex w-full max-w-full flex-col border-l border-slate-200 bg-white p-0 sm:max-w-sm [&>button]:hidden"
+              >
+                {/* Top bar inside menu (Todoist-style) */}
+                <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <AppLogo size="md" />
+                    <span className="text-lg font-extrabold" style={{ color: BLUE }}>Flowist</span>
+                    <button
+                      onClick={() => { setMenuOpen(false); handleGetStarted(); }}
+                      className="ml-2 rounded-lg px-4 py-2 text-sm font-bold text-white"
+                      style={{ backgroundColor: BLUE }}
                     >
-                      {item.label}
-                    </a>
-                  ))}
+                      Start for free
+                    </button>
+                  </div>
                   <button
-                    onClick={() => { setMenuOpen(false); handleGetStarted(); }}
-                    className="mt-4 rounded-full py-3 text-base font-semibold text-white"
-                    style={{ backgroundColor: BLUE }}
+                    onClick={() => setMenuOpen(false)}
+                    aria-label="Close menu"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 active:bg-slate-100"
                   >
-                    Start for free
+                    <X className="h-5 w-5" />
                   </button>
                 </div>
-                <p className="mt-8 text-xs text-slate-400">© {new Date().getFullYear()} Flowist</p>
+
+                {/* Collapsible groups */}
+                <div className="flex-1 overflow-y-auto px-2 py-4">
+                  {menuGroups.map((group) => {
+                    const isOpen = openGroup === group.label;
+                    return (
+                      <div key={group.label} className="mb-2">
+                        <button
+                          onClick={() => setOpenGroup(isOpen ? null : group.label)}
+                          className={`flex w-full items-center justify-between rounded-xl px-5 py-4 text-left text-lg font-semibold text-slate-900 transition-colors ${
+                            isOpen ? 'bg-slate-100' : 'hover:bg-slate-50'
+                          }`}
+                        >
+                          <span>{group.label}</span>
+                          <ChevronDown
+                            className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                          />
+                        </button>
+                        {isOpen && (
+                          <div className="mt-1 flex flex-col">
+                            {group.items.map((item) => (
+                              <a
+                                key={item.label}
+                                href={item.href || '#'}
+                                onClick={() => setMenuOpen(false)}
+                                className="px-9 py-3 text-base text-slate-700 transition-colors active:bg-slate-50"
+                              >
+                                {item.label}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  <a
+                    href="#faq"
+                    onClick={() => setMenuOpen(false)}
+                    className="mt-1 block rounded-xl px-5 py-4 text-lg font-semibold text-slate-900 hover:bg-slate-50"
+                  >
+                    Pricing
+                  </a>
+                </div>
+
+                {/* Bottom buttons */}
+                <div className="border-t border-slate-200 px-4 py-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => { setMenuOpen(false); handleGetStarted(); }}
+                      className="rounded-lg bg-slate-100 py-3 text-base font-bold text-slate-900 active:bg-slate-200"
+                    >
+                      Log in
+                    </button>
+                    <button
+                      onClick={() => { setMenuOpen(false); handleGetStarted(); }}
+                      className="rounded-lg py-3 text-base font-bold text-white"
+                      style={{ backgroundColor: BLUE }}
+                    >
+                      Start for free
+                    </button>
+                  </div>
+                </div>
               </SheetContent>
             </Sheet>
           </div>
@@ -159,7 +213,7 @@ export default function Landing() {
                 <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: BLUE }} />
                 Now on Web, Android & iOS
               </div>
-              <h1 className="mb-5 text-[40px] font-extrabold leading-[1.05] tracking-tight text-slate-900 sm:text-[64px]">
+              <h1 className="mb-5 text-[30px] font-extrabold leading-[1.1] tracking-tight text-slate-900 sm:text-[44px]">
                 Organize your day,<br />
                 <span style={{ color: BLUE }}>achieve more.</span>
               </h1>
@@ -214,15 +268,10 @@ export default function Landing() {
             </div>
 
             {/* Product highlight cards */}
-            <div className="relative mx-auto w-full max-w-md">
+            <div id="cards" className="relative mx-auto w-full max-w-md">
               <div className="absolute -inset-6 rounded-[40px] bg-[#3c78f0]/10 blur-3xl" />
               <div className="relative grid grid-cols-2 gap-3 sm:gap-4">
-                {[
-                  { title: 'To-Do List', desc: 'Plan tasks, set reminders & build streaks.', icon: Check },
-                  { title: 'Sketch Editor', desc: 'Draw ideas freely on infinite canvas.', icon: Sparkles },
-                  { title: 'Regular Notes', desc: 'Capture thoughts in a clean editor.', icon: StickyNote },
-                  { title: 'Lined Notes', desc: 'Write neatly on classic ruled paper.', icon: Calendar },
-                ].map(({ title, desc, icon: Icon }) => (
+                {productCards.map(({ title, desc, icon: Icon }) => (
                   <div
                     key={title}
                     className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_20px_50px_-25px_rgba(60,120,240,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_25px_60px_-20px_rgba(60,120,240,0.45)] sm:p-5"
@@ -249,95 +298,6 @@ export default function Landing() {
             <span className="inline-flex items-center gap-1.5"><Zap className="h-4 w-4" /> Opens instantly</span>
             <span className="inline-flex items-center gap-1.5"><Star className="h-4 w-4 fill-current" style={{ color: BLUE }} /> 4.9 average rating</span>
             <span className="inline-flex items-center gap-1.5"><Repeat className="h-4 w-4" /> Sync across devices</span>
-          </div>
-        </section>
-
-        {/* Features */}
-        <section id="features" className="py-20 sm:py-28">
-          <div className="mx-auto max-w-6xl px-5 sm:px-6">
-            <div className="mx-auto mb-14 max-w-2xl text-center">
-              <p className="mb-3 text-sm font-bold uppercase tracking-wider" style={{ color: BLUE }}>Features</p>
-              <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-                Everything you need. Nothing you don’t.
-              </h2>
-              <p className="text-base text-slate-600 sm:text-lg">
-                Tasks, notes, habits, reminders and a calendar — all in one calm place.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {features.map(({ icon: Icon, title, desc }) => (
-                <div
-                  key={title}
-                  className="group rounded-2xl border border-slate-200 bg-white p-6 transition-all hover:-translate-y-0.5 hover:shadow-lg"
-                >
-                  <div
-                    className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl transition-transform group-hover:scale-105"
-                    style={{ backgroundColor: `${BLUE}15`, color: BLUE }}
-                  >
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <h3 className="mb-2 text-lg font-bold text-slate-900">{title}</h3>
-                  <p className="text-sm leading-relaxed text-slate-600">{desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* How it works */}
-        <section id="how" className="bg-slate-50 py-20 sm:py-28">
-          <div className="mx-auto max-w-6xl px-5 sm:px-6">
-            <div className="mx-auto mb-14 max-w-2xl text-center">
-              <p className="mb-3 text-sm font-bold uppercase tracking-wider" style={{ color: BLUE }}>How it works</p>
-              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-                Three simple steps to a calmer day.
-              </h2>
-            </div>
-            <div className="grid gap-5 md:grid-cols-3">
-              {steps.map((s) => (
-                <div key={s.n} className="rounded-2xl border border-slate-200 bg-white p-7">
-                  <span className="text-3xl font-extrabold" style={{ color: BLUE }}>{s.n}</span>
-                  <h3 className="mt-3 mb-2 text-xl font-bold text-slate-900">{s.title}</h3>
-                  <p className="text-sm leading-relaxed text-slate-600">{s.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Reviews */}
-        <section id="reviews" className="py-20 sm:py-28">
-          <div className="mx-auto max-w-6xl px-5 sm:px-6">
-            <div className="mb-12 text-center">
-              <p className="mb-3 text-sm font-bold uppercase tracking-wider" style={{ color: BLUE }}>Reviews</p>
-              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-                Loved by people like you
-              </h2>
-            </div>
-            <div className="grid gap-5 md:grid-cols-3">
-              {reviews.map((r) => (
-                <div key={r.name} className="rounded-2xl border border-slate-200 bg-white p-6">
-                  <div className="mb-3 flex items-center gap-0.5" style={{ color: BLUE }}>
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-current" />
-                    ))}
-                  </div>
-                  <p className="mb-5 text-sm leading-relaxed text-slate-700">“{r.text}”</p>
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
-                      style={{ backgroundColor: `${BLUE}15`, color: BLUE }}
-                    >
-                      {r.name.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">{r.name}</p>
-                      <p className="text-xs text-slate-500">{r.role}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </section>
 
@@ -368,30 +328,6 @@ export default function Landing() {
             </div>
           </div>
         </section>
-
-        {/* Final CTA */}
-        <section className="py-20 sm:py-28">
-          <div className="mx-auto max-w-4xl px-5 sm:px-6">
-            <div
-              className="overflow-hidden rounded-3xl px-8 py-14 text-center text-white sm:px-14 sm:py-20"
-              style={{ background: `linear-gradient(135deg, ${BLUE} 0%, ${BLUE_DARK} 100%)` }}
-            >
-              <h2 className="mb-4 text-3xl font-extrabold tracking-tight sm:text-5xl">
-                Start your day in flow.
-              </h2>
-              <p className="mx-auto mb-8 max-w-xl text-base text-white/90 sm:text-lg">
-                Join people using Flowist to plan smarter, write freely and build habits that stick.
-              </p>
-              <button
-                onClick={handleGetStarted}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-10 py-4 text-lg font-bold text-slate-900 shadow-[0_6px_0_0_rgba(0,0,0,0.15)] transition-transform active:translate-y-1"
-              >
-                Get Flowist Free <ArrowRight className="h-5 w-5" />
-              </button>
-              <p className="mt-4 text-xs text-white/80">Try it free · Works offline</p>
-            </div>
-          </div>
-        </section>
       </main>
 
       <footer className="border-t border-slate-200 bg-white">
@@ -408,8 +344,6 @@ export default function Landing() {
             <div>
               <h4 className="mb-4 text-base font-bold text-slate-900">Company</h4>
               <ul className="space-y-3 text-sm text-slate-600">
-                <li><a href="#features" className="hover:text-slate-900">About</a></li>
-                <li><a href="#reviews" className="hover:text-slate-900">Reviews</a></li>
                 <li><a href="/privacy-policy" className="hover:text-slate-900">Privacy</a></li>
                 <li><a href="/terms-and-conditions" className="hover:text-slate-900">Terms</a></li>
               </ul>
@@ -425,9 +359,8 @@ export default function Landing() {
             <div>
               <h4 className="mb-4 text-base font-bold text-slate-900">Resources</h4>
               <ul className="space-y-3 text-sm text-slate-600">
-                <li><a href="#how" className="hover:text-slate-900">How it works</a></li>
                 <li><a href="#faq" className="hover:text-slate-900">FAQ</a></li>
-                <li><a href="#features" className="hover:text-slate-900">Features</a></li>
+                <li><a href="#cards" className="hover:text-slate-900">Features</a></li>
               </ul>
             </div>
             <div>
