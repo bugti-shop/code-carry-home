@@ -309,6 +309,35 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* Product feature cards (TickTick-style) */}
+        <section id="cards" className="bg-gradient-to-b from-white via-[#f5f9ff] to-white py-16 sm:py-24">
+          <div className="mx-auto max-w-3xl space-y-6 px-4 sm:space-y-8 sm:px-6">
+            {productCards.map(({ label, title, desc, icon: Icon, gradient }) => (
+              <article
+                key={label}
+                className="overflow-hidden rounded-[28px] border border-slate-200/70 bg-white p-6 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.18)] sm:p-9"
+              >
+                <p className="mb-3 text-sm font-bold tracking-tight sm:text-base" style={{ color: BLUE }}>
+                  {label}
+                </p>
+                <h3 className="mb-4 text-[26px] font-extrabold leading-[1.15] tracking-tight text-slate-900 sm:text-[34px]">
+                  {title}
+                </h3>
+                <p className="mb-7 text-[15px] leading-relaxed text-slate-600 sm:text-base">
+                  {desc}
+                </p>
+                <div
+                  className={`relative flex aspect-[16/10] w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br ${gradient}`}
+                >
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/80 shadow-sm backdrop-blur-sm">
+                    <Icon className="h-8 w-8" style={{ color: BLUE }} />
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
         {/* FAQ */}
         <section id="faq" className="bg-slate-50 py-20 sm:py-28">
           <div className="mx-auto max-w-3xl px-5 sm:px-6">
