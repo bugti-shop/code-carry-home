@@ -389,6 +389,7 @@ export default function Landing() {
               <ul className="space-y-3 text-sm text-slate-600">
                 <li><a href="#faq" className="hover:text-slate-900">FAQ</a></li>
                 <li><a href="#cards" className="hover:text-slate-900">Features</a></li>
+                <li><a href="#cards" className="hover:text-slate-900">What's new</a></li>
               </ul>
             </div>
             <div>
