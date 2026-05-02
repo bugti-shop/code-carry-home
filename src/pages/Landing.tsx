@@ -119,6 +119,18 @@ export default function Landing() {
     },
   ];
 
+  const features = [
+    { label: 'Sketch Editor', icon: Pencil, gradient: 'from-[#fff4ea] to-[#fffaf3]' },
+    { label: 'Regular Note', icon: StickyNote, gradient: 'from-[#eafff1] to-[#f4fff8]' },
+    { label: 'Lined Note', icon: AlignLeft, gradient: 'from-[#fdeaff] to-[#fbf3ff]' },
+    { label: 'Code Editor', icon: Code2, gradient: 'from-[#eaf1ff] to-[#f5f9ff]' },
+    { label: 'NLP', icon: Brain, gradient: 'from-[#fff0f0] to-[#fff7f7]' },
+    { label: 'Calendar', icon: Calendar, gradient: 'from-[#eaf6ff] to-[#f4fbff]' },
+    { label: 'Kanban', icon: LayoutGrid, gradient: 'from-[#fff8ea] to-[#fffcf3]' },
+    { label: 'Priority', icon: Flag, gradient: 'from-[#ffeaea] to-[#fff5f5]' },
+    { label: 'Flat Layout', icon: Layers, gradient: 'from-[#eafff7] to-[#f4fffb]' },
+  ];
+
   const faqs = [
     { q: 'Is Flowist free?', a: 'Yes — start free. Upgrade anytime for unlimited everything from $1.49/week.' },
     { q: 'Does it work offline?', a: 'Fully. Your tasks and notes are saved on your device and sync when you’re back online.' },
