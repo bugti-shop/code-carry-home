@@ -21,13 +21,11 @@ export default function Landing() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Aggressively preload onboarding + today chunks immediately so tapping
+  // "Get Flowist Free" opens the language selection instantly (no 7s white page).
   useEffect(() => {
-    const preload = () => { import('@/components/OnboardingFlow').catch(() => {}); };
-    if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(preload, { timeout: 1500 });
-    } else {
-      setTimeout(preload, 300);
-    }
+    import('@/components/OnboardingFlow').catch(() => {});
+    import('@/pages/todo/Today').catch(() => {});
   }, []);
 
   const handleGetStarted = async () => {
@@ -237,12 +235,12 @@ export default function Landing() {
                 <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: BLUE }} />
                 Now on Web, Android & iOS
               </div>
-              <h1 className="mb-5 text-[30px] font-extrabold leading-[1.1] tracking-tight text-slate-900 sm:text-[44px]">
+              <h1 className="mb-5 text-[36px] font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-[54px]">
                 Organize your day,<br />
                 <span style={{ color: BLUE }}>achieve more.</span>
               </h1>
               <p className="mx-auto mb-8 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg md:mx-0">
-                Tasks, notes and habits — all in one calm app. Add anything in seconds. Get gentle reminders. Build streaks that stick.
+                One calm app to plan, capture and follow through — without the noise.
               </p>
               <div className="mx-auto flex max-w-md flex-col gap-3 md:mx-0">
                 <button
@@ -269,7 +267,7 @@ export default function Landing() {
                     </div>
                   </a>
                   <a
-                    href="https://play.google.com/store/apps/details?id=app.lovable.flowist"
+                    href="https://play.google.com/store/apps/details?id=nota.npd.com"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-black px-3 text-white transition-transform active:translate-y-0.5"
@@ -299,15 +297,7 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* Trust bar */}
-        <section className="border-y border-slate-100 bg-slate-50/50 py-6">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-5 text-xs font-medium text-slate-500 sm:text-sm">
-            <span className="inline-flex items-center gap-1.5"><Shield className="h-4 w-4" /> Private & secure</span>
-            <span className="inline-flex items-center gap-1.5"><Zap className="h-4 w-4" /> Opens instantly</span>
-            <span className="inline-flex items-center gap-1.5"><Star className="h-4 w-4 fill-current" style={{ color: BLUE }} /> 4.9 average rating</span>
-            <span className="inline-flex items-center gap-1.5"><Repeat className="h-4 w-4" /> Sync across devices</span>
-          </div>
-        </section>
+        {/* Trust bar removed per request */}
 
         {/* Product feature cards (TickTick-style) */}
         <section id="cards" className="bg-gradient-to-b from-white via-[#f5f9ff] to-white py-16 sm:py-24">
@@ -383,13 +373,14 @@ export default function Landing() {
               <ul className="space-y-3 text-sm text-slate-600">
                 <li><a href="/privacy-policy" className="hover:text-slate-900">Privacy</a></li>
                 <li><a href="/terms-and-conditions" className="hover:text-slate-900">Terms</a></li>
+                <li><a href="#cards" className="hover:text-slate-900">About</a></li>
               </ul>
             </div>
             <div>
               <h4 className="mb-4 text-base font-bold text-slate-900">Download</h4>
               <ul className="space-y-3 text-sm text-slate-600">
                 <li><a href="https://apps.apple.com/app/flowist" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900">iOS</a></li>
-                <li><a href="https://play.google.com/store/apps/details?id=app.lovable.flowist" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900">Android</a></li>
+                <li><a href="https://play.google.com/store/apps/details?id=nota.npd.com" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900">Android</a></li>
                 <li><button onClick={handleGetStarted} className="hover:text-slate-900">Web App</button></li>
               </ul>
             </div>
@@ -398,6 +389,7 @@ export default function Landing() {
               <ul className="space-y-3 text-sm text-slate-600">
                 <li><a href="#faq" className="hover:text-slate-900">FAQ</a></li>
                 <li><a href="#cards" className="hover:text-slate-900">Features</a></li>
+                <li><a href="#cards" className="hover:text-slate-900">What's new</a></li>
               </ul>
             </div>
             <div>
@@ -430,7 +422,7 @@ export default function Landing() {
                 </div>
               </a>
               <a
-                href="https://play.google.com/store/apps/details?id=app.lovable.flowist"
+                href="https://play.google.com/store/apps/details?id=nota.npd.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-black px-3 text-white"
