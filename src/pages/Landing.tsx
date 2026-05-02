@@ -297,15 +297,7 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* Trust bar */}
-        <section className="border-y border-slate-100 bg-slate-50/50 py-6">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-5 text-xs font-medium text-slate-500 sm:text-sm">
-            <span className="inline-flex items-center gap-1.5"><Shield className="h-4 w-4" /> Private & secure</span>
-            <span className="inline-flex items-center gap-1.5"><Zap className="h-4 w-4" /> Opens instantly</span>
-            <span className="inline-flex items-center gap-1.5"><Star className="h-4 w-4 fill-current" style={{ color: BLUE }} /> 4.9 average rating</span>
-            <span className="inline-flex items-center gap-1.5"><Repeat className="h-4 w-4" /> Sync across devices</span>
-          </div>
-        </section>
+        {/* Trust bar removed per request */}
 
         {/* Product feature cards (TickTick-style) */}
         <section id="cards" className="bg-gradient-to-b from-white via-[#f5f9ff] to-white py-16 sm:py-24">
