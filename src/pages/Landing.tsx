@@ -505,7 +505,16 @@ export default function Landing() {
               <ul className="space-y-3 text-sm text-slate-600">
                 <li><a href="/privacy-policy" className="hover:text-slate-900">Privacy</a></li>
                 <li><a href="/terms-and-conditions" className="hover:text-slate-900">Terms</a></li>
-                <li><a href="#cards" className="hover:text-slate-900">About</a></li>
+                <li>
+                  <a
+                    href="#about"
+                    onClick={smoothScrollTo('about')}
+                    className={`transition-colors hover:text-slate-900 ${activeSection === 'about' ? 'font-semibold' : ''}`}
+                    style={activeSection === 'about' ? { color: BLUE } : undefined}
+                  >
+                    About
+                  </a>
+                </li>
               </ul>
             </div>
             <div>
@@ -519,9 +528,36 @@ export default function Landing() {
             <div>
               <h4 className="mb-4 text-base font-bold text-slate-900">Resources</h4>
               <ul className="space-y-3 text-sm text-slate-600">
-                <li><a href="#faq" className="hover:text-slate-900">FAQ</a></li>
-                <li><a href="#cards" className="hover:text-slate-900">Features</a></li>
-                <li><a href="#cards" className="hover:text-slate-900">What's new</a></li>
+                <li>
+                  <a
+                    href="#faq"
+                    onClick={smoothScrollTo('faq')}
+                    className={`transition-colors hover:text-slate-900 ${activeSection === 'faq' ? 'font-semibold' : ''}`}
+                    style={activeSection === 'faq' ? { color: BLUE } : undefined}
+                  >
+                    FAQ
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#features"
+                    onClick={smoothScrollTo('features')}
+                    className={`transition-colors hover:text-slate-900 ${activeSection === 'features' ? 'font-semibold' : ''}`}
+                    style={activeSection === 'features' ? { color: BLUE } : undefined}
+                  >
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#whats-new"
+                    onClick={smoothScrollTo('whats-new')}
+                    className={`transition-colors hover:text-slate-900 ${activeSection === 'whats-new' ? 'font-semibold' : ''}`}
+                    style={activeSection === 'whats-new' ? { color: BLUE } : undefined}
+                  >
+                    What's new
+                  </a>
+                </li>
               </ul>
             </div>
             <div>
