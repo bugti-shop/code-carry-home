@@ -235,12 +235,12 @@ export default function Landing() {
                 <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: BLUE }} />
                 Now on Web, Android & iOS
               </div>
-              <h1 className="mb-5 text-[30px] font-extrabold leading-[1.1] tracking-tight text-slate-900 sm:text-[44px]">
+              <h1 className="mb-5 text-[36px] font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-[54px]">
                 Organize your day,<br />
                 <span style={{ color: BLUE }}>achieve more.</span>
               </h1>
               <p className="mx-auto mb-8 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg md:mx-0">
-                Tasks, notes and habits — all in one calm app. Add anything in seconds. Get gentle reminders. Build streaks that stick.
+                One calm app to plan, capture and follow through — without the noise.
               </p>
               <div className="mx-auto flex max-w-md flex-col gap-3 md:mx-0">
                 <button
