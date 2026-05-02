@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Check, Calendar, StickyNote, Sparkles, Shield, Zap, Star, Repeat, ArrowRight, ChevronDown, X } from 'lucide-react';
+import { Menu, Check, Calendar, StickyNote, Sparkles, Shield, Zap, Star, Repeat, ArrowRight, ChevronDown, X, Pencil, FileText, AlignLeft, Code2, Brain, LayoutGrid, Flag, Layers, Image as ImageIcon } from 'lucide-react';
 import { AppLogo } from '@/components/AppLogo';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { setSetting } from '@/utils/settingsStorage';
