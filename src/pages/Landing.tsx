@@ -21,13 +21,11 @@ export default function Landing() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Aggressively preload onboarding + today chunks immediately so tapping
+  // "Get Flowist Free" opens the language selection instantly (no 7s white page).
   useEffect(() => {
-    const preload = () => { import('@/components/OnboardingFlow').catch(() => {}); };
-    if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(preload, { timeout: 1500 });
-    } else {
-      setTimeout(preload, 300);
-    }
+    import('@/components/OnboardingFlow').catch(() => {});
+    import('@/pages/todo/Today').catch(() => {});
   }, []);
 
   const handleGetStarted = async () => {
