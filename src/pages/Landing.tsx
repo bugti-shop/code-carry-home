@@ -367,6 +367,99 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* Horizontally scrollable feature pills + active preview */}
+        <section className="bg-white py-14 sm:py-20">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="mb-6 text-center sm:mb-8">
+              <p className="mb-2 text-sm font-bold tracking-tight" style={{ color: BLUE }}>
+                Everything you need
+              </p>
+              <h2 className="text-[26px] font-extrabold tracking-tight text-slate-900 sm:text-[34px]">
+                Powerful features, one calm app
+              </h2>
+            </div>
+
+            {/* Scrollable pills */}
+            <div className="-mx-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex w-max gap-3">
+                {features.map(({ label, icon: Icon }) => {
+                  const active = activeFeature === label;
+                  return (
+                    <button
+                      key={label}
+                      onClick={() => setActiveFeature(label)}
+                      className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition-all active:scale-[0.97] ${
+                        active
+                          ? 'border-transparent text-white shadow-md'
+                          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                      }`}
+                      style={active ? { backgroundColor: BLUE } : undefined}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Preview placeholder */}
+            <div className="mt-6 sm:mt-8">
+              {(() => {
+                const f = features.find((x) => x.label === activeFeature) || features[0];
+                const Icon = f.icon;
+                return (
+                  <div
+                    className={`relative flex aspect-[16/10] w-full items-center justify-center overflow-hidden rounded-[24px] border border-slate-200/70 bg-gradient-to-br ${f.gradient} shadow-[0_20px_60px_-30px_rgba(15,23,42,0.18)]`}
+                  >
+                    <div className="flex flex-col items-center gap-3 text-slate-500">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/80 shadow-sm backdrop-blur-sm">
+                        <Icon className="h-8 w-8" style={{ color: BLUE }} />
+                      </div>
+                      <p className="text-sm font-semibold text-slate-600">{f.label}</p>
+                      <p className="flex items-center gap-1.5 text-xs text-slate-400">
+                        <ImageIcon className="h-3.5 w-3.5" /> Image placeholder
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </section>
+
+        {/* What's new */}
+        <section id="whats-new" className="scroll-mt-20 bg-slate-50 py-16 sm:py-20">
+          <div className="mx-auto max-w-3xl px-5 sm:px-6">
+            <div className="mb-8 text-center">
+              <p className="mb-2 text-sm font-bold uppercase tracking-wider" style={{ color: BLUE }}>What's new</p>
+              <h2 className="text-[26px] font-extrabold tracking-tight text-slate-900 sm:text-[34px]">
+                Latest updates
+              </h2>
+            </div>
+            <div className="space-y-3">
+              {[
+                { tag: 'New', title: 'Sketch Editor templates', desc: 'Pre-built canvases for journaling, mind-maps and more.' },
+                { tag: 'Improved', title: 'Faster offline sync', desc: 'Instant access to your tasks even without internet.' },
+                { tag: 'New', title: 'Kanban view for projects', desc: 'Drag-and-drop boards for visual task management.' },
+              ].map((item) => (
+                <div key={item.title} className="rounded-2xl border border-slate-200 bg-white p-5">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span
+                      className="rounded-full px-2 py-0.5 text-[11px] font-bold"
+                      style={{ backgroundColor: `${BLUE}15`, color: BLUE }}
+                    >
+                      {item.tag}
+                    </span>
+                    <h3 className="text-base font-bold text-slate-900">{item.title}</h3>
+                  </div>
+                  <p className="text-sm text-slate-600">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* FAQ */}
         <section id="faq" className="bg-slate-50 py-20 sm:py-28">
           <div className="mx-auto max-w-3xl px-5 sm:px-6">
