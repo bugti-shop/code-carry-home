@@ -267,7 +267,7 @@ export default function Landing() {
                     </div>
                   </a>
                   <a
-                    href="https://play.google.com/store/apps/details?id=app.lovable.flowist"
+                    href="https://play.google.com/store/apps/details?id=nota.npd.com"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-black px-3 text-white transition-transform active:translate-y-0.5"
@@ -387,7 +387,7 @@ export default function Landing() {
               <h4 className="mb-4 text-base font-bold text-slate-900">Download</h4>
               <ul className="space-y-3 text-sm text-slate-600">
                 <li><a href="https://apps.apple.com/app/flowist" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900">iOS</a></li>
-                <li><a href="https://play.google.com/store/apps/details?id=app.lovable.flowist" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900">Android</a></li>
+                <li><a href="https://play.google.com/store/apps/details?id=nota.npd.com" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900">Android</a></li>
                 <li><button onClick={handleGetStarted} className="hover:text-slate-900">Web App</button></li>
               </ul>
             </div>
@@ -428,7 +428,7 @@ export default function Landing() {
                 </div>
               </a>
               <a
-                href="https://play.google.com/store/apps/details?id=app.lovable.flowist"
+                href="https://play.google.com/store/apps/details?id=nota.npd.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-black px-3 text-white"
