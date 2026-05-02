@@ -373,6 +373,7 @@ export default function Landing() {
               <ul className="space-y-3 text-sm text-slate-600">
                 <li><a href="/privacy-policy" className="hover:text-slate-900">Privacy</a></li>
                 <li><a href="/terms-and-conditions" className="hover:text-slate-900">Terms</a></li>
+                <li><a href="#cards" className="hover:text-slate-900">About</a></li>
               </ul>
             </div>
             <div>
