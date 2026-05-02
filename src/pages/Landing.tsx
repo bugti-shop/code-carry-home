@@ -13,6 +13,8 @@ export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [openGroup, setOpenGroup] = useState<string | null>('Made For');
+  const [activeSection, setActiveSection] = useState<string>('');
+  const [activeFeature, setActiveFeature] = useState<string>('Sketch Editor');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 6);
