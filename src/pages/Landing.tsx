@@ -30,6 +30,31 @@ export default function Landing() {
     import('@/pages/todo/Today').catch(() => {});
   }, []);
 
+  // Track which section is currently in view (for footer link highlight)
+  useEffect(() => {
+    const ids = ['about', 'features', 'whats-new', 'faq'];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
+        });
+      },
+      { rootMargin: '-40% 0px -55% 0px', threshold: 0 },
+    );
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  const smoothScrollTo = (id: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setMenuOpen(false);
+  };
+
   const handleGetStarted = async () => {
     const preload = import('@/components/OnboardingFlow').catch(() => {});
     await setSetting('onboarding_completed', false);
