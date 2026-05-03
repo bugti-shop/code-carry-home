@@ -268,7 +268,7 @@ export default function Landing() {
         {/* Hero */}
         <section id="about" className="relative overflow-hidden scroll-mt-20">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-gradient-to-b from-[#eaf1ff] via-white to-white" />
-          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pt-12 pb-16 sm:px-6 sm:pt-20 sm:pb-24 md:grid-cols-2">
+          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pt-10 pb-8 sm:px-6 sm:pt-20 sm:pb-16 md:grid-cols-2">
             <div className="text-center md:text-left">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm">
                 <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: BLUE }} />
@@ -278,10 +278,10 @@ export default function Landing() {
                 Organize your day,<br />
                 <span style={{ color: BLUE }}>achieve more.</span>
               </h1>
-              <p className="mx-auto mb-8 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg md:mx-0">
-                One calm app to plan, capture and follow through — without the noise.
+              <p className="mx-auto mb-4 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg md:mx-0">
+                One calm app to plan, capture and follow through, without the noise.
               </p>
-              <div className="mx-auto flex max-w-md flex-col gap-3 md:mx-0">
+              <div className="mx-auto flex max-w-md flex-col gap-2 md:mx-0">
                 <button
                   onClick={handleGetStarted}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-8 py-3 text-base font-bold text-white transition-transform active:translate-y-1"
@@ -371,7 +371,7 @@ export default function Landing() {
         <section className="bg-white py-14 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="mb-6 text-center sm:mb-8">
-              <p className="mb-2 text-sm font-bold tracking-tight" style={{ color: BLUE }}>
+              <p className="mb-2 text-base font-bold tracking-tight sm:text-lg" style={{ color: BLUE }}>
                 Everything you need
               </p>
               <h2 className="text-[26px] font-extrabold tracking-tight text-slate-900 sm:text-[34px]">
@@ -381,21 +381,21 @@ export default function Landing() {
 
             {/* Scrollable pills */}
             <div className="-mx-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex w-max gap-3">
+              <div className="flex w-max gap-2">
                 {features.map(({ label, icon: Icon }) => {
                   const active = activeFeature === label;
                   return (
                     <button
                       key={label}
                       onClick={() => setActiveFeature(label)}
-                      className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition-all active:scale-[0.97] ${
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all active:scale-[0.97] sm:px-4 sm:py-2 sm:text-sm ${
                         active
                           ? 'border-transparent text-white shadow-md'
                           : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
                       }`}
                       style={active ? { backgroundColor: BLUE } : undefined}
                     >
-                      <Icon className="h-4 w-4" />
+                      <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       {label}
                     </button>
                   );
@@ -428,37 +428,8 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* What's new */}
-        <section id="whats-new" className="scroll-mt-20 bg-slate-50 py-16 sm:py-20">
-          <div className="mx-auto max-w-3xl px-5 sm:px-6">
-            <div className="mb-8 text-center">
-              <p className="mb-2 text-sm font-bold uppercase tracking-wider" style={{ color: BLUE }}>What's new</p>
-              <h2 className="text-[26px] font-extrabold tracking-tight text-slate-900 sm:text-[34px]">
-                Latest updates
-              </h2>
-            </div>
-            <div className="space-y-3">
-              {[
-                { tag: 'New', title: 'Sketch Editor templates', desc: 'Pre-built canvases for journaling, mind-maps and more.' },
-                { tag: 'Improved', title: 'Faster offline sync', desc: 'Instant access to your tasks even without internet.' },
-                { tag: 'New', title: 'Kanban view for projects', desc: 'Drag-and-drop boards for visual task management.' },
-              ].map((item) => (
-                <div key={item.title} className="rounded-2xl border border-slate-200 bg-white p-5">
-                  <div className="mb-1 flex items-center gap-2">
-                    <span
-                      className="rounded-full px-2 py-0.5 text-[11px] font-bold"
-                      style={{ backgroundColor: `${BLUE}15`, color: BLUE }}
-                    >
-                      {item.tag}
-                    </span>
-                    <h3 className="text-base font-bold text-slate-900">{item.title}</h3>
-                  </div>
-                  <p className="text-sm text-slate-600">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* What's new section removed per request */}
+
 
         {/* FAQ */}
         <section id="faq" className="bg-slate-50 py-20 sm:py-28">
@@ -509,8 +480,7 @@ export default function Landing() {
                   <a
                     href="#about"
                     onClick={smoothScrollTo('about')}
-                    className={`transition-colors hover:text-slate-900 ${activeSection === 'about' ? 'font-semibold' : ''}`}
-                    style={activeSection === 'about' ? { color: BLUE } : undefined}
+                    className="hover:text-slate-900"
                   >
                     About
                   </a>
@@ -532,8 +502,7 @@ export default function Landing() {
                   <a
                     href="#faq"
                     onClick={smoothScrollTo('faq')}
-                    className={`transition-colors hover:text-slate-900 ${activeSection === 'faq' ? 'font-semibold' : ''}`}
-                    style={activeSection === 'faq' ? { color: BLUE } : undefined}
+                    className="hover:text-slate-900"
                   >
                     FAQ
                   </a>
@@ -542,20 +511,18 @@ export default function Landing() {
                   <a
                     href="#features"
                     onClick={smoothScrollTo('features')}
-                    className={`transition-colors hover:text-slate-900 ${activeSection === 'features' ? 'font-semibold' : ''}`}
-                    style={activeSection === 'features' ? { color: BLUE } : undefined}
+                    className="hover:text-slate-900"
                   >
                     Features
                   </a>
                 </li>
                 <li>
                   <a
-                    href="#whats-new"
-                    onClick={smoothScrollTo('whats-new')}
-                    className={`transition-colors hover:text-slate-900 ${activeSection === 'whats-new' ? 'font-semibold' : ''}`}
-                    style={activeSection === 'whats-new' ? { color: BLUE } : undefined}
+                    href="#about"
+                    onClick={smoothScrollTo('about')}
+                    className="hover:text-slate-900"
                   >
-                    What's new
+                    About
                   </a>
                 </li>
               </ul>
