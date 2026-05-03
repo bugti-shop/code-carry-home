@@ -439,7 +439,37 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* What's new section removed per request */}
+        {/* Comprehensive suite of features (TickTick-style 8-card grid) */}
+        <section className="bg-white py-14 sm:py-20">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <div className="mb-10 text-center sm:mb-14">
+              <h2 className="text-[28px] font-extrabold leading-tight tracking-tight sm:text-[40px]" style={{ color: BLUE }}>
+                A comprehensive suite of features
+              </h2>
+              <p className="mt-2 text-[24px] font-extrabold tracking-tight text-slate-900 sm:text-[32px]">
+                Meet your unique needs
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:gap-5">
+              {suiteFeatures.map(({ title, desc, icon: Icon }) => (
+                <div
+                  key={title}
+                  className="rounded-[20px] bg-[#fafafa] p-5 shadow-[0_2px_8px_-4px_rgba(15,23,42,0.08)] sm:p-7"
+                >
+                  <Icon className="mb-4 h-7 w-7 text-slate-900 sm:h-8 sm:w-8" strokeWidth={1.75} />
+                  <h3 className="mb-3 text-[17px] font-extrabold tracking-tight text-slate-900 sm:text-[20px]">
+                    {title}
+                  </h3>
+                  <p className="text-[13px] leading-relaxed text-slate-600 sm:text-[15px]">
+                    {desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
 
 
         {/* FAQ */}
