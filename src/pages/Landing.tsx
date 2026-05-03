@@ -371,7 +371,7 @@ export default function Landing() {
         <section className="bg-white py-14 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="mb-6 text-center sm:mb-8">
-              <p className="mb-2 text-sm font-bold tracking-tight" style={{ color: BLUE }}>
+              <p className="mb-2 text-base font-bold tracking-tight sm:text-lg" style={{ color: BLUE }}>
                 Everything you need
               </p>
               <h2 className="text-[26px] font-extrabold tracking-tight text-slate-900 sm:text-[34px]">
@@ -381,21 +381,21 @@ export default function Landing() {
 
             {/* Scrollable pills */}
             <div className="-mx-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex w-max gap-3">
+              <div className="flex w-max gap-2">
                 {features.map(({ label, icon: Icon }) => {
                   const active = activeFeature === label;
                   return (
                     <button
                       key={label}
                       onClick={() => setActiveFeature(label)}
-                      className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition-all active:scale-[0.97] ${
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all active:scale-[0.97] sm:px-4 sm:py-2 sm:text-sm ${
                         active
                           ? 'border-transparent text-white shadow-md'
                           : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
                       }`}
                       style={active ? { backgroundColor: BLUE } : undefined}
                     >
-                      <Icon className="h-4 w-4" />
+                      <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       {label}
                     </button>
                   );
