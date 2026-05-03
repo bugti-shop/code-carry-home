@@ -131,6 +131,17 @@ export default function Landing() {
     { label: 'Flat Layout', icon: Layers, gradient: 'from-[#eafff7] to-[#f4fffb]' },
   ];
 
+  const suiteFeatures = [
+    { title: 'Constant Reminder', desc: 'Notifications keep ringing until you complete the task, so nothing slips by.', icon: BellRing },
+    { title: 'Repeat Reminder', desc: 'Set flexible recurring rules (weekly, monthly, yearly, or custom) and never miss a deadline.', icon: Repeat },
+    { title: 'NLP', desc: 'Automatically recognize dates and times as you type to set smart reminders.', icon: Brain },
+    { title: 'Filter', desc: 'Easily customize filters like “high-priority tasks for this week” to view what matters.', icon: FilterIcon },
+    { title: 'Progress', desc: 'Track focus duration, streaks and habit logs to get a clear view of your progress.', icon: BarChart3 },
+    { title: 'Lock', desc: 'Protect private notes and tasks with a passcode or biometric lock.', icon: Lock },
+    { title: 'Dark Mode', desc: 'A calm, eye-friendly dark theme that automatically follows your system.', icon: Moon },
+    { title: 'Time Tracking', desc: 'Log time on tasks and habits to understand exactly where your day goes.', icon: Clock },
+  ];
+
   const faqs = [
     { q: 'Is Flowist free?', a: 'Yes — start free. Upgrade anytime for unlimited everything from $1.49/week.' },
     { q: 'Does it work offline?', a: 'Fully. Your tasks and notes are saved on your device and sync when you’re back online.' },
