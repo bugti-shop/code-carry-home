@@ -428,37 +428,8 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* What's new */}
-        <section id="whats-new" className="scroll-mt-20 bg-slate-50 py-16 sm:py-20">
-          <div className="mx-auto max-w-3xl px-5 sm:px-6">
-            <div className="mb-8 text-center">
-              <p className="mb-2 text-sm font-bold uppercase tracking-wider" style={{ color: BLUE }}>What's new</p>
-              <h2 className="text-[26px] font-extrabold tracking-tight text-slate-900 sm:text-[34px]">
-                Latest updates
-              </h2>
-            </div>
-            <div className="space-y-3">
-              {[
-                { tag: 'New', title: 'Sketch Editor templates', desc: 'Pre-built canvases for journaling, mind-maps and more.' },
-                { tag: 'Improved', title: 'Faster offline sync', desc: 'Instant access to your tasks even without internet.' },
-                { tag: 'New', title: 'Kanban view for projects', desc: 'Drag-and-drop boards for visual task management.' },
-              ].map((item) => (
-                <div key={item.title} className="rounded-2xl border border-slate-200 bg-white p-5">
-                  <div className="mb-1 flex items-center gap-2">
-                    <span
-                      className="rounded-full px-2 py-0.5 text-[11px] font-bold"
-                      style={{ backgroundColor: `${BLUE}15`, color: BLUE }}
-                    >
-                      {item.tag}
-                    </span>
-                    <h3 className="text-base font-bold text-slate-900">{item.title}</h3>
-                  </div>
-                  <p className="text-sm text-slate-600">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* What's new section removed per request */}
+
 
         {/* FAQ */}
         <section id="faq" className="bg-slate-50 py-20 sm:py-28">
