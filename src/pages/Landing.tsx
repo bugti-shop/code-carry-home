@@ -480,8 +480,7 @@ export default function Landing() {
                   <a
                     href="#about"
                     onClick={smoothScrollTo('about')}
-                    className={`transition-colors hover:text-slate-900 ${activeSection === 'about' ? 'font-semibold' : ''}`}
-                    style={activeSection === 'about' ? { color: BLUE } : undefined}
+                    className="hover:text-slate-900"
                   >
                     About
                   </a>
