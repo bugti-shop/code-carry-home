@@ -503,8 +503,7 @@ export default function Landing() {
                   <a
                     href="#faq"
                     onClick={smoothScrollTo('faq')}
-                    className={`transition-colors hover:text-slate-900 ${activeSection === 'faq' ? 'font-semibold' : ''}`}
-                    style={activeSection === 'faq' ? { color: BLUE } : undefined}
+                    className="hover:text-slate-900"
                   >
                     FAQ
                   </a>
@@ -513,20 +512,18 @@ export default function Landing() {
                   <a
                     href="#features"
                     onClick={smoothScrollTo('features')}
-                    className={`transition-colors hover:text-slate-900 ${activeSection === 'features' ? 'font-semibold' : ''}`}
-                    style={activeSection === 'features' ? { color: BLUE } : undefined}
+                    className="hover:text-slate-900"
                   >
                     Features
                   </a>
                 </li>
                 <li>
                   <a
-                    href="#whats-new"
-                    onClick={smoothScrollTo('whats-new')}
-                    className={`transition-colors hover:text-slate-900 ${activeSection === 'whats-new' ? 'font-semibold' : ''}`}
-                    style={activeSection === 'whats-new' ? { color: BLUE } : undefined}
+                    href="#about"
+                    onClick={smoothScrollTo('about')}
+                    className="hover:text-slate-900"
                   >
-                    What's new
+                    About
                   </a>
                 </li>
               </ul>
