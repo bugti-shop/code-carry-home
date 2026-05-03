@@ -281,7 +281,7 @@ export default function Landing() {
               <p className="mx-auto mb-4 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg md:mx-0">
                 One calm app to plan, capture and follow through, without the noise.
               </p>
-              <div className="mx-auto flex max-w-md flex-col gap-2 md:mx-0">
+              <div className="mx-auto flex max-w-md flex-col gap-4 md:mx-0">
                 <button
                   onClick={handleGetStarted}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-8 py-3 text-base font-bold text-white transition-transform active:translate-y-1"
