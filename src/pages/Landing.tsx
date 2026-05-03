@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Check, Calendar, StickyNote, Sparkles, Shield, Zap, Star, Repeat, ArrowRight, ChevronDown, X, Pencil, FileText, AlignLeft, Code2, Brain, LayoutGrid, Flag, Layers, Image as ImageIcon } from 'lucide-react';
+import { Menu, Check, Calendar, StickyNote, Sparkles, Shield, Zap, Star, Repeat, ArrowRight, ChevronDown, X, Pencil, FileText, AlignLeft, Code2, Brain, LayoutGrid, Flag, Layers, Image as ImageIcon, BellRing, Filter as FilterIcon, BarChart3, Lock, Moon, Clock } from 'lucide-react';
 import { AppLogo } from '@/components/AppLogo';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { setSetting } from '@/utils/settingsStorage';
@@ -129,6 +129,17 @@ export default function Landing() {
     { label: 'Kanban', icon: LayoutGrid, gradient: 'from-[#fff8ea] to-[#fffcf3]' },
     { label: 'Priority', icon: Flag, gradient: 'from-[#ffeaea] to-[#fff5f5]' },
     { label: 'Flat Layout', icon: Layers, gradient: 'from-[#eafff7] to-[#f4fffb]' },
+  ];
+
+  const suiteFeatures = [
+    { title: 'Constant Reminder', desc: 'Notifications keep ringing until you complete the task, so nothing slips by.', icon: BellRing },
+    { title: 'Repeat Reminder', desc: 'Set flexible recurring rules (weekly, monthly, yearly, or custom) and never miss a deadline.', icon: Repeat },
+    { title: 'NLP', desc: 'Automatically recognize dates and times as you type to set smart reminders.', icon: Brain },
+    { title: 'Filter', desc: 'Easily customize filters like “high-priority tasks for this week” to view what matters.', icon: FilterIcon },
+    { title: 'Progress', desc: 'Track focus duration, streaks and habit logs to get a clear view of your progress.', icon: BarChart3 },
+    { title: 'Lock', desc: 'Protect private notes and tasks with a passcode or biometric lock.', icon: Lock },
+    { title: 'Dark Mode', desc: 'A calm, eye-friendly dark theme that automatically follows your system.', icon: Moon },
+    { title: 'Time Tracking', desc: 'Log time on tasks and habits to understand exactly where your day goes.', icon: Clock },
   ];
 
   const faqs = [
@@ -281,7 +292,7 @@ export default function Landing() {
               <p className="mx-auto mb-4 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg md:mx-0">
                 One calm app to plan, capture and follow through, without the noise.
               </p>
-              <div className="mx-auto flex max-w-md flex-col gap-2 md:mx-0">
+              <div className="mx-auto flex max-w-md flex-col gap-4 md:mx-0">
                 <button
                   onClick={handleGetStarted}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-8 py-3 text-base font-bold text-white transition-transform active:translate-y-1"
@@ -428,7 +439,37 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* What's new section removed per request */}
+        {/* Comprehensive suite of features (TickTick-style 8-card grid) */}
+        <section className="bg-white py-14 sm:py-20">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <div className="mb-10 text-center sm:mb-14">
+              <h2 className="text-[28px] font-extrabold leading-tight tracking-tight sm:text-[40px]" style={{ color: BLUE }}>
+                A comprehensive suite of features
+              </h2>
+              <p className="mt-2 text-[24px] font-extrabold tracking-tight text-slate-900 sm:text-[32px]">
+                Meet your unique needs
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:gap-5">
+              {suiteFeatures.map(({ title, desc, icon: Icon }) => (
+                <div
+                  key={title}
+                  className="rounded-[20px] bg-[#fafafa] p-5 shadow-[0_2px_8px_-4px_rgba(15,23,42,0.08)] sm:p-7"
+                >
+                  <Icon className="mb-4 h-7 w-7 text-slate-900 sm:h-8 sm:w-8" strokeWidth={1.75} />
+                  <h3 className="mb-3 text-[17px] font-extrabold tracking-tight text-slate-900 sm:text-[20px]">
+                    {title}
+                  </h3>
+                  <p className="text-[13px] leading-relaxed text-slate-600 sm:text-[15px]">
+                    {desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
 
 
         {/* FAQ */}
@@ -537,44 +578,30 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Get the app */}
-          <div className="mt-14">
-            <h4 className="mb-5 text-2xl font-extrabold text-slate-900">Get the app</h4>
-            <div className="grid max-w-md grid-cols-2 gap-2">
-              <a
-                href="https://apps.apple.com/app/flowist"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-black px-3 text-white"
-                aria-label="Download on the App Store"
-              >
-                <svg viewBox="0 0 384 512" className="h-7 w-7 fill-current shrink-0" aria-hidden="true">
-                  <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zM256.5 105.7c30.1-35.7 27.4-68.2 26.5-79.9-26.6 1.5-57.4 18.1-74.9 38.5-19.3 21.9-30.6 49-28.2 78.8 28.7 2.2 54.9-12.5 76.6-37.4z"/>
-                </svg>
-                <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[10px] font-medium opacity-90">Download on the</span>
-                  <span className="text-[17px] font-semibold tracking-tight">App Store</span>
-                </div>
-              </a>
-              <a
-                href="https://play.google.com/store/apps/details?id=nota.npd.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-black px-3 text-white"
-                aria-label="Get it on Google Play"
-              >
-                <svg viewBox="0 0 512 512" className="h-7 w-7 shrink-0" aria-hidden="true">
-                  <path fill="#00d7fe" d="M99.6 14.4C77.7 21.5 64 41.6 64 67.7v376.6c0 26.1 13.7 46.2 35.6 53.3l217.4-251.8L99.6 14.4z"/>
-                  <path fill="#ffce00" d="M396.7 314.2l-79.7-58.4 70.9-82.1 105.4 60.7c19.7 11.4 19.7 39.8 0 51.2l-96.6 28.6z"/>
-                  <path fill="#ff3a44" d="M396.7 314.2l-79.7-58.4-217.4 242.6c8.7 2.8 18.8 1.9 28.6-3.7l268.5-180.5z"/>
-                  <path fill="#48ff48" d="M99.6 14.4c-9.8-5.6-19.9-6.5-28.6-3.7l245.9 244.7 79.7-82.1L99.6 14.4z"/>
-                </svg>
-                <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[10px] font-medium opacity-90">GET IT ON</span>
-                  <span className="text-[17px] font-semibold tracking-tight">Google Play</span>
-                </div>
-              </a>
-            </div>
+          {/* Social */}
+          <div className="mt-14 flex items-center gap-4">
+            <a href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="X" className="flex h-10 w-10 items-center justify-center rounded-full bg-black transition-transform hover:scale-105">
+              <svg viewBox="0 0 24 24" className="h-5 w-5 fill-white" aria-hidden="true">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+            </a>
+            <a href="https://reddit.com" target="_blank" rel="noopener noreferrer" aria-label="Reddit" className="flex h-10 w-10 items-center justify-center rounded-full transition-transform hover:scale-105" style={{ backgroundColor: '#FF4500' }}>
+              <svg viewBox="0 0 24 24" className="h-6 w-6 fill-white" aria-hidden="true">
+                <path d="M12 0C5.373 0 0 5.373 0 12c0 6.628 5.373 12 12 12s12-5.372 12-12c0-6.627-5.373-12-12-12zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/>
+              </svg>
+            </a>
+            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="flex h-10 w-10 items-center justify-center rounded-full transition-transform hover:scale-105" style={{ backgroundColor: '#FF0000' }}>
+              <svg viewBox="0 0 24 24" className="h-5 w-5 fill-white" aria-hidden="true">
+                <path d="M9.75 15.5l6-3.5-6-3.5v7z"/>
+              </svg>
+            </a>
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-10 w-10 items-center justify-center rounded-[10px] transition-transform hover:scale-105" style={{ background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' }}>
+              <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-white" strokeWidth="2" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="5"/>
+                <circle cx="12" cy="12" r="4"/>
+                <circle cx="17.5" cy="6.5" r="1" fill="white" stroke="none"/>
+              </svg>
+            </a>
           </div>
         </div>
       </footer>
