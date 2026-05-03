@@ -268,7 +268,7 @@ export default function Landing() {
         {/* Hero */}
         <section id="about" className="relative overflow-hidden scroll-mt-20">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-gradient-to-b from-[#eaf1ff] via-white to-white" />
-          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pt-12 pb-16 sm:px-6 sm:pt-20 sm:pb-24 md:grid-cols-2">
+          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pt-10 pb-8 sm:px-6 sm:pt-20 sm:pb-16 md:grid-cols-2">
             <div className="text-center md:text-left">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm">
                 <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: BLUE }} />
