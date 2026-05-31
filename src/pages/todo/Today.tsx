@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect, startTransition, useDeferredValue, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TodoItem, Priority, TaskSection, TaskStatus } from '@/types/note';
-import { Play, Pause, Repeat, Check, Trash2 as TrashIcon, Edit, Plus as PlusIcon, ArrowUpCircle, ArrowDownCircle, Move, History, TrendingUp, Flag, MapPin, Pin } from 'lucide-react';
+import { Play, Pause, Repeat, Check, Trash2 as TrashIcon, Edit, Plus as PlusIcon, ArrowUpCircle, ArrowDownCircle, Move, History, TrendingUp, Flag, Pin } from 'lucide-react';
 import { Plus, FolderIcon, ChevronRight, ChevronDown, MoreVertical, Copy, LayoutList, Trash2, Tag, Columns3, GitBranch, ListChecks, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -107,7 +107,6 @@ const Today = () => {
     isSectionMoveOpen, setIsSectionMoveOpen,
     editingSection, setEditingSection,
     selectedSubtask, setSelectedSubtask,
-    isLocationMapOpen, setIsLocationMapOpen,
     isBulkDateSheetOpen, setIsBulkDateSheetOpen,
     isBulkReminderSheetOpen, setIsBulkReminderSheetOpen,
     isBulkRepeatSheetOpen, setIsBulkRepeatSheetOpen,
@@ -483,11 +482,6 @@ const Today = () => {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold flex items-center gap-2"><FolderIcon className="h-5 w-5" />{t('menu.folders')}</h2>
-                {smartList === 'location-reminders' && (
-                  <Button variant="outline" size="sm" onClick={() => setIsLocationMapOpen(true)} className="gap-1">
-                    <MapPin className="h-4 w-4" />{t('menu.mapView')}
-                  </Button>
-                )}
               </div>
               <div className="flex items-center gap-2">
                 {isSelectionMode && (
@@ -855,9 +849,6 @@ const Today = () => {
         onHideDetailsOptionsChange={setHideDetailsOptions}
         selectedImage={selectedImage}
         onCloseImage={() => setSelectedImage(null)}
-        isLocationMapOpen={isLocationMapOpen}
-        onCloseLocationMap={setIsLocationMapOpen}
-        onLocationTaskClick={(task) => { setSelectedTask(task); setIsLocationMapOpen(false); }}
         isBulkDateSheetOpen={isBulkDateSheetOpen}
         onCloseBulkDate={() => setIsBulkDateSheetOpen(false)}
         onBulkSetDate={(date) => { setItems(items.map(i => selectedTaskIds.has(i.id) ? { ...i, dueDate: date } : i)); setSelectedTaskIds(new Set()); setIsSelectionMode(false); toast.success(t('todayPage.bulkDateSet', { count: selectedTaskIds.size })); }}

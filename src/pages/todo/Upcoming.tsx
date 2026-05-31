@@ -7,7 +7,7 @@ import { recordCompletion, TASK_STREAK_KEY } from '@/utils/streakStorage';
 import { useTranslation } from 'react-i18next';
 import { TodoItem, Priority, Folder, TaskSection } from '@/types/note';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Plus, ArrowUpDown, Filter, MousePointer2, Eye, EyeOff, MoreVertical, Copy, FolderInput, Flag, CheckCheck, X, MapPin, Crown } from 'lucide-react';
+import { Trash2, Plus, ArrowUpDown, Filter, MousePointer2, Eye, EyeOff, MoreVertical, Copy, FolderInput, Flag, CheckCheck, X, Crown } from 'lucide-react';
 import { useSubscription, FREE_LIMITS } from '@/contexts/SubscriptionContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -69,7 +69,6 @@ const Upcoming = () => {
   const [isMoveToFolderOpen, setIsMoveToFolderOpen] = useState(false);
   const [isPrioritySheetOpen, setIsPrioritySheetOpen] = useState(false);
   const [showCompleted, setShowCompleted] = useState(true);
-  const [isLocationMapOpen, setIsLocationMapOpen] = useState(false);
   
 
   const loadItems = useCallback(async () => {
@@ -481,12 +480,6 @@ const Upcoming = () => {
                 items={items}
               />
               
-              {smartList === 'location-reminders' && (
-                <Button variant="outline" size="sm" onClick={() => setIsLocationMapOpen(true)}>
-                  <MapPin className="h-4 w-4 mr-1" />
-                   Map
-                </Button>
-              )}
             </div>
             
             <div className="flex items-center gap-1">
