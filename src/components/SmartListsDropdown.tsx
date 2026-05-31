@@ -19,7 +19,6 @@ import {
   Clock, 
   CheckCircle2,
   Calendar,
-  MapPin,
   Trash2
 } from 'lucide-react';
 import { isToday, isTomorrow, isThisWeek, isBefore, startOfDay } from 'date-fns';
@@ -35,8 +34,7 @@ export type SmartListType =
   | 'due-today'
   | 'due-tomorrow'
   | 'due-this-week'
-  | 'recently-completed'
-  | 'location-reminders';
+  | 'recently-completed';
 
 interface SmartListsDropdownProps {
   items: TodoItem[];
@@ -136,17 +134,6 @@ export const useSmartLists = (items: TodoItem[]) => {
       icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
       filter: (items) => items.filter(item => item.completed).slice(0, 20),
       color: 'text-green-500',
-    },
-    {
-      id: 'location-reminders',
-      label: t('smartLists.locationReminders'),
-      labelKey: 'smartLists.locationReminders',
-      icon: <MapPin className="h-4 w-4 text-emerald-500" />,
-      filter: (items) => items.filter(item => 
-        !item.completed && 
-        item.locationReminder?.enabled
-      ),
-      color: 'text-emerald-500',
     },
   ], [today, t]);
 
@@ -296,8 +283,6 @@ export const getSmartListFilter = (listType: SmartListType): ((item: TodoItem) =
         (!item.dueDate || isThisWeek(new Date(item.dueDate)) || isBefore(new Date(item.dueDate), today));
     case 'recently-completed':
       return (item) => item.completed;
-    case 'location-reminders':
-      return (item) => !item.completed && !!item.locationReminder?.enabled;
     default:
       return () => true;
   }
