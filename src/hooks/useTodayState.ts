@@ -84,7 +84,6 @@ export const useTodayState = () => {
   const [isSectionMoveOpen, setIsSectionMoveOpen] = useState(false);
   const [editingSection, setEditingSection] = useState<TaskSection | null>(null);
   const [selectedSubtask, setSelectedSubtask] = useState<{ subtask: TodoItem; parentId: string } | null>(null);
-  const [isLocationMapOpen, setIsLocationMapOpen] = useState(false);
   const [isBulkDateSheetOpen, setIsBulkDateSheetOpen] = useState(false);
   const [isBulkReminderSheetOpen, setIsBulkReminderSheetOpen] = useState(false);
   const [isBulkRepeatSheetOpen, setIsBulkRepeatSheetOpen] = useState(false);
@@ -499,7 +498,6 @@ export const useTodayState = () => {
     isSectionMoveOpen, setIsSectionMoveOpen,
     editingSection, setEditingSection,
     selectedSubtask, setSelectedSubtask,
-    isLocationMapOpen, setIsLocationMapOpen,
     isBulkDateSheetOpen, setIsBulkDateSheetOpen,
     isBulkReminderSheetOpen, setIsBulkReminderSheetOpen,
     isBulkRepeatSheetOpen, setIsBulkRepeatSheetOpen,
