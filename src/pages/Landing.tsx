@@ -115,7 +115,7 @@ export default function Landing() {
       title: 'Organize everything in your life',
       desc: "Whether it's work projects, personal tasks, or study plans, Flowist helps you organize and confidently tackle everything in your life.",
       icon: Check,
-      gradient: 'from-[#eaf1ff] to-[#f5f9ff]',
+       gradient: 'from-red-50 to-white',
       image: todoDashboardImage,
       imageAlt: 'Flowist to-do dashboard with task folders and priority tasks',
     },
@@ -153,10 +153,10 @@ export default function Landing() {
     { label: 'Regular Note', icon: StickyNote, gradient: 'from-[#eafff1] to-[#f4fff8]', image: regularNoteImage, imageAlt: 'Flowist regular note editor' },
     { label: 'Lined Note', icon: AlignLeft, gradient: 'from-[#fdeaff] to-[#fbf3ff]', image: linedNoteImage, imageAlt: 'Flowist lined note editor' },
     { label: 'Sticky Note', icon: StickyNote, gradient: 'from-[#ffeaf5] to-[#fff5fb]', image: stickyNoteImage, imageAlt: 'Flowist sticky note editor with color options' },
-    { label: 'Code Editor', icon: Code2, gradient: 'from-[#eaf1ff] to-[#f5f9ff]', image: codeEditorImage, imageAlt: 'Flowist code note editor with HTML syntax highlighting' },
+     { label: 'Code Editor', icon: Code2, gradient: 'from-red-50 to-white', image: codeEditorImage, imageAlt: 'Flowist code note editor with HTML syntax highlighting' },
     { label: 'NLP', icon: Brain, gradient: 'from-[#fff0f0] to-[#fff7f7]', image: taskNlpImage, imageAlt: 'Flowist natural language task input detecting date and repeat details' },
-    { label: 'Task Dashboard', icon: Check, gradient: 'from-[#eaf1ff] to-[#f5f9ff]', image: todoDashboardImage, imageAlt: 'Flowist task dashboard with priority tasks and bottom navigation' },
-    { label: 'Calendar', icon: Calendar, gradient: 'from-[#eaf6ff] to-[#f4fbff]', image: calendarViewImage, imageAlt: 'Flowist monthly calendar view with highlighted task dates' },
+     { label: 'Task Dashboard', icon: Check, gradient: 'from-red-50 to-white', image: todoDashboardImage, imageAlt: 'Flowist task dashboard with priority tasks and bottom navigation' },
+     { label: 'Calendar', icon: Calendar, gradient: 'from-rose-50 to-white', image: calendarViewImage, imageAlt: 'Flowist monthly calendar view with highlighted task dates' },
     { label: 'Priority', icon: Flag, gradient: 'from-[#ffeaea] to-[#fff5f5]', image: todoDashboardImage, imageAlt: 'Flowist high priority tasks section' },
     { label: 'Flat Layout', icon: Layers, gradient: 'from-[#eafff7] to-[#f4fffb]', image: flatLayoutImage, imageAlt: 'Flowist clean flat task layout' },
   ];
@@ -308,7 +308,7 @@ export default function Landing() {
       <main id="top">
         {/* Hero */}
         <section id="about" className="relative overflow-hidden scroll-mt-20">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-gradient-to-b from-[#eaf1ff] via-white to-white" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-gradient-to-b from-red-50 via-white to-white" />
           <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pt-10 pb-8 sm:px-6 sm:pt-20 sm:pb-16 md:grid-cols-2">
             <div className="text-center md:text-left">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm">
@@ -379,7 +379,7 @@ export default function Landing() {
         {/* Trust bar removed per request */}
 
         {/* Feature cards — TickTick-style: label, big title, description, image */}
-        <section id="features" className="relative overflow-hidden scroll-mt-20 bg-gradient-to-b from-slate-100 via-[#eef2fb] to-slate-100 pt-6 pb-0 sm:pt-10 sm:pb-0">
+        <section id="features" className="relative overflow-hidden scroll-mt-20 bg-gradient-to-b from-slate-100 via-red-50/60 to-slate-100 pt-6 pb-0 sm:pt-10 sm:pb-0">
           {/* Soft ambient accents */}
           <div className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/15 blur-[120px]" />
           <div className="pointer-events-none absolute bottom-0 right-0 h-[300px] w-[300px] rounded-full bg-red-300/15 blur-[100px]" />

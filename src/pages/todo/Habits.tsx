@@ -17,7 +17,7 @@ import { triggerHaptic } from '@/utils/haptics';
 
 
 const HABIT_COLORS = [
-  'hsl(220, 85%, 59%)', // primary blue
+  'hsl(357.4, 70.7%, 50.6%)', // Flowist red
   'hsl(142, 71%, 45%)', // green
   'hsl(25, 95%, 53%)',  // orange
   'hsl(330, 80%, 60%)', // pink
