@@ -118,7 +118,7 @@ export const StreakDetailSheet = ({
                   onClick={onUpgrade}
                   className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-xl cursor-pointer"
                 >
-                  <Crown className="h-4 w-4" style={{ color: '#3c78f0' }} />
+                  <Crown className="h-4 w-4 text-primary" />
                 </button>
               )}
             </div>
@@ -192,7 +192,7 @@ export const StreakDetailSheet = ({
               <div>
                 <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                   {t('streak.freezeTitle', 'Streak Freeze')}
-                  <Crown className="h-3.5 w-3.5" style={{ color: '#3c78f0' }} />
+                  <Crown className="h-3.5 w-3.5 text-primary" />
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                   {t('streak.freezeDesc', 'Upgrade to Premium to earn & use streak freezes. Miss a day without losing your streak!')}

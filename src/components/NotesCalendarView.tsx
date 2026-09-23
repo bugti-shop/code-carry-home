@@ -267,11 +267,11 @@ export const NotesCalendarView = ({
                 )}
                 style={{
                   backgroundColor: isToday
-                    ? '#3c78f0'
+                    ? '#db252d'
                     : (isSelected && !isToday)
-                      ? '#3c78f0'
+                      ? '#db252d'
                       : (hasAnyIndicator && isCurrentMonth && !isToday)
-                        ? '#3c78f0'
+                        ? '#db252d'
                         : undefined,
                 }}
               >

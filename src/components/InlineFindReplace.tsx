@@ -14,10 +14,10 @@ interface InlineFindReplaceProps {
   content?: string; // Current editor content to detect changes
 }
 
-// Highlight colors - blue theme as requested
+// Highlight colors use the Flowist brand theme
 const HIGHLIGHT_TEXT_COLOR = '#FFFFFF';
-const HIGHLIGHT_BG_COLOR = '#3c78f0'; // Blue highlight for all matches
-const CURRENT_HIGHLIGHT_BG = '#1d4ed8'; // Darker blue for current match
+const HIGHLIGHT_BG_COLOR = '#db252d';
+const CURRENT_HIGHLIGHT_BG = '#a61c22';
 const CURRENT_HIGHLIGHT_TEXT = '#FFFFFF';
 
 export const InlineFindReplace = ({

@@ -28,7 +28,7 @@ import { StreakDay1Screen } from '@/components/StreakDay1Screen';
 import { StreakConsistencyCertificate } from '@/components/StreakConsistencyCertificate';
 
 
-const ONBOARDING_COLOR = '#3c78f0';
+const ONBOARDING_COLOR = '#db252d';
 
 interface OnboardingFlowProps {
   onComplete: () => void;
@@ -150,7 +150,7 @@ const PlanLoadingScreen = ({ onComplete, displayName }: { onComplete: () => void
   );
 };
 
-const FOLDER_COLORS = ['#3c78f0', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#f97316', '#06b6d4'];
+const FOLDER_COLORS = ['#db252d', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#f97316', '#06b6d4'];
 
 // Sub-component for folder creation in onboarding
 const OnboardingFolderCreation = ({ type, folders, setFolders, progressPercent, stepLabel, handleBack, goNext }: {
@@ -204,7 +204,7 @@ const OnboardingFolderCreation = ({ type, folders, setFolders, progressPercent, 
         <div className="flex-1 flex flex-col gap-0.5">
           <span className="text-[11px] font-semibold text-[#999] text-right">{stepLabel}</span>
           <div className="h-[17px] rounded-[6px] bg-[#e5e5e5] overflow-hidden">
-            <motion.div className="h-full rounded-[6px]" style={{ backgroundColor: '#3c78f0' }} initial={{ width: '0%' }} animate={{ width: progressPercent }} transition={{ duration: 0.5, ease: 'easeOut' }} />
+            <motion.div className="h-full rounded-[6px]" style={{ backgroundColor: ONBOARDING_COLOR }} initial={{ width: '0%' }} animate={{ width: progressPercent }} transition={{ duration: 0.5, ease: 'easeOut' }} />
           </div>
         </div>
       </div>
@@ -246,7 +246,7 @@ const OnboardingFolderCreation = ({ type, folders, setFolders, progressPercent, 
             value={folderName}
             onChange={(e) => setFolderName(e.target.value)}
             placeholder={t('onboarding.folderName')}
-            className="w-full px-4 py-3 rounded-xl border border-[#e0e0e0] bg-white text-[15px] text-[#1a1a1a] placeholder-[#bbb] outline-none focus:border-[#3c78f0] focus:ring-2 focus:ring-[#3c78f0]/10 transition-all duration-200 mb-3"
+            className="w-full px-4 py-3 rounded-xl border border-[#e0e0e0] bg-white text-[15px] text-[#1a1a1a] placeholder-[#bbb] outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 mb-3"
             onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
             autoFocus
           />
@@ -491,9 +491,9 @@ const OnboardingBatchTaskForm = ({ sections, folders, onAddTasks, onCancel }: {
                 onClick={() => { triggerHaptic(); setSelectedFolder(selectedFolder === f.id ? '' : f.id); }}
                 className="px-3 py-1.5 rounded-xl text-[13px] font-medium cursor-pointer"
                 style={{
-                  backgroundColor: selectedFolder === f.id ? '#3c78f010' : '#f3f4f6',
-                  border: `1.5px solid ${selectedFolder === f.id ? '#3c78f0' : '#e5e7eb'}`,
-                  color: selectedFolder === f.id ? '#3c78f0' : '#6b7280',
+                  backgroundColor: selectedFolder === f.id ? '#db252d10' : '#f3f4f6',
+                  border: `1.5px solid ${selectedFolder === f.id ? ONBOARDING_COLOR : '#e5e7eb'}`,
+                  color: selectedFolder === f.id ? ONBOARDING_COLOR : '#6b7280',
                 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -539,9 +539,9 @@ const OnboardingBatchTaskForm = ({ sections, folders, onAddTasks, onCancel }: {
               <button
                 className="w-full py-2.5 px-3 rounded-xl text-[13px] font-medium text-left flex items-center gap-2 cursor-pointer"
                 style={{
-                  backgroundColor: selectedDate ? '#3c78f010' : '#f3f4f6',
-                  border: `1.5px solid ${selectedDate ? '#3c78f0' : '#e5e7eb'}`,
-                  color: selectedDate ? '#3c78f0' : '#6b7280',
+                  backgroundColor: selectedDate ? '#db252d10' : '#f3f4f6',
+                  border: `1.5px solid ${selectedDate ? ONBOARDING_COLOR : '#e5e7eb'}`,
+                  color: selectedDate ? ONBOARDING_COLOR : '#6b7280',
                 }}
               >
                 <CalendarDays className="h-4 w-4" />

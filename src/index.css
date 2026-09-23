@@ -36,9 +36,9 @@ All colors MUST be HSL.
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 220 85% 59%;
-    --primary-dark: 220 85% 50%;
-    --primary-darker: 220 85% 42%;
+    --primary: 357 71% 50%;
+    --primary-dark: 357 72% 42%;
+    --primary-darker: 357 73% 34%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
@@ -595,11 +595,11 @@ table th[contenteditable="true"]:hover {
 
 /* Duolingo-style button */
 .btn-duo {
-  background-color: #3C78F0;
+  background-color: hsl(var(--primary));
   color: white;
   font-weight: 700;
   border-radius: 0.875rem;
-  border-bottom: 4px solid #2B5DBF;
+  border-bottom: 4px solid hsl(var(--primary-dark));
   transition: all 0.1s ease;
   padding: 0.875rem 1.5rem;
   font-size: 1rem;

@@ -257,7 +257,7 @@ export const SettingsDialogs = (props: SettingsDialogsProps) => {
                   <div className={cn("w-full h-16 rounded-lg mb-2", theme.preview)} />
                   <div className="flex items-center gap-1">
                     <span className="text-sm font-medium text-foreground">{t(`settings.themeNames.${theme.id}`, theme.name)}</span>
-                    {theme.id !== 'light' && !props.isProSub && <Crown className="h-3.5 w-3.5" style={{ color: '#3c78f0' }} />}
+                    {theme.id !== 'light' && !props.isProSub && <Crown className="h-3.5 w-3.5 text-primary" />}
                   </div>
                   {props.currentTheme === theme.id && (
                     <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center">

@@ -852,7 +852,7 @@ const PenPreviewCanvas = memo(({ penType, isActive, currentColor }: { penType: D
       points.push({ x, y, p });
     }
 
-    const c = currentColor || '#3C78F0';
+    const c = currentColor || '#DB252D';
 
     switch (penType) {
       case 'pencil': {
