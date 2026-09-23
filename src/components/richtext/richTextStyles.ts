@@ -3,7 +3,7 @@
 
 export const RICH_TEXT_EDITOR_STYLES = `
   .rich-text-editor a {
-    color: #3B82F6;
+    color: #DB252D;
     text-decoration: underline;
   }
   .rich-text-editor ul {

@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const FOLDER_COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899'];
+const FOLDER_COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#db252d', '#8b5cf6', '#ec4899'];
 
 interface FolderManageSheetProps {
   isOpen: boolean;

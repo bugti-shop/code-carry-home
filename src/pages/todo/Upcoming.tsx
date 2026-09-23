@@ -455,7 +455,7 @@ const Upcoming = () => {
     switch (priority) {
       case 'high': return 'border-red-500';
       case 'medium': return 'border-orange-500';
-      case 'low': return 'border-blue-500';
+      case 'low': return 'border-primary';
       default: return 'border-muted-foreground/40';
     }
   };

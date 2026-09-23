@@ -148,7 +148,7 @@ export const useTodayActions = (props: UseTodayActionsProps) => {
       }
     }
     const newSection: TaskSection = {
-      id: genId(), name: t('todayPage.newSection'), color: '#3b82f6', isCollapsed: false, order: newOrder,
+      id: genId(), name: t('todayPage.newSection'), color: '#db252d', isCollapsed: false, order: newOrder,
     };
     const updatedSections = [...sections, newSection].sort((a, b) => a.order - b.order).map((s, idx) => ({ ...s, order: idx }));
     setSections(updatedSections);

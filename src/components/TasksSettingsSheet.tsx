@@ -67,7 +67,7 @@ const DEFAULT_TASKS_SETTINGS: TasksSettings = {
 const PRIORITY_COLORS = [
   '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16',
   '#22C55E', '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9',
-  '#3B82F6', '#6366F1', '#8B5CF6', '#A855F7', '#D946EF',
+  '#DB252D', '#6366F1', '#8B5CF6', '#A855F7', '#D946EF',
   '#EC4899', '#F43F5E', '#78716C', '#6B7280', '#64748B'
 ];
 
@@ -88,7 +88,7 @@ export const TasksSettingsSheet = ({ isOpen, onClose }: TasksSettingsSheetProps)
   const [priorities, setPriorities] = useState<CustomPriority[]>(DEFAULT_PRIORITIES);
   const [editingPriority, setEditingPriority] = useState<CustomPriority | null>(null);
   const [newPriorityName, setNewPriorityName] = useState('');
-  const [newPriorityColor, setNewPriorityColor] = useState('#3B82F6');
+  const [newPriorityColor, setNewPriorityColor] = useState('#DB252D');
   const [isAddingPriority, setIsAddingPriority] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
@@ -632,7 +632,7 @@ export const TasksSettingsSheet = ({ isOpen, onClose }: TasksSettingsSheetProps)
                     await savePriorities(updated);
                     setPriorities(updated);
                     setNewPriorityName('');
-                    setNewPriorityColor('#3B82F6');
+                    setNewPriorityColor('#DB252D');
                     setIsAddingPriority(false);
                     toast.success(t('settings.priorityAdded', 'Priority added'));
                   }}
@@ -646,7 +646,7 @@ export const TasksSettingsSheet = ({ isOpen, onClose }: TasksSettingsSheetProps)
                   onClick={() => {
                     setIsAddingPriority(false);
                     setNewPriorityName('');
-                    setNewPriorityColor('#3B82F6');
+                    setNewPriorityColor('#DB252D');
                   }}
                 >
                   <X className="h-4 w-4 mr-1" />

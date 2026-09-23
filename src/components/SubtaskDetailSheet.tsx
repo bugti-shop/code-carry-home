@@ -57,7 +57,7 @@ interface SubtaskDetailSheetProps {
 
 const TAG_COLORS = [
   '#ef4444', '#f97316', '#eab308', '#22c55e', 
-  '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899'
+  '#06b6d4', '#db252d', '#8b5cf6', '#ec4899'
 ];
 
 export const SubtaskDetailSheet = ({
@@ -442,7 +442,7 @@ export const SubtaskDetailSheet = ({
               onClick={handleConvertToTask}
               className="w-full flex items-center gap-3 py-3 hover:bg-muted/50 rounded-lg px-2 transition-colors"
             >
-              <FileText className="h-5 w-5 text-blue-500" />
+              <FileText className="h-5 w-5 text-primary" />
               <span className="flex-1 text-left">{t('subtaskDetail.convertToNotes')}</span>
             </button>
 

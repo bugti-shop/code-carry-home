@@ -203,7 +203,7 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
 ```xml
 <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
     <!-- Splash background color -->
-    <item name="windowSplashScreenBackground">#3b78ed</item>
+    <item name="windowSplashScreenBackground">#FFFFFF</item>
 </style>
 ```
 

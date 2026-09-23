@@ -34,7 +34,7 @@ const typeColors: Record<string, string> = {
   reminder: 'text-orange-500',
   streak: 'text-red-500',
   achievement: 'text-yellow-500',
-  note: 'text-blue-500',
+  note: 'text-primary',
   task: 'text-green-500',
   system: 'text-muted-foreground',
 };

@@ -43,7 +43,7 @@ export const DuplicateOptionsSheet = ({ isOpen, onClose, onSelect }: DuplicateOp
             className="w-full justify-start h-14 text-left"
             onClick={() => handleSelect('uncompleted')}
           >
-            <Square className="h-5 w-5 mr-3 text-blue-500" />
+            <Square className="h-5 w-5 mr-3 text-primary" />
             <div>
               <p className="font-medium">{t('bulk.uncompletedOnly')}</p>
               <p className="text-xs text-muted-foreground">{t('bulk.uncompletedOnlyDesc')}</p>

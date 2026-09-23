@@ -160,7 +160,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
   const [showSectionPopover, setShowSectionPopover] = useState(false);
   const [repeatSettings, setRepeatSettings] = useState<RepeatSettings | undefined>();
   const [newFolderName, setNewFolderName] = useState('');
-  const [selectedColor, setSelectedColor] = useState('#3b82f6');
+  const [selectedColor, setSelectedColor] = useState('#db252d');
   const [imageUrl, setImageUrl] = useState<string | undefined>();
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [showTagSheet, setShowTagSheet] = useState(false);
@@ -251,7 +251,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     onClose();
   };
 
-  const folderColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+  const folderColors = ['#db252d', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
   // Natural language parsing - real-time preview
   const parsedTask = useMemo(() => {
@@ -743,7 +743,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
     } catch {}
     onCreateFolder(newFolderName.trim(), selectedColor);
     setNewFolderName('');
-    setSelectedColor('#3b82f6');
+    setSelectedColor('#db252d');
     setShowFolderDialog(false);
   };
 
@@ -1080,9 +1080,9 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
 
           {/* Date/Time/Repeat indicator */}
           {(dueDate || repeatSettings) && (
-            <div className="px-4 py-2 bg-blue-50 dark:bg-blue-950/20 rounded-lg flex items-center gap-2 mb-4">
-              <CalendarCheck className="h-4 w-4 text-blue-500" />
-              <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+            <div className="px-4 py-2 bg-red-50 dark:bg-red-950/20 rounded-lg flex items-center gap-2 mb-4">
+              <CalendarCheck className="h-4 w-4 text-primary" />
+              <span className="text-sm text-primary-dark dark:text-red-300 font-medium">
                 {dueDate ? format(dueDate, 'MMM d') : ''}
                 {dueDate && (dueDate.getHours() !== 0 || dueDate.getMinutes() !== 0) ? ` • ${format(dueDate, 'h:mm a')}` : ''}
                 {repeatSettings ? ` • ${t('taskInput.repeatsFrequency', { frequency: t(`dateTime.frequency.${repeatSettings.frequency}`) })}` : ''}
@@ -1097,7 +1097,7 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
                 }}
                 className="ml-auto"
               >
-                <X className="h-4 w-4 text-blue-500 hover:text-blue-700" />
+                <X className="h-4 w-4 text-primary hover:text-primary-dark" />
               </button>
             </div>
           )}
@@ -1195,16 +1195,16 @@ export const TaskInputSheet = ({ isOpen, onClose, onAddTask, folders, selectedFo
                     onClick={() => setShowDateTimePage(true)}
                     className={cn(
                       "relative flex items-center gap-1.5 px-3 py-2 rounded-md border transition-all whitespace-nowrap",
-                      dueDate ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30" : "border-border bg-card hover:bg-muted"
+                      dueDate ? "border-primary bg-red-50 dark:bg-red-950/30" : "border-border bg-card hover:bg-muted"
                     )}
                   >
-                    {dueDate && <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" />}
+                    {dueDate && <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />}
                     {dueDate ? (
-                      <CalendarCheck className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                      <CalendarCheck className="h-4 w-4 text-primary flex-shrink-0" />
                     ) : (
                       <CalendarIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     )}
-                    <span className={cn("text-sm whitespace-nowrap", dueDate ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground")}>
+                    <span className={cn("text-sm whitespace-nowrap", dueDate ? "text-primary dark:text-red-400" : "text-muted-foreground")}>
                       {dueDate ? format(dueDate, 'MMM d') : t('taskInput.date')}
                     </span>
                   </button>
