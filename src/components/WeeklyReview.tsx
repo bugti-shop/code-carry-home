@@ -277,7 +277,7 @@ export const WeeklyReview = ({ isOpen, onClose }: WeeklyReviewProps) => {
 
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="h-4 w-4 text-blue-500" />
+                <TrendingUp className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">{t('weeklyReview.nextWeekTitle')}</span>
               </div>
               <Textarea

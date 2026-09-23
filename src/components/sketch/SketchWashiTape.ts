@@ -195,7 +195,7 @@ export const WASHI_PATTERNS: WashiTapePattern[] = [
     draw: (ctx, w, h) => {
       ctx.fillStyle = '#fde68a'; ctx.fillRect(0, 0, w, h);
       const drawRainbow = (cx: number, cy: number, s: number) => {
-        const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'];
+        const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#db252d', '#8b5cf6'];
         for (let i = 0; i < colors.length; i++) {
           ctx.strokeStyle = colors[i]; ctx.lineWidth = 1.5; ctx.globalAlpha = 1;
           const r = s - i * 1.2;

@@ -91,11 +91,11 @@ export const useSmartLists = (items: TodoItem[]) => {
       id: 'due-tomorrow',
       label: t('smartLists.dueTomorrow'),
       labelKey: 'smartLists.dueTomorrow',
-      icon: <Calendar className="h-4 w-4 text-blue-500" />,
+      icon: <Calendar className="h-4 w-4 text-primary" />,
       filter: (items) => items.filter(item => 
         !item.completed && item.dueDate && isTomorrow(new Date(item.dueDate))
       ),
-      color: 'text-blue-500',
+      color: 'text-primary',
     },
     {
       id: 'due-this-week',

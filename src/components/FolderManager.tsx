@@ -54,7 +54,7 @@ interface FolderManagerProps {
 }
 
 const folderColors = [
-  '#3c78f0', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
+  '#db252d', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 ];
 
 const CLICKS_TO_SHOW_ACTIONS = 3;

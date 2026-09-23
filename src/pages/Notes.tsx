@@ -353,7 +353,7 @@ const Notes = () => {
                   className="h-7 w-7 xs:h-8 xs:w-8 sm:h-10 sm:w-10 touch-target"
                   title={t('common.goPro')}
                 >
-                  <Crown className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: '#3c78f0' }} />
+                  <Crown className="h-4 w-4 text-primary sm:h-5 sm:w-5" />
                 </Button>
               )}
               <Button

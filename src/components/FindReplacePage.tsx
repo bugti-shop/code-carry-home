@@ -17,8 +17,8 @@ interface FindReplacePageProps {
   editorRef: React.RefObject<HTMLDivElement>;
 }
 
-const HIGHLIGHT_COLOR = '#3c78f0';
-const HIGHLIGHT_BG_COLOR = 'rgba(60, 120, 240, 0.3)';
+const HIGHLIGHT_COLOR = '#db252d';
+const HIGHLIGHT_BG_COLOR = 'rgba(219, 37, 45, 0.3)';
 
 export const FindReplacePage = ({
   isOpen,
@@ -218,7 +218,7 @@ export const FindReplacePage = ({
     
     highlights.forEach((mark, index) => {
       const el = mark as HTMLElement;
-      if (el.style.backgroundColor === HIGHLIGHT_COLOR || el.style.backgroundColor === 'rgb(60, 120, 240)') {
+      if (el.style.backgroundColor === HIGHLIGHT_COLOR || el.style.backgroundColor === 'rgb(219, 37, 45)') {
         currentMark = el;
         currentIndex = index;
       }

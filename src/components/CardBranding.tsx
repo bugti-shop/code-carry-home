@@ -5,7 +5,7 @@
  * IMPORTANT: All styles use inline CSS for html2canvas compatibility.
  * Do NOT use Tailwind classes here — they can break when rendering to image.
  */
-import npdLogo from '@/assets/npd-reminder-logo.webp';
+import flowistLogo from '@/assets/app-logo.webp';
 
 interface CardBrandingFooterProps {
   color?: string;
@@ -34,7 +34,7 @@ export const CardBrandingFooter = ({
       </div>
     )}
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-      <img src={npdLogo} alt="Flowist" style={{ width: '20px', height: '20px', borderRadius: '4px', objectFit: 'cover' }} />
+      <img src={flowistLogo} alt="Flowist" style={{ width: '20px', height: '20px', borderRadius: '4px', objectFit: 'cover' }} />
       <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', color }}>
         Flowist • task manager
       </span>
@@ -60,7 +60,7 @@ export const CardBrandingFooterLarge = ({
       </div>
     )}
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-      <img src={npdLogo} alt="Flowist" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
+      <img src={flowistLogo} alt="Flowist" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
       <span style={{ fontSize: '32px', fontWeight: 700, color, letterSpacing: '4px' }}>Flowist</span>
     </div>
   </div>

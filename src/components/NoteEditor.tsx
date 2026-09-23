@@ -182,7 +182,7 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
   // Tag state
   const [noteTagIds, setNoteTagIds] = useState<string[]>([]);
   const [showTagSheet, setShowTagSheet] = useState(false);
-  const [newFolderColor, setNewFolderColor] = useState('#3B82F6');
+  const [newFolderColor, setNewFolderColor] = useState('#DB252D');
   const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
   const [isNoteLinkingOpen, setIsNoteLinkingOpen] = useState(false);
   const [isBacklinksOpen, setIsBacklinksOpen] = useState(true);
@@ -458,7 +458,7 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
     window.dispatchEvent(new Event('foldersUpdated'));
     setSelectedFolderId(newFolder.id);
     setNewFolderName('');
-    setNewFolderColor('#3B82F6');
+    setNewFolderColor('#DB252D');
     setIsNewFolderDialogOpen(false);
     toast.success(t('toast.folderCreated'));
   };
@@ -1221,7 +1221,7 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
                   >
                     <span 
                       className="h-3 w-3 rounded-full mr-2 flex-shrink-0" 
-                      style={{ backgroundColor: folder.color || '#3B82F6' }} 
+                      style={{ backgroundColor: folder.color || '#DB252D' }} 
                     />
                     {folder.name}
                   </DropdownMenuItem>
@@ -1995,7 +1995,7 @@ export const NoteEditor = ({ note, isOpen, onClose, onSave, defaultType = 'regul
                 {[
                   '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16',
                   '#22C55E', '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9',
-                  '#3B82F6', '#6366F1', '#8B5CF6', '#A855F7', '#D946EF',
+                  '#DB252D', '#6366F1', '#8B5CF6', '#A855F7', '#D946EF',
                   '#EC4899', '#F43F5E', '#78716C', '#6B7280', '#64748B'
                 ].map((c) => (
                   <button

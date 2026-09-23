@@ -305,7 +305,7 @@ npm install --save-dev @capacitor/assets
 
 # Put your source files here:
 #   resources/icon.png      (1024x1024, square, no transparency)
-#   resources/splash.png    (2732x2732, logo centered, brand bg)
+#   resources/splash.png    (2732x2732, logo centered, white bg)
 
 npx capacitor-assets generate --ios
 ```
@@ -318,7 +318,7 @@ This writes the full `AppIcon.appiconset` and `Splash.imageset` automatically. T
 
 ### 8.1 Image
 
-Add `resources/splash.png` (2732×2732, centered logo on solid brand color), then:
+The project includes `resources/splash.png` (2732×2732, centered Flowist logo on `#FFFFFF`). Generate native assets with:
 
 ```bash
 npx capacitor-assets generate --ios
@@ -332,14 +332,14 @@ plugins: {
     launchAutoHide: false,
     launchShowDuration: 0,
     showSpinner: false,
-    backgroundColor: "#3b78ed",
+    backgroundColor: "#FFFFFF",
   },
 }
 ```
 
 ### 8.3 Storyboard (manual control)
 
-Open `ios/App/App/Splash.storyboard` to change the background color or add a logo image view. Set the background color to your brand `#3b78ed`.
+Open `ios/App/App/Splash.storyboard` and confirm its background color is `#FFFFFF` with the generated Flowist logo centered.
 
 ---
 
@@ -605,7 +605,7 @@ Side-by-side reference between this guide and `ANDROID_SETUP.md`.
 | **Apple sign-in** | ✅ Required (capability + Services ID) | ❌ Not applicable |
 | **App icon** | `Assets.xcassets/AppIcon.appiconset` (1024×1024) | `android/app/src/main/res/mipmap-*/ic_launcher.*` |
 | **Splash screen** | `Splash.storyboard` + `SplashScreen` plugin | `res/values/styles.xml` `Theme.SplashScreen` |
-| **Splash bg color** | `capacitor.config.ts` → `backgroundColor: "#3b78ed"` | `windowSplashScreenBackground` in `styles.xml` |
+| **Splash bg color** | `capacitor.config.ts` → `backgroundColor: "#FFFFFF"` | `windowSplashScreenBackground` in `styles.xml` |
 | **Asset CLI (logo+splash)** | `npx capacitor-assets generate --ios` | `npx capacitor-assets generate --android` |
 | **Push notifications** | APNs key (.p8) in Apple Developer | FCM (Firebase) `google-services.json` |
 | **In-App Purchases** | StoreKit / RevenueCat — App Store Connect Subscriptions | Google Play Billing — Play Console subscriptions |

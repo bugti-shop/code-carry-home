@@ -54,7 +54,7 @@ const DEFAULT_NOTE_TEMPLATES: NoteTemplate[] = [
     icon: 'Calendar',
     description: 'Ready-to-use meeting notes with agenda, action items, and follow-up templates',
     category: 'Work',
-    folderColor: '#3b82f6',
+    folderColor: '#db252d',
     notes: [
       {
         title: 'Weekly Team Standup',
@@ -1205,7 +1205,7 @@ const useIndexedDBStorage = (key: string, initialValue: any) => {
 ];
 
 const CATEGORIES = [...new Set(DEFAULT_NOTE_TEMPLATES.map(t => t.category))];
-const FOLDER_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#0ea5e9', '#6366f1'];
+const FOLDER_COLORS = ['#db252d', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#0ea5e9', '#6366f1'];
 
 // ─── Props ───
 

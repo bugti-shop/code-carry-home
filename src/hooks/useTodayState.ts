@@ -29,7 +29,7 @@ export type ViewMode = 'flat' | 'kanban' | 'kanban-status' | 'timeline' | 'progr
 export type SortBy = 'date' | 'priority' | 'name' | 'created';
 
 const getDefaultSections = (t: (key: string) => string): TaskSection[] => [
-  { id: 'default', name: t('grouping.tasks'), color: '#3b82f6', isCollapsed: false, order: 0 }
+  { id: 'default', name: t('grouping.tasks'), color: '#db252d', isCollapsed: false, order: 0 }
 ];
 
 export const useTodayState = () => {

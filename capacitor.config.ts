@@ -12,6 +12,7 @@ const config: CapacitorConfig = {
       launchAutoHide: false,
       launchShowDuration: 0,
       showSpinner: false,
+      backgroundColor: '#FFFFFF',
     },
     GoogleAuth: {
       iosClientId: '425291387152-hg7uajqc20bd8t3qfb760gngbl2pd20i.apps.googleusercontent.com',

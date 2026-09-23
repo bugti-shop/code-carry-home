@@ -163,7 +163,7 @@ export function SketchNotebookLibrary({
     if (showNewNotebook || showNewFolder) setTimeout(() => newInputRef.current?.focus(), 50);
   }, [showNewNotebook, showNewFolder]);
 
-  const NOTEBOOK_COLORS = ['#3C78F0', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+  const NOTEBOOK_COLORS = ['#DB252D', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
   if (!isLoaded) return null;
 
@@ -473,12 +473,12 @@ function NotebookCard({
             'rounded-lg overflow-hidden flex items-center justify-center',
             isGrid ? 'h-24 mb-2' : 'h-12 w-12 flex-shrink-0'
           )}
-          style={{ backgroundColor: `${notebook.color || '#3C78F0'}10` }}
+          style={{ backgroundColor: `${notebook.color || '#DB252D'}10` }}
         >
           {notebook.coverThumbnail ? (
             <img src={notebook.coverThumbnail} alt="" className="w-full h-full object-cover" />
           ) : (
-            <BookOpen className={cn(isGrid ? 'h-8 w-8' : 'h-5 w-5')} style={{ color: notebook.color || '#3C78F0' }} />
+            <BookOpen className={cn(isGrid ? 'h-8 w-8' : 'h-5 w-5')} style={{ color: notebook.color || '#DB252D' }} />
           )}
         </div>
 

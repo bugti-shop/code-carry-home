@@ -10,7 +10,7 @@ import { Check, X, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format, subDays, addDays, startOfWeek } from 'date-fns';
-import appLogo from '@/assets/npd-reminder-logo.webp';
+import appLogo from '@/assets/app-logo.webp';
 import { getSetting, setSetting } from '@/utils/settingsStorage';
 
 interface StreakChallengeDialogProps {

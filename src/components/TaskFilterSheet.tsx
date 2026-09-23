@@ -192,7 +192,7 @@ export const TaskFilterSheet = ({
               </div>
               <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer">
                 <RadioGroupItem value="low" id="priority-low" />
-                <Label htmlFor="priority-low" className="cursor-pointer flex-1 text-blue-500">{t('tasks.priority.low')}</Label>
+                <Label htmlFor="priority-low" className="cursor-pointer flex-1 text-primary">{t('tasks.priority.low')}</Label>
               </div>
               <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer">
                 <RadioGroupItem value="none" id="priority-none" />
@@ -231,7 +231,7 @@ export const TaskFilterSheet = ({
               <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer">
                 <RadioGroupItem value="in_progress" id="status-in-progress" />
                 <Label htmlFor="status-in-progress" className="cursor-pointer flex-1 flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 text-blue-500" />
+                  <Loader2 className="h-4 w-4 text-primary" />
                   {t('tasks.status.inProgress')}
                 </Label>
               </div>

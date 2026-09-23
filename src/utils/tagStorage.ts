@@ -37,7 +37,7 @@ const openDB = (): Promise<IDBDatabase> => {
 
 // Default tag colors (HSL)
 export const TAG_COLORS = [
-  '220 85% 59%',   // Blue (primary)
+  '357.4 70.7% 50.6%', // Flowist red (primary)
   '0 84% 60%',     // Red
   '142 70% 45%',   // Green
   '280 65% 60%',   // Purple

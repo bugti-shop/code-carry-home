@@ -497,7 +497,7 @@ const TodoSettings = () => {
                       style={{ backgroundColor: theme.preview }}
                     />
                     <span className="text-sm font-medium">{theme.name}</span>
-                    {theme.id !== 'light' && !isPro && <Crown className="h-3.5 w-3.5" style={{ color: '#3c78f0' }} />}
+                    {theme.id !== 'light' && !isPro && <Crown className="h-3.5 w-3.5 text-primary" />}
                   </div>
                   {currentTheme === theme.id && <Check className="h-4 w-4" />}
                 </button>

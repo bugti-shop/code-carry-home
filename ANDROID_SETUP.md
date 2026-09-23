@@ -196,6 +196,8 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
 
 ## Splash Screen Setup (Android 12+ API)
 
+The project includes `resources/icon.png` and a white `resources/splash.png`. After pulling these changes, run `npx capacitor-assets generate --android` before `npx cap sync android`.
+
 ### styles.xml
 
 **File:** `android/app/src/main/res/values/styles.xml`
@@ -203,7 +205,7 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
 ```xml
 <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
     <!-- Splash background color -->
-    <item name="windowSplashScreenBackground">#3b78ed</item>
+    <item name="windowSplashScreenBackground">#FFFFFF</item>
 </style>
 ```
 

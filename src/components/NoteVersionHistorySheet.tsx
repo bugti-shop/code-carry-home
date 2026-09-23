@@ -20,7 +20,7 @@ const ChangeTypeIcon = ({ type }: { type: NoteVersion['changeType'] }) => {
     case 'create':
       return <Plus className="h-3 w-3 text-green-500" />;
     case 'restore':
-      return <RotateCcw className="h-3 w-3 text-blue-500" />;
+      return <RotateCcw className="h-3 w-3 text-primary" />;
     default:
       return <FileEdit className="h-3 w-3 text-muted-foreground" />;
   }

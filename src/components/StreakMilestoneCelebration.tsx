@@ -10,7 +10,7 @@ import { Share2, X, Instagram, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { triggerHaptic, triggerNotificationHaptic } from '@/utils/haptics';
 import { LazyConfetti as Confetti } from '@/components/LazyConfetti';
-import appLogo from '@/assets/npd-reminder-logo.webp';
+import appLogo from '@/assets/app-logo.webp';
 import { lazyHtml2canvas } from '@/utils/lazyHtml2canvas';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { CardBrandingFooterLarge } from '@/components/CardBranding';

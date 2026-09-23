@@ -36,7 +36,7 @@ export const TimelineView = ({
 
   const timelineGroups = [
     { id: 'timeline-overdue', label: t('grouping.overdue'), tasks: uncompletedItems.filter(item => item.dueDate && isBefore(new Date(item.dueDate), today)), color: '#ef4444', icon: <AlertCircle className="h-4 w-4" /> },
-    { id: 'timeline-today', label: t('grouping.today'), tasks: uncompletedItems.filter(item => item.dueDate && isToday(new Date(item.dueDate))), color: '#3b82f6', icon: <Sun className="h-4 w-4" /> },
+    { id: 'timeline-today', label: t('grouping.today'), tasks: uncompletedItems.filter(item => item.dueDate && isToday(new Date(item.dueDate))), color: '#db252d', icon: <Sun className="h-4 w-4" /> },
     { id: 'timeline-tomorrow', label: t('grouping.tomorrow'), tasks: uncompletedItems.filter(item => item.dueDate && isTomorrow(new Date(item.dueDate))), color: '#f59e0b', icon: <CalendarIcon2 className="h-4 w-4" /> },
     { id: 'timeline-thisweek', label: t('grouping.thisWeek'), tasks: uncompletedItems.filter(item => item.dueDate && isThisWeek(new Date(item.dueDate)) && !isToday(new Date(item.dueDate)) && !isTomorrow(new Date(item.dueDate))), color: '#10b981', icon: <CalendarIcon2 className="h-4 w-4" /> },
     { id: 'timeline-later', label: t('grouping.later'), tasks: uncompletedItems.filter(item => item.dueDate && !isBefore(new Date(item.dueDate), today) && !isThisWeek(new Date(item.dueDate))), color: '#8b5cf6', icon: <Clock className="h-4 w-4" /> },

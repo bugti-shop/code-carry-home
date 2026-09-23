@@ -164,7 +164,7 @@ export const TaskSwipeActions = ({
       >
         <button
           onClick={() => onMoveTask && handleSwipeAction(onMoveTask)}
-          className="flex flex-col items-center justify-center w-[70px] h-full bg-blue-500 text-white"
+          className="flex flex-col items-center justify-center w-[70px] h-full bg-red-500 text-white"
         >
           <FolderInput className="h-5 w-5" />
           <span className="text-[10px] font-medium mt-1">{t('swipe.move', 'Move')}</span>
