@@ -305,7 +305,7 @@ npm install --save-dev @capacitor/assets
 
 # Put your source files here:
 #   resources/icon.png      (1024x1024, square, no transparency)
-#   resources/splash.png    (2732x2732, logo centered, brand bg)
+#   resources/splash.png    (2732x2732, logo centered, white bg)
 
 npx capacitor-assets generate --ios
 ```
@@ -318,7 +318,7 @@ This writes the full `AppIcon.appiconset` and `Splash.imageset` automatically. T
 
 ### 8.1 Image
 
-Add `resources/splash.png` (2732×2732, centered logo on solid brand color), then:
+The project includes `resources/splash.png` (2732×2732, centered Flowist logo on `#FFFFFF`). Generate native assets with:
 
 ```bash
 npx capacitor-assets generate --ios
@@ -339,7 +339,7 @@ plugins: {
 
 ### 8.3 Storyboard (manual control)
 
-Open `ios/App/App/Splash.storyboard` to change the background color or add a logo image view. Set the background color to your brand `#FFFFFF`.
+Open `ios/App/App/Splash.storyboard` and confirm its background color is `#FFFFFF` with the generated Flowist logo centered.
 
 ---
 

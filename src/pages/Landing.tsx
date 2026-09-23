@@ -219,11 +219,11 @@ export default function Landing() {
                 <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
                   <div className="flex items-center gap-3">
                     <AppLogo size="md" />
-                    <span className="text-lg font-extrabold" style={{ color: BLUE }}>Flowist</span>
+                    <span className="text-lg font-extrabold" style={{ color: BRAND }}>Flowist</span>
                     <button
                       onClick={() => { setMenuOpen(false); handleGetStarted(); }}
                       className="ml-2 rounded-lg px-4 py-2 text-sm font-bold text-white"
-                      style={{ backgroundColor: BLUE }}
+                      style={{ backgroundColor: BRAND }}
                     >
                       Start for free
                     </button>
@@ -293,7 +293,7 @@ export default function Landing() {
                     <button
                       onClick={() => { setMenuOpen(false); handleGetStarted(); }}
                       className="rounded-lg py-3 text-base font-bold text-white"
-                      style={{ backgroundColor: BLUE }}
+                      style={{ backgroundColor: BRAND }}
                     >
                       Start for free
                     </button>
@@ -312,12 +312,12 @@ export default function Landing() {
           <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pt-10 pb-8 sm:px-6 sm:pt-20 sm:pb-16 md:grid-cols-2">
             <div className="text-center md:text-left">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm">
-                <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: BLUE }} />
+                <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: BRAND }} />
                 Now on Web, Android & iOS
               </div>
               <h1 className="mb-5 text-[36px] font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-[54px]">
                 Organize your day,<br />
-                <span style={{ color: BLUE }}>achieve more.</span>
+                <span style={{ color: BRAND }}>achieve more.</span>
               </h1>
               <p className="mx-auto mb-4 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg md:mx-0">
                 One calm app to plan, capture and follow through, without the noise.
@@ -326,7 +326,7 @@ export default function Landing() {
                 <button
                   onClick={handleGetStarted}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-8 py-3 text-base font-bold text-white transition-transform active:translate-y-1"
-                  style={{ backgroundColor: BLUE, boxShadow: `0 5px 0 0 ${BLUE_DARK}` }}
+                  style={{ backgroundColor: BRAND, boxShadow: `0 5px 0 0 ${BRAND_DARK}` }}
                 >
                   Get Flowist Free <ArrowRight className="h-5 w-5" />
                 </button>
