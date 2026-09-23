@@ -26,8 +26,8 @@ import landingHabitsImg2 from '@/assets/landing-habits-2.jpg';
 import landingCountdownImg from '@/assets/landing-countdown.jpg';
 import landingSyncDevicesImg from '@/assets/landing-sync-devices.png';
 
-const BLUE = '#3c78f0';
-const BLUE_DARK = '#2b5dbf';
+const BRAND = '#db252d';
+const BRAND_DARK = '#a61c22';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -180,7 +180,7 @@ export default function Landing() {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 antialiased selection:bg-[#3c78f0]/20">
+    <div className="min-h-screen bg-white text-slate-900 antialiased selection:bg-primary/20">
       {/* Header */}
       <header
         className={`sticky top-0 z-40 w-full border-b border-slate-200 transition-all ${
@@ -190,14 +190,14 @@ export default function Landing() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2 sm:px-6 sm:py-2.5">
           <a href="#top" className="flex items-center gap-2">
             <AppLogo size="md" />
-            <span className="text-xl font-extrabold tracking-tight" style={{ color: BLUE }}>Flowist</span>
+            <span className="text-xl font-extrabold tracking-tight" style={{ color: BRAND }}>Flowist</span>
           </a>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handleGetStarted}
               className="rounded-lg px-4 py-2 text-sm font-bold text-white transition-transform active:scale-[0.98] sm:px-5 sm:py-2.5 sm:text-[15px]"
-              style={{ backgroundColor: BLUE }}
+              style={{ backgroundColor: BRAND }}
             >
               Get Flowist Free
             </button>
@@ -370,8 +370,8 @@ export default function Landing() {
 
             {/* Hero side decoration (replaces inline cards) */}
             <div className="relative mx-auto hidden w-full max-w-md md:block">
-              <div className="absolute -inset-6 rounded-[40px] bg-[#3c78f0]/10 blur-3xl" />
-              <div className="relative aspect-[4/5] w-full rounded-[32px] border border-slate-200 bg-gradient-to-br from-[#eaf1ff] to-white shadow-[0_30px_80px_-30px_rgba(60,120,240,0.45)]" />
+              <div className="absolute -inset-6 rounded-[40px] bg-primary/10 blur-3xl" />
+              <div className="relative aspect-[4/5] w-full rounded-[32px] border border-slate-200 bg-gradient-to-br from-red-50 to-white shadow-[0_30px_80px_-30px_rgba(219,37,45,0.38)]" />
             </div>
           </div>
         </section>
@@ -381,13 +381,13 @@ export default function Landing() {
         {/* Feature cards — TickTick-style: label, big title, description, image */}
         <section id="features" className="relative overflow-hidden scroll-mt-20 bg-gradient-to-b from-slate-100 via-[#eef2fb] to-slate-100 pt-6 pb-0 sm:pt-10 sm:pb-0">
           {/* Soft ambient accents */}
-          <div className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-[#3c78f0]/15 blur-[120px]" />
-          <div className="pointer-events-none absolute bottom-0 right-0 h-[300px] w-[300px] rounded-full bg-[#8ab4ff]/15 blur-[100px]" />
+          <div className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/15 blur-[120px]" />
+          <div className="pointer-events-none absolute bottom-0 right-0 h-[300px] w-[300px] rounded-full bg-red-300/15 blur-[100px]" />
           <div
             className="pointer-events-none absolute inset-0 opacity-[0.5]"
             style={{
               backgroundImage:
-                'linear-gradient(to right, rgba(60,120,240,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(60,120,240,0.08) 1px, transparent 1px)',
+                'linear-gradient(to right, rgba(219,37,45,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(219,37,45,0.08) 1px, transparent 1px)',
               backgroundSize: '56px 56px',
               maskImage:
                 'radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, transparent 75%)',
@@ -437,7 +437,7 @@ export default function Landing() {
                   key={c.label}
                   className="rounded-[18px] border border-slate-200 bg-white p-4 shadow-[0_10px_30px_-15px_rgba(15,23,42,0.18)] sm:p-5"
                 >
-                  <p className="text-[12px] font-semibold sm:text-[13px]" style={{ color: BLUE }}>
+                  <p className="text-[12px] font-semibold sm:text-[13px]" style={{ color: BRAND }}>
                     {c.label}
                   </p>
                   <h3 className="mt-1.5 text-[17px] font-extrabold leading-[1.2] tracking-tight text-slate-900 sm:text-[20px]">
@@ -468,7 +468,7 @@ export default function Landing() {
         <section className="bg-gradient-to-b from-slate-100 to-white pt-8 pb-12 sm:pt-16 sm:pb-16">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <div className="mb-10 text-center sm:mb-14">
-              <h2 className="text-[28px] font-extrabold leading-tight tracking-tight sm:text-[40px]" style={{ color: BLUE }}>
+              <h2 className="text-[28px] font-extrabold leading-tight tracking-tight sm:text-[40px]" style={{ color: BRAND }}>
                 A comprehensive suite of features
               </h2>
               <p className="mt-2 text-[24px] font-extrabold tracking-tight text-slate-900 sm:text-[32px]">
@@ -501,7 +501,7 @@ export default function Landing() {
         <section id="faq" className="bg-slate-50 py-20 sm:py-28">
           <div className="mx-auto max-w-3xl px-5 sm:px-6">
             <div className="mb-10 text-center">
-              <p className="mb-3 text-sm font-bold uppercase tracking-wider" style={{ color: BLUE }}>FAQ</p>
+              <p className="mb-3 text-sm font-bold uppercase tracking-wider" style={{ color: BRAND }}>FAQ</p>
               <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
                 Quick answers
               </h2>
@@ -513,7 +513,7 @@ export default function Landing() {
                     <span className="text-base font-semibold text-slate-900">{f.q}</span>
                     <span
                       className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-lg font-bold transition-transform group-open:rotate-45"
-                      style={{ backgroundColor: `${BLUE}15`, color: BLUE }}
+                       style={{ backgroundColor: `${BRAND}15`, color: BRAND }}
                     >
                       +
                     </span>
@@ -525,7 +525,7 @@ export default function Landing() {
           </div>
         </section>
         {/* Sync across all platforms */}
-        <section className="relative overflow-hidden" style={{ backgroundColor: BLUE }}>
+        <section className="relative overflow-hidden" style={{ backgroundColor: BRAND }}>
           <div className="pointer-events-none absolute -top-24 -left-24 h-[420px] w-[420px] rounded-full bg-white/10 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-24 -right-24 h-[420px] w-[420px] rounded-full bg-white/10 blur-3xl" />
           <div className="relative mx-auto max-w-6xl px-4 pt-6 pb-4 text-center sm:px-6 sm:pt-10 sm:pb-8">
@@ -538,7 +538,7 @@ export default function Landing() {
             <div className="mt-5 flex justify-center">
               <button
                 onClick={handleGetStarted}
-                className="inline-flex h-12 items-center justify-center rounded-full border border-white/70 px-10 text-base font-semibold text-white transition-all hover:bg-white hover:text-[#3c78f0]"
+                 className="inline-flex h-12 items-center justify-center rounded-full border border-white/70 px-10 text-base font-semibold text-white transition-all hover:bg-white hover:text-primary"
               >
                 Download
               </button>
@@ -564,7 +564,7 @@ export default function Landing() {
           <div className="mb-6 flex flex-nowrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <AppLogo size="sm" />
-              <span className="text-base font-extrabold" style={{ color: BLUE }}>Flowist</span>
+              <span className="text-base font-extrabold" style={{ color: BRAND }}>Flowist</span>
             </div>
             <div className="ml-auto flex items-center gap-3">
               <a href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="Flowist on X (Twitter)" className="inline-block transition-transform hover:scale-105">
