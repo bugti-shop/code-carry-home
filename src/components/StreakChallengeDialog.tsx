@@ -10,7 +10,7 @@ import { Check, X, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format, subDays, addDays, startOfWeek } from 'date-fns';
-import appLogo from '@/assets/flowist-logo.png.asset.json';
+import appLogo from '@/assets/app-logo.webp';
 import { getSetting, setSetting } from '@/utils/settingsStorage';
 
 interface StreakChallengeDialogProps {
@@ -140,7 +140,7 @@ export const StreakChallengeDialog = ({ isOpen, onClose, currentStreak, weekData
 
               {/* Mascot */}
               <motion.img
-                src={appLogo.url}
+                src={appLogo}
                 alt="Flowist Mascot"
                 className="relative z-10 w-16 h-16 rounded-2xl shadow-lg"
                 initial={{ y: 10, opacity: 0 }}

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import appLogo from '@/assets/flowist-logo.png.asset.json';
+import appLogo from '@/assets/app-logo.webp';
 import { useTranslation } from 'react-i18next';
 import { Crown, Unlock, Bell, Gift, Check, X } from 'lucide-react';
 import { useSubscription, ProductType } from '@/contexts/SubscriptionContext';
@@ -286,7 +286,7 @@ function PaywallVariantA({ logic }: { logic: ReturnType<typeof usePaywallLogic> 
       <div className="px-4 py-2" />
       <div className="flex-1 overflow-y-auto px-6">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-center gap-2.5 mb-6">
-          <img src={appLogo.url} alt="Flowist" className="h-9 w-9 flex-shrink-0" />
+          <img src={appLogo} alt="Flowist" className="h-9 w-9 flex-shrink-0" />
           <h1 className="text-[22px] font-black tracking-tight" style={{ color: 'hsl(0 0% 3.9%)', fontFamily: "'Nunito', sans-serif" }}>
             {t('onboarding.paywall.upgradeTitle')}
           </h1>

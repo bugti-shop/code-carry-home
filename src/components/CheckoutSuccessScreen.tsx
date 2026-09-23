@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { m as motion } from 'framer-motion';
 import { CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
-import appLogo from '@/assets/flowist-logo.png.asset.json';
+import appLogo from '@/assets/app-logo.webp';
 
 interface CheckoutSuccessScreenProps {
   isVerified: boolean;
@@ -46,7 +46,7 @@ export function CheckoutSuccessScreen({ isVerified, isFailed }: CheckoutSuccessS
       >
         {/* Logo */}
         <motion.img
-          src={appLogo.url}
+          src={appLogo}
           alt="Flowist"
           className="h-16 w-16"
           initial={{ rotate: -10 }}

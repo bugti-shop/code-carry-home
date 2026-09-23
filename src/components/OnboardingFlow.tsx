@@ -6,7 +6,7 @@ import { ALL_JOURNEYS, startJourney } from '@/utils/virtualJourneyStorage';
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Camera, User, Check, PenLine, CheckCircle2, CalendarDays, Target, Lightbulb, Bell, BarChart3, Star, Trophy, FlaskConical, Link, Monitor, Rocket, Heart, TrendingUp, Brain, Zap, Palette, Save, Trash2, BookOpen, Briefcase, Activity, Sparkles, MapPin, Plus, Folder as FolderIcon, Gift, Info, Unlock, Crown } from 'lucide-react';
-import appLogo from '@/assets/flowist-logo.png.asset.json';
+import appLogo from '@/assets/app-logo.webp';
 
 import { MemoryRouter } from 'react-router-dom';
 
@@ -1162,7 +1162,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
         >
           <div className="flex items-center gap-2.5">
             <motion.img
-              src={appLogo.url}
+              src={appLogo}
               alt="Flowist"
               className="w-8 h-8"
               initial={{ scale: 0 }}
@@ -1287,7 +1287,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
         >
           <div className="flex items-center gap-2.5">
             <motion.img
-              src={appLogo.url}
+              src={appLogo}
               alt="Flowist"
               className="w-9 h-9"
               initial={{ scale: 0 }}

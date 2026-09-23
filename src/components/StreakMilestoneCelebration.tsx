@@ -10,7 +10,7 @@ import { Share2, X, Instagram, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { triggerHaptic, triggerNotificationHaptic } from '@/utils/haptics';
 import { LazyConfetti as Confetti } from '@/components/LazyConfetti';
-import appLogo from '@/assets/flowist-logo.png.asset.json';
+import appLogo from '@/assets/app-logo.webp';
 import { lazyHtml2canvas } from '@/utils/lazyHtml2canvas';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { CardBrandingFooterLarge } from '@/components/CardBranding';
@@ -212,7 +212,7 @@ export const StreakMilestoneCelebration = () => {
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             />
             <motion.img
-              src={appLogo.url}
+              src={appLogo}
                alt="Flowist"
               className="w-24 h-24 rounded-3xl relative z-10 shadow-2xl"
               animate={{
@@ -351,7 +351,7 @@ const ShareCard = ({
 
       {/* Logo */}
       <img
-        src={appLogo.url}
+        src={appLogo}
         alt="Flowist"
         style={{
           width: '160px',
