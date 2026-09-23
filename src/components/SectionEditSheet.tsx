@@ -22,7 +22,7 @@ interface SectionEditSheetProps {
 }
 
 const sectionColors = [
-  '#db252d', // blue
+  '#db252d', // Flowist red
   '#10b981', // emerald
   '#f59e0b', // amber
   '#ef4444', // red

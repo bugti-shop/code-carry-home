@@ -5,7 +5,7 @@ import { BadgeRarity, JourneyBadge, RARITY_CONFIG } from '@/utils/virtualJourney
 export const MEDAL_COLORS: Record<BadgeRarity, { ring: string; bg: string; ribbon: string; inner: string; text: string }> = {
   legendary: { ring: 'from-yellow-400 via-amber-500 to-yellow-600', bg: 'bg-gradient-to-br from-yellow-500/20 to-amber-600/20', ribbon: 'bg-gradient-to-b from-amber-500 to-amber-700', inner: 'bg-gradient-to-br from-slate-800 to-slate-900', text: 'text-amber-400' },
   epic: { ring: 'from-purple-400 via-violet-500 to-purple-600', bg: 'bg-gradient-to-br from-purple-500/20 to-violet-600/20', ribbon: 'bg-gradient-to-b from-violet-500 to-violet-700', inner: 'bg-gradient-to-br from-slate-800 to-slate-900', text: 'text-violet-400' },
-  rare: { ring: 'from-blue-400 via-cyan-500 to-blue-600', bg: 'bg-gradient-to-br from-blue-500/20 to-cyan-600/20', ribbon: 'bg-gradient-to-b from-blue-500 to-blue-700', inner: 'bg-gradient-to-br from-slate-800 to-slate-900', text: 'text-red-400' },
+  rare: { ring: 'from-blue-400 via-cyan-500 to-blue-600', bg: 'bg-gradient-to-br from-blue-500/20 to-cyan-600/20', ribbon: 'bg-gradient-to-b from-blue-500 to-blue-700', inner: 'bg-gradient-to-br from-slate-800 to-slate-900', text: 'text-blue-400' },
   uncommon: { ring: 'from-emerald-400 via-green-500 to-emerald-600', bg: 'bg-gradient-to-br from-emerald-500/20 to-green-600/20', ribbon: 'bg-gradient-to-b from-emerald-500 to-emerald-700', inner: 'bg-gradient-to-br from-slate-800 to-slate-900', text: 'text-emerald-400' },
   common: { ring: 'from-zinc-300 via-zinc-400 to-zinc-500', bg: 'bg-gradient-to-br from-zinc-400/20 to-zinc-500/20', ribbon: 'bg-gradient-to-b from-zinc-400 to-zinc-600', inner: 'bg-gradient-to-br from-slate-800 to-slate-900', text: 'text-zinc-300' },
 };

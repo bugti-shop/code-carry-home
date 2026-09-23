@@ -212,7 +212,7 @@ export const StreakMilestoneCelebration = () => {
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             />
             <motion.img
-              src={appLogo}
+              src={appLogo.url}
                alt="Flowist"
               className="w-24 h-24 rounded-3xl relative z-10 shadow-2xl"
               animate={{
@@ -351,7 +351,7 @@ const ShareCard = ({
 
       {/* Logo */}
       <img
-        src={appLogo}
+        src={appLogo.url}
         alt="Flowist"
         style={{
           width: '160px',
