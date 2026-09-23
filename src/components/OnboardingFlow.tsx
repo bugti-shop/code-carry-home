@@ -6,7 +6,7 @@ import { ALL_JOURNEYS, startJourney } from '@/utils/virtualJourneyStorage';
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Camera, User, Check, PenLine, CheckCircle2, CalendarDays, Target, Lightbulb, Bell, BarChart3, Star, Trophy, FlaskConical, Link, Monitor, Rocket, Heart, TrendingUp, Brain, Zap, Palette, Save, Trash2, BookOpen, Briefcase, Activity, Sparkles, MapPin, Plus, Folder as FolderIcon, Gift, Info, Unlock, Crown } from 'lucide-react';
-import appLogo from '@/assets/app-logo.webp';
+import appLogo from '@/assets/flowist-logo.png.asset.json';
 
 import { MemoryRouter } from 'react-router-dom';
 

@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import appLogo from '@/assets/app-logo.webp';
+import appLogo from '@/assets/flowist-logo.png.asset.json';
 
 interface AppLogoProps {
   className?: string;
@@ -17,7 +17,7 @@ const AppLogoInner = ({ className, size = 'md' }: AppLogoProps) => {
 
   return (
     <img
-      src={appLogo}
+      src={appLogo.url}
       alt="Flowist app logo"
       className={className || `${sizeClass} flex-shrink-0`}
       loading="eager"

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import appLogo from '@/assets/app-logo.webp';
+import appLogo from '@/assets/flowist-logo.png.asset.json';
 import { useTranslation } from 'react-i18next';
 import { Crown, Unlock, Bell, Gift, Check, X } from 'lucide-react';
 import { useSubscription, ProductType } from '@/contexts/SubscriptionContext';
